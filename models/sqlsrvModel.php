@@ -145,9 +145,6 @@ class sqlsrvModel{
                 FROM webphp_Usuarios 
                 WHERE usr_login='".$user."' 
                 AND (elim = 0)";
-
-                // echo $sql;
-                // die;
         $params = array();
         $options =  array("Scrollable" => SQLSRV_CURSOR_KEYSET);
         $consulta = sqlsrv_query($conn, $sql, $params, $options);
@@ -867,7 +864,7 @@ class sqlsrvModel{
         } elseif ($estado == '4') {
             $sql .= " AND (pe.firma_superior = '1' AND pe.estado = '$estado')";
         } elseif ($estado == '5') {
-            $sql .= " AND (pe.firma_superior = '1' AND pe.estado = '$estado')";
+            $sql .= " AND pe.estado = '$estado'";
         } else {
             $sql .= " AND pe.estado IN ('1', '3', '4', '5', '6', '7', '8')";
         }
@@ -877,8 +874,6 @@ class sqlsrvModel{
 
         $sql .= " ORDER BY pe.fecha_solicitud DESC;";
 
-        // echo $sql; 
-        // die;
 
         $consulta = sqlsrv_query($conn, $sql);
         if ($consulta === FALSE) {
