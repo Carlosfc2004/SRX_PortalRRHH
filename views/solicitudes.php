@@ -1,6 +1,10 @@
 <?php
     // var_dump($params['solicitudes_pendientes']);
     // die;
+
+    // var_dump($solicitud['observaciones']);
+    // die;
+
     include("header.php");
 
 ?>
@@ -222,6 +226,12 @@
                             case '2':
                                 echo "<td>Otras ausencias</td>";
                                 break;
+                            case '3':
+                                echo "<td>Festivo local</td>";
+                                break;
+                            case '4':
+                                echo "<td>Asuntos propios</td>";
+                                break;
                         }
                         ?>
                         <?php
@@ -316,7 +326,7 @@
                                                 <div class="row">
                                                     <div class="col-md-6 mb-3">
                                                         <label for="tipoSol" class="form-label"><b>Tipo</b></label>
-                                                        <input type="text" class="form-control" value='<?php echo $solicitud['tipo'] == '1' ? 'Vacaciones' : ($solicitud['tipo'] == '2' ? 'Otras ausencias' : 'Otro'); ?>' name="tipoSol" id="tipoSol" disabled>
+                                                        <input type="text" class="form-control" value='<?php echo $solicitud['tipo'] == '1' ? 'Vacaciones' : ($solicitud['tipo'] == '2' ? 'Otras ausencias' : ($solicitud['tipo'] == '3' ? 'Festivo local' : ($solicitud['tipo'] == '4' ? 'Asuntos propios' : 'Otro'))); ?>' name="tipoSol" id="tipoSol" disabled>
                                                     </div>
                                                     <?php
                                                         $nombreMotivo = '';
@@ -438,7 +448,7 @@
                                                 ?>
                                                     <form class="mb-3" action="admin_cont.php?controller=index&action=solicitudes&addComentario" method="post" id="formComentario">
                                                         <input type="hidden" name="observacion">
-                                                        <input type="hidden" name="id_sol" value="<?php echo $solicitud['id']; ?>">
+                                                        <input type="hidden" name="id_sol" value="<?php echo $solicitud['id_solicitud']; ?>">
                                                         <input type="hidden" name="pernr_mod" value="<?php echo $_SESSION['id_user_surexport_appreclu']; ?>">
                                                         <input type="hidden" name="fecha_crea" value="<?php echo date('Y-m-d H:i:s'); ?>">
                                                         <input type="hidden" name="fecha" value="<?php echo date('Y-m-d'); ?>">

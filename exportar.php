@@ -1533,6 +1533,10 @@ if (isset($_GET['pdf'])) {
 				$tipo = 'Vacaciones';
 			} elseif ($resultado['tipo'] == '2') {
 				$tipo = 'Otras ausencias';
+			} elseif ($resultado['tipo'] == '3') {
+				$tipo = 'Festivo local';
+			} elseif ($resultado['tipo'] == '4') {
+				$tipo = 'Asuntos propios';
 			} else {
 				$tipo = 'Otro';
 			}
@@ -1549,6 +1553,10 @@ if (isset($_GET['pdf'])) {
 				$estado = 'Anulada';
 			} elseif ($resultado['estado'] == '6') {
 				$estado = 'Pendiente';
+			} elseif ($resultado['estado'] == '7') {
+				$estado = 'Pendiente anulación';
+			} elseif ($resultado['estado'] == '8') {
+				$estado = 'Anulación rechazada';
 			} else {
 				$estado = 'Desconocido';
 			}
@@ -1653,6 +1661,10 @@ if (isset($_GET['pdf'])) {
 					$tipo = 'Vacaciones';
 				} elseif ($resultado['tipo'] == '2') {
 					$tipo = 'Otras ausencias';
+				} elseif ($resultado['tipo'] == '3') {
+					$tipo = 'Festivo local';
+				} elseif ($resultado['tipo'] == '4') {
+					$tipo = 'Asuntos propios';
 				} else {
 					$tipo = 'Otro';
 				}
@@ -1667,6 +1679,12 @@ if (isset($_GET['pdf'])) {
 					$estado = 'Rechazada';
 				} elseif ($resultado['estado'] == '5') {
 					$estado = 'Anulada';
+				} elseif ($resultado['estado'] == '6') {
+					$estado = 'Pendiente';
+				} elseif ($resultado['estado'] == '7') {
+					$estado = 'Pendiente anulación';
+				} elseif ($resultado['estado'] == '8') {
+					$estado = 'Anulación rechazada';
 				} else {
 					$estado = 'Desconocido';
 				}
