@@ -130,13 +130,16 @@ $anio_inc = $datos[0]['fecha_incorporacion']->format('Y');
 
         <p class="fecha_lugar">
             En Almonte (Huelva), a <?php 
-                
-                // Obtenemos el día, mes y año de la fecha_remesa
-                $dia_rem = $datos[0]['fecha_remesa']->format('d');
-                $mes_rem = (int)$datos[0]['fecha_remesa']->format('m');
-                $anio_rem = $datos[0]['fecha_remesa']->format('Y');
-                
-                // Formateamos la fecha completa
+                // Clonamos y sumamos 15 días
+                $fecha_mas_15 = clone $datos[0]['fecha_remesa'];
+                $fecha_mas_15->modify('+15 days');
+
+                // Obtenemos el día, mes y año de la nueva fecha
+                $dia_rem = $fecha_mas_15->format('d');
+                $mes_rem = (int)$fecha_mas_15->format('m');
+                $anio_rem = $fecha_mas_15->format('Y');
+
+                // Formateamos la fecha
                 echo $dia_rem . ' de ' . $meses[$mes_rem - 1] . ' de ' . $anio_rem;
             ?>
         </p>
@@ -151,7 +154,7 @@ $anio_inc = $datos[0]['fecha_incorporacion']->format('Y');
         </p>
         <p class="justificado">
             Con anterioridad a esta comunicación la Empresa le trasladó un primer aviso de llamamiento en el que le requeríamos para que, 
-            en un plazo de cinco días desde dicha comunicación, contactara con el/la responsable para coordinar su reincorporación y los 
+            en un plazo de quince días desde dicha comunicación, contactara con el/la responsable para coordinar su reincorporación y los 
             trabajos, sin que hasta la fecha nos conste que Ud. haya complido con dicho trámite.
         </p>
         <p class="justificado">
@@ -160,7 +163,7 @@ $anio_inc = $datos[0]['fecha_incorporacion']->format('Y');
         </p>
         <p class="justificado">
             Al objeto de poder coordinar las incorporaciones y los trabajos, le volvemos a rogar que se ponga en contacto de forma inmediata con 
-            D./Dª <b><?php echo $datos[0]['nombre']. " ". $datos[0]['apellidos']; ?></b> en el número de teléfono: <b><?php echo $datos[0]['telefono']; ?></b> 
+            D./Dª <b><?php echo $datos[0]['nombre']. " ". $datos[0]['apellidos']; ?></b> en el número de teléfono: <b><?php echo $datos[0]['telf']; ?></b> 
             y/o en el siguiente correo: <b><?php echo $datos[0]['usr_login']; ?></b>
         </p>
         <p class="justificado">

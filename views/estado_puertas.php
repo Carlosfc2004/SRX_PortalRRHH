@@ -20,7 +20,7 @@ curl_setopt($curl, CURLOPT_POSTFIELDS, json_encode($data)); // Configurar datos 
 $response = curl_exec($curl);
 if($response === false) {
     $error = curl_error($curl);
-    echo "cURL Error: $error";
+    // echo "cURL Error: $error";
 } else {
     $httpCode = curl_getinfo($curl, CURLINFO_HTTP_CODE); // Código de respuesta HTTP
     
@@ -34,10 +34,10 @@ if($response === false) {
 
     }
         
-    /*
-    echo "HTTP Code: $httpCode\n";
-    echo "Response: $response\n";
-    */
+
+    // echo "HTTP Code: $httpCode\n";
+    // echo "Response: $response\n";
+
 }
 
 // Cerrar la sesión cURL
@@ -57,11 +57,17 @@ curl_close($curl);
             <li class="breadcrumb-item active">Estado puertas</li>
         </ol>
     </nav>
-    <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 row-cols-xl-5 g-4">
         <?php
-        // Ejemplo de datos de formularios
-        $formularios = $puertas_registradas;
-        foreach ($formularios['DOOR'] as $formulario) {
+        if (isset($error) && !empty($error)) {
+            echo '<div class="col"><div class="alert alert-danger" role="alert">Error al cargar los datos de las puertas: ' . htmlspecialchars($error) . '</div></div>';
+        } elseif (isset($puertas_registradas['DOOR']) && is_array($puertas_registradas['DOOR'])) {
+            // Ejemplo de datos de formularios
+            $formularios = $puertas_registradas;
+        ?>
+
+            <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 row-cols-xl-5 g-4">
+            <?php
+            foreach ($formularios['DOOR'] as $formulario) {
         ?>
             <div class="col">
                 <div class="card h-100 shadow-sm">
@@ -98,6 +104,9 @@ curl_close($curl);
                 </div>
             </div>
         <?php
+        }
+        } else {
+            echo '<div class="col"><div class="alert alert-warning" role="alert">No se encontraron datos de puertas registradas.</div></div>';
         }
         ?>
     </div>

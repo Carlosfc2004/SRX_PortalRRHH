@@ -31,58 +31,55 @@ include 'header.php';
     </nav>
 
 <section class="section">
+    <!-- Filtros y acciones -->
     <div class="card">
         <div class="card-body">
             <div class="row align-items-start g-3 mt-2">
+
                 <!-- Filtro de Asistencia -->
                 <div class="col-auto text-center">
-                    <label for="filtroAsistencia" class="form-label"><b>Filtrar por asistencia</b></label>
-                    <select id="filtroAsistencia" class="form-select" style="min-width: 180px;">
+                    <label for="filtroAsistencia" class="form-label"><strong>Filtrar por asistencia</strong></label>
+                    <select id="filtroAsistencia" class="form-select" style="min-width: 180px;" aria-label="Filtrar por asistencia">
                         <option value="todos">Todos</option>
-                        <option value="ha venido">Han venido</option>
-                        <option value="no ha venido" selected>No han venido</option>
+                        <option value="1">Con registro</option>
+                        <option value="0" selected>Sin registro</option>
                     </select>
                 </div>
 
                 <!-- Buscador -->
                 <div class="col-auto text-center">
-                    <label for="buscador" class="form-label"><b>Cod. Trabajador, nombre, asistencia</b></label>
-                    <input type="text" id="buscador" class="form-control" placeholder="Buscar..." style="min-width: 250px;">
+                    <label for="buscador" class="form-label"><strong>Cod. Trabajador, nombre, asistencia</strong></label>
+                    <input type="text" id="buscador" class="form-control" placeholder="Buscar..." style="min-width: 250px;" aria-label="Buscar trabajador">
                 </div>
 
                 <!-- Botón de exportar a Excel -->
-                <div class="col-auto text-center">
-                    <br>
-                    <?php 
-                        if (isset($params['trabajadores_presencia']) && !empty($params['trabajadores_presencia'])) {
-                        ?>
-                            <form action="" method="post" id="exportar" class="mb-0">
-                                <!-- Se asegura de que los valores de tipo y fecha_inicio se pasen correctamente, ya sea por POST o por GET -->
-                                <input type="hidden" name="fecha_inicio" value="<?php echo isset($_POST['fecha_inicio']) ? $_POST['fecha_inicio'] : (isset($_GET['fecha_inicio']) ? $_GET['fecha_inicio'] : date('Y-m-d')); ?>">
-                                <input type="hidden" name="tipo" value="<?php echo isset($_POST['tipo']) ? $_POST['tipo'] : (isset($_GET['tipo']) ? $_GET['tipo'] : 'presencia'); ?>">
-                                
-                                <!-- Botón para exportar a Excel -->
-                                <button type="button" onclick="document.getElementById('exportar').action='exportar.php?sinregistros_excel'; document.getElementById('exportar').submit();" style="background-color: white; border: none;">
-                                    <img src="img/xls.png" alt="Exportar a Excel" style="width: 30px;">
-                                </button>
-                            </form>
-                        <?php
-                        }
-                    ?> 
-                </div>
+                <?php if (!empty($params['trabajadores_presencia'])) { ?>
+                    <div class="col-auto text-center d-flex align-items-end">
+                        <form action="" method="post" id="exportar" class="mb-0">
+                            <input type="hidden" name="fecha_inicio" value="<?= $_POST['fecha_inicio'] ?? $_GET['fecha_inicio'] ?? date('Y-m-d'); ?>">
+                            <input type="hidden" name="tipo" value="<?= $_POST['tipo'] ?? $_GET['tipo'] ?? 'presencia'; ?>">
+
+                            <!-- Nuevos inputs ocultos -->
+                            <input type="hidden" name="filtroAsistencia" id="exportarFiltro">
+                            <input type="hidden" name="buscador" id="exportarBuscador">
+
+                            <button type="button" onclick="enviarExportacion()" style="background-color: white; border: none;" aria-label="Exportar a Excel">
+                                <img src="img/xls.png" alt="Exportar a Excel" style="width: 30px;">
+                            </button>
+                        </form>
+                    </div>
+                <?php } ?>
+
             </div>
         </div>
     </div>
 
-
-
-
-
-    <div class="card">
+    <!-- Tabla de trabajadores -->
+    <div class="card mt-3">
         <div class="card-body">
             <h5 class="card-title">Trabajadores presencia</h5>
             <div class="table-container" style="overflow-x: auto;">
-                <table class="table table-hover" id="trabajadores_presencia"> 
+                <table class="table table-hover" id="trabajadores_presencia">
                     <thead>
                         <tr>
                             <th scope="col">Cod. Trabajador</th>
@@ -92,105 +89,84 @@ include 'header.php';
                         </tr>
                     </thead>
                     <tbody>
-                        <?php 
-                            foreach ($params['trabajadores_presencia'] as $trabajador) { 
-                            ?>
-                                <tr>
-                                    <td><?php echo $trabajador['A1_PERNR']; ?></td>
-                                    <td><?php echo $trabajador['NOMBREYAPELLIDOS']; ?></td>
-                                    <td><?php echo $trabajador['Estado']; ?></td>
-                                    <td>
-                                        <li class="hvr-icon-forward">
-                                        <form action="admin_cont.php?controller=index&action=update_trabajador&id=<?php echo $trabajador['A1_PERNR']; ?>&presencia" method="POST">
-                                            <!-- Verificar primero en $_POST y luego en $_GET para los valores -->
-                                            <input type="hidden" name="tipo" value="<?php echo isset($_POST['tipo']) ? $_POST['tipo'] : (isset($_GET['tipo']) ? $_GET['tipo'] : ''); ?>">
-                                            <input type="hidden" name="fecha_inicio" value="<?php echo isset($_POST['fecha_inicio']) ? $_POST['fecha_inicio'] : (isset($_GET['fecha_inicio']) ? $_GET['fecha_inicio'] : date('Y-m-d')); ?>">
-                                            
-                                            <button type="submit" class="hvr-icon" style="background: none; border: none; padding: 0;">
-                                                <i class="bi bi-pencil-square fs-4" style="color: #012970;"></i>
-                                            </button>
-                                        </form>
-                                        </li>
-                                    </td>
-                                </tr>
-                            <?php 
-                            } 
-                        ?>
+                        <?php foreach ($params['trabajadores_presencia'] as $trabajador) { ?>
+                            <tr>
+                                <td><?= $trabajador['A1_PERNR']; ?></td>
+                                <td><?= $trabajador['NOMBREYAPELLIDOS']; ?></td>
+                                <td><?= $trabajador['Estado'] === '1' ? 'Con registro' : 'Sin registro'; ?></td>
+                                <td>
+                                    <form action="admin_cont.php?controller=index&action=update_trabajador&id=<?= $trabajador['A1_PERNR']; ?>&presencia" method="POST">
+                                        <input type="hidden" name="tipo" value="<?= $_POST['tipo'] ?? $_GET['tipo'] ?? ''; ?>">
+                                        <input type="hidden" name="fecha_inicio" value="<?= $_POST['fecha_inicio'] ?? $_GET['fecha_inicio'] ?? date('Y-m-d'); ?>">
+                                        <button type="submit" class="hvr-icon" style="background: none; border: none; padding: 0;" aria-label="Editar trabajador">
+                                            <i class="bi bi-pencil-square fs-4" style="color: #012970;"></i>
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                        <?php } ?>
                     </tbody>
                 </table>
             </div>
 
-            <div id="noResultados" class="alert alert-danger alert-dismissible fade show" role="alert">
+            <div id="noResultados" class="alert alert-danger alert-dismissible fade show mt-3" role="alert" style="display: none;">
                 No se han encontrado resultados con esos filtros.
             </div>
-            
         </div>
     </div>
 </section>
 
 <script>
-    document.addEventListener('DOMContentLoaded', function () {
+    document.addEventListener('DOMContentLoaded', () => {
         const filtroAsistencia = document.getElementById('filtroAsistencia');
         const buscador = document.getElementById('buscador');
         const filas = document.querySelectorAll('#trabajadores_presencia tbody tr');
         const mensajeNoResultados = document.getElementById('noResultados');
-        
-        // Función para filtrar las filas según el filtro de asistencia y el buscador
+
         function filtrarTabla() {
             const filtro = filtroAsistencia.value.trim().toLowerCase();
             const busqueda = buscador.value.trim().toLowerCase();
-            let resultadosVisibles = 0; // Contador de resultados visibles
-            
+            let resultadosVisibles = 0;
+
             filas.forEach(fila => {
-                const estado = fila.cells[2].textContent.trim().toLowerCase(); // Estado de la fila
-                const celdas = fila.getElementsByTagName('td');
-                let mostrar = true;
-                
-                // Filtrar por asistencia
-                if (filtro !== 'todos' && estado !== filtro) {
-                    mostrar = false;
+                const estado = fila.cells[2].textContent.trim().toLowerCase();
+                const textoFila = fila.textContent.toLowerCase();
+                let visible = true;
+
+                if (filtro !== 'todos' && estado !== (filtro === '1' ? 'con registro' : 'sin registro')) {
+                    visible = false;
                 }
-                
-                // Filtrar por búsqueda global
-                if (mostrar && busqueda) {
-                    let coincideBusqueda = false;
-                    for (let i = 0; i < celdas.length; i++) {
-                        if (celdas[i].textContent.toLowerCase().includes(busqueda)) {
-                            coincideBusqueda = true;
-                            break;
-                        }
-                    }
-                    if (!coincideBusqueda) {
-                        mostrar = false;
-                    }
+
+                if (visible && busqueda && !textoFila.includes(busqueda)) {
+                    visible = false;
                 }
-                
-                // Mostrar u ocultar la fila dependiendo de los filtros
-                if (mostrar) {
-                    fila.style.display = '';
-                    resultadosVisibles++;
-                } else {
-                    fila.style.display = 'none';
-                }
+
+                fila.style.display = visible ? '' : 'none';
+                if (visible) resultadosVisibles++;
             });
 
-            // Mostrar u ocultar el mensaje de no resultados
-            if (resultadosVisibles === 0) {
-                mensajeNoResultados.style.display = 'block';
-            } else {
-                mensajeNoResultados.style.display = 'none';
-            }
+            mensajeNoResultados.style.display = resultadosVisibles === 0 ? 'block' : 'none';
         }
 
-        // Event listener para el filtro de asistencia
         filtroAsistencia.addEventListener('change', filtrarTabla);
-
-        // Event listener para el buscador
         buscador.addEventListener('input', filtrarTabla);
 
-        // Inicializar el filtrado
-        filtrarTabla();
+        filtrarTabla(); // inicializar
     });
+
+    function enviarExportacion() {
+        const filtro = document.getElementById('filtroAsistencia');
+        const buscador = document.getElementById('buscador');
+        const form = document.getElementById('exportar');
+
+        // Rellenar los campos ocultos
+        document.getElementById('exportarFiltro').value = filtro.value;
+        document.getElementById('exportarBuscador').value = buscador.value;
+
+        // Establecer acción y enviar
+        form.action = 'exportar.php?sinregistros_excel';
+        form.submit();
+    }
 </script>
 <?php
 include 'footer.php';

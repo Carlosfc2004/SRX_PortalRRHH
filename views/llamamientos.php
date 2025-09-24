@@ -30,6 +30,70 @@ include_once("header.php");
 				} 
 			?>
 
+			<form action="admin_cont.php?controller=index&action=llamamientos" method="post">
+				<h5 class="card-title">Filtros:</h5>
+                <div class="row align-items-end">
+					<!-- Ubicación -->
+					<div class="col-md-3">
+						<label for="ubi_trab" class="form-label">Ubicación:</label>
+						<select class="form-select" name="ubi_trab" id="ubi_trab">
+							<option value=""></option>
+							<?php
+								foreach ($params['fincas_almacenes'] as $key => $value) {
+									echo '<option value="' . $value['ZZLGORT'] . '" ' . (isset($_POST['ubi_trab']) && $_POST['ubi_trab'] == $value['ZZLGORT'] ? 'selected' : '') . '>' . $value['DESC_ALMACEN'] ." (".$value['ZZLGORT'].")". '</option>';
+								}
+							?>
+						</select>
+					</div>
+
+					<!-- Fecha inicio -->
+					<div class="col-md-3">
+						<label for="fecha_ini" class="form-label">Fecha baja:</label>
+						<input type="date" class="form-control" id="fecha_ini" name="fecha_ini" value="<?php echo isset($_POST['fecha_ini']) ? $_POST['fecha_ini'] : date('Y-m-d', strtotime('-18 months')); ?>">
+					</div>
+
+					<!-- Separador "a" -->
+					<div class="col-md-1 text-md-center">
+						<span>a</span>
+					</div>
+
+					<!-- Fecha fin -->
+					<div class="col-md-3">
+						<label for="fecha_fin" class="form-label" style="color: white">Fecha baja fin:</label>
+						<input type="date" class="form-control" id="fecha_fin" name="fecha_fin" value="<?php echo isset($_POST['fecha_fin']) ? $_POST['fecha_fin'] : date('Y-m-d'); ?>">
+					</div>
+				</div>
+				<br>
+			
+                <div id="loading" style="display: none;">
+                    <button class="btn btn-primary mt-2" type="button" disabled="">
+                        <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                        Buscando...
+                    </button>
+                </div>
+                <input type="submit" name="buscar" value="Buscar" class="btn btn-primary mt-2">
+                <script>
+                    // Mostrar el div de carga y ocultar el botón de búsqueda al enviar el formulario
+                    document.querySelector('form').addEventListener('submit', function() {
+                        document.getElementById('loading').style.display = 'block';
+						document.querySelector('input[type="submit"]').style.display = 'none';
+                    });
+                </script>
+			</form>
+
+			<!-- <form action='' id='exportar' method='post' style='display: inline-block; margin-left: 15px;'>
+                <input type="hidden" name="ubicacion" value="<?php echo isset($_POST['ubi_trab']) ? $_POST['ubi_trab'] : ''; ?>">
+				<input type="hidden" name="fecha_ini" value="<?php echo isset($_POST['fecha_ini']) ? $_POST['fecha_ini'] : ''; ?>">
+				<input type="hidden" name="fecha_fin" value="<?php echo isset($_POST['fecha_fin']) ? $_POST['fecha_fin'] : ''; ?>">
+
+                <button type="button" target="_blank"
+                    onclick="document.getElementById('exportar').action='exportar.php?informe_trabajadores_baja_excel&ubicacion=' + document.getElementById('ubi_trab').value + '&fecha_ini=' + document.getElementById('fecha_ini').value + '&fecha_fin=' + document.getElementById('fecha_fin').value; document.getElementById('exportar').submit();"
+                    style="background-color: white;">
+                    <img src="img/xls.png" style="max-width: 100px; width: 35px; margin-top: 10px;">
+                </button>
+            </form>
+			 -->
+
 			<div class="col-lg-12" style="margin-top: 30px;">
 				<span id="user_selec" style="font-size: 16px; font-weight: bold;"></span>
 				<?php 
@@ -54,6 +118,7 @@ include_once("header.php");
 						<th style="width:3%"></th>
 						<th style="width:8%">Cod. Trabajador</th>
 						<th style="width:28%"><?php echo $lang['nombre']; ?></th>
+						<th style="width:15%">Almacen</th>
 						<th style="width:15%">Fecha Baja</th>
 						<th style="width:12%"><?php echo $lang['telefono']; ?></th>
 						<th style="width:15%"><?php echo $lang['correo2']; ?></th>
@@ -78,20 +143,24 @@ include_once("header.php");
 
 	// Función para inicializar la tabla
 	function initializeTable() {
+		let rowCount = 0;
+		
+		$('#ubi_trab').closest('form').on('submit', function(e) {
+			e.preventDefault(); // Evita recargar la página
+			table.ajax.reload(); // Recarga el DataTable con el nuevo filtro
+		});
 		table = $('#table-info').DataTable({
-			'processing': true,
-			'language': {
-				'processing': '<div></div>'
-			},
 			'ajax': {
 				'type': 'POST',
 				'url': 'auto.php?datosLlamamiento',
-				'data': {
-					id_remesa: <?php echo $id_remesa; ?>, 
-					ano_remesa: <?php echo $ano_remesa; ?>
+				'data': function(d) {
+					d.id_remesa = <?php echo $id_remesa; ?>;
+					d.ano_remesa = <?php echo $ano_remesa; ?>;
+					d.ubi_trab = $('#ubi_trab').val(); // valor dinámico del filtro
+					d.fecha_ini = $('#fecha_ini').val(); // valor dinámico del filtro
+					d.fecha_fin = $('#fecha_fin').val(); // valor dinámico del filtro
 				},
 				'dataSrc': function(json) {
-					// Contar el número de filas en los datos JSON
 					rowCount = json.length;
 					return json;
 				}
@@ -101,10 +170,11 @@ include_once("header.php");
 				{ 'width': '3%', 'targets': 0 },  // Checkbox column
 				{ 'width': '8%', 'targets': 1 },  // PERNR
 				{ 'width': '28%', 'targets': 2 }, // Nombre
-				{ 'width': '15%', 'targets': 3 }, // BEGDA
-				{ 'width': '12%', 'targets': 4 }, // Teléfono
-				{ 'width': '15%', 'targets': 5 }, // Correo
-				{ 'width': '6%', 'targets': 6 }   // Botón editar
+				{ 'width': '15%', 'targets': 3 }, // Almacen
+				{ 'width': '15%', 'targets': 4 }, // BEGDA
+				{ 'width': '12%', 'targets': 5 }, // Teléfono
+				{ 'width': '15%', 'targets': 6 }, // Correo
+				{ 'width': '6%', 'targets': 7 }   // Botón editar
 			],
 			'columns': [
 				// Definición de columnas...
@@ -124,6 +194,7 @@ include_once("header.php");
 				},
 				{ 'data': 'PERNR' },
 				{ 'data': 'NOMBRE' },
+				{ 'data': 'ZZLGORT' },
 				{ 'data': 'BEGDA' },
 				{ 
 					'data': 'MOVIL',
@@ -160,7 +231,6 @@ include_once("header.php");
 				"infoFiltered": "(filtrado de _MAX_ registros totales)",
 				"zeroRecords": "Sin resultados encontrados",
 				"lengthMenu": "_MENU_ Resultados por página",
-				"processing": "Procesando...",
 				"paginate": {
 					"first": "",
 					"last": "",
@@ -170,9 +240,16 @@ include_once("header.php");
 				"emptyTable": "No hay información"
 			},
 			'initComplete': function () {
-				// Restaurar estados de checkboxes y actualizar contador
 				restoreCheckboxStates();
 				$('#num_trab').text(rowCount);
+			},
+			'drawCallback': function(settings) {
+				$('#num_trab').text(rowCount);
+			},
+			drawCallback: function(settings) {
+				// una vez cargado ocultar el boton de carga y volver a mostrar el boton de envio del formulario
+				document.getElementById('loading').style.display = 'none';
+				document.querySelector('input[type="submit"]').style.display = 'block';
 			}
 		});
 	}
@@ -299,54 +376,84 @@ include_once("header.php");
         });
 		
 		// Generar HTML para el popup de generación de remesa final y generación
-		$('#generar_rem').on('click', function() {
-            $("#load_rem_conf").html(`
-            <div class="card" style="width: 450px;">
-                <div class="card-body">
-                    <div class="row">
-                        <form id="form-remesa" action="admin_cont.php?controller=index&action=generar_rem_llama&remesa" method="POST">
-                            <h4 class="mt-3" style="text-align: center;"><b><?php echo $lang['crear_rem']; ?></b></h4>
-                            <input type="hidden" id="generar_rem" name="generar_rem">
-                            <div class="col-md-12 mt-3" style="text-align: left;">
-                                <label for="nombre_remesa" ><b><?php echo $lang['nombre_rem2']; ?></b></label>
-                                <input type="text" id="nombre_remesa" name="nombre_remesa" class="form-control mb-1 mt-1" placeholder="<?php echo $lang['nombre_rem']; ?>" required>
-                            </div>
+		$('#generar_rem').on('click', function () {
+			$("#load_rem_conf").html(`
+				<div class="card" style="width: 450px;">
+					<div class="card-body">
+						<div class="row">
+							<form id="form-remesa" action="admin_cont.php?controller=index&action=generar_rem_llama&remesa" method="POST">
+								<h4 class="mt-3" style="text-align: center;"><b><?php echo $lang['crear_rem']; ?></b></h4>
+								<input type="hidden" id="generar_rem" name="generar_rem">
 
-							<div class='col-md-6 mt-3'>
-							    <label for="fecha_inc" ><b>Fecha incorporación </b></label>
-								<input type='date' id="fecha_inc" name='fecha_inc' class='form-control' value='' required>
-							</div>
-
-							<div class='col-md-6 mt-3'>
-							    <label for="telefono_rem" ><b><?php echo $lang['telefono']; ?> </b></label>
-								<input type='number' id="telefono_rem" name='telefono_rem' class='form-control' value='<?php echo $_SESSION["telefono_user_surexport_appreclu"]; ?>' required>
-							</div>
-
-							<div class='col-md-6 mt-3'>
-								<div class="form-check form-switch">
-									<input class="form-check-input" type="checkbox" name="sms_auto" checked="">
-									<label class="form-check-label">SMS Automático</label>
+								<div class="col-md-12 mt-3" style="text-align: left;">
+									<label for="nombre_remesa"><b><?php echo $lang['nombre_rem2']; ?></b></label>
+									<input type="text" id="nombre_remesa" name="nombre_remesa" class="form-control mb-1 mt-1" placeholder="<?php echo $lang['nombre_rem']; ?>" required>
 								</div>
-							</div>
 
-                            <div id="usuarios-seleccionados"></div>
-                            <button type="submit" class="btn btn-primary mt-3"><?php echo $lang['generar']; ?></button>
-                        </form>
-                    </div>
-                </div>
-            </div>
-            `);
-            
-            // Agregar los usuarios seleccionados al formulario
-            for (var key in checkboxStates) {
-                if (checkboxStates.hasOwnProperty(key) && checkboxStates[key]) {
-                    $('#usuarios-seleccionados').append(`<input type="hidden" name="user_remesas[]" value="${key}">`);
-                }
-            }
+								<!-- Fecha con restricción dinámica y texto que se oculta -->
+								<div class='col-md-12 mt-3'>
+									<label for="fecha_inc"><b>Fecha incorporación <br>
+										<span id="min_dias_msg">(Mínimo 20 días para realizar la remesa)</span>
+									</b></label>
+									<input type='date' id="fecha_inc" name='fecha_inc' class='form-control' value='' required>
+								</div>
 
-            // Mostrar el popup 
-            $("#load_rem_conf").lightbox_me({centered: true});
-        });
+								<div class='col-md-6 mt-3'>
+									<label for="telefono_rem"><b><?php echo $lang['telefono']; ?></b></label>
+									<input type='number' id="telefono_rem" name='telefono_rem' class='form-control' value='<?php echo $_SESSION["telefono_user_surexport_appreclu"]; ?>' required>
+								</div>
+
+								<div class='col-md-6 mt-3'>
+									<div class="form-check form-switch">
+										<input class="form-check-input" type="checkbox" name="sms_auto" id="sms_auto" checked>
+										<label class="form-check-label">SMS Automático</label>
+									</div>
+								</div>
+
+								<div id="usuarios-seleccionados"></div>
+								<button type="submit" class="btn btn-primary mt-3"><?php echo $lang['generar']; ?></button>
+							</form>
+						</div>
+					</div>
+				</div>
+			`);
+
+			// Agregar los usuarios seleccionados al formulario
+			for (var key in checkboxStates) {
+				if (checkboxStates.hasOwnProperty(key) && checkboxStates[key]) {
+					$('#usuarios-seleccionados').append(`<input type="hidden" name="user_remesas[]" value="${key}">`);
+				}
+			}
+
+			// Mostrar el popup
+			$("#load_rem_conf").lightbox_me({ centered: true });
+
+			// Función para actualizar min de fecha y mostrar/ocultar mensaje
+			function actualizarMinFecha() {
+				const smsCheckbox = document.getElementById('sms_auto');
+				const fechaInput = document.getElementById('fecha_inc');
+				const mensajeMinDias = document.getElementById('min_dias_msg');
+
+				if (smsCheckbox.checked) {
+					const hoy = new Date();
+					hoy.setDate(hoy.getDate() + 20);
+					const minFecha = hoy.toISOString().split('T')[0];
+					fechaInput.min = minFecha;
+					mensajeMinDias.style.display = 'inline';  // Mostrar mensaje
+
+					if (fechaInput.value && fechaInput.value < minFecha) {
+						fechaInput.value = '';
+					}
+				} else {
+					fechaInput.removeAttribute('min');
+					mensajeMinDias.style.display = 'none';   // Ocultar mensaje
+				}
+			}
+
+			// Ejecutar al cargar y al cambiar checkbox
+			actualizarMinFecha();
+			document.getElementById('sms_auto').addEventListener('change', actualizarMinFecha);
+		});
 
 		// Configurar el botón de añadir candidato
         $('#add_candidato').on('click', function() {

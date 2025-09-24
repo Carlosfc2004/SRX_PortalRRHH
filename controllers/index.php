@@ -154,67 +154,99 @@ class index{
 
 
 	// Método para consultar el estado de la API de WhatsApp
-    public function estadoapiwhatsapp() {
-		include_once("idiomas/".$_SESSION['idioma_surexport_appreclu'].".php");
-		$apiUrl = 'https://graph.facebook.com/v20.0/357269130811588'; 
-		$accessToken = 'EAAQy3aeDCjsBO15NVDGCtl8tM4ZAxNN3X1FYXjYKY9WNutxgvE7mFQxi6ZBJfz6gQc5xoA4k4BrALZCYYuZCiJp6kbLHZBqFLL8wjW5yj6dnHjPLZCzukF4eZBkbcNufydptfbyWysyrgFIO2sJVcM85L5rlkVJ8cGK8bYzYZCdGEmk3ckKwcIGDxK9pcgzovf6yKAZDZD';
+    // public function estadoapiwhatsapp() {
+	// 	include_once("idiomas/".$_SESSION['idioma_surexport_appreclu'].".php");
+	// 	$apiUrl = 'https://graph.facebook.com/v20.0/357269130811588'; 
+	// 	$accessToken = 'EAAQy3aeDCjsBO15NVDGCtl8tM4ZAxNN3X1FYXjYKY9WNutxgvE7mFQxi6ZBJfz6gQc5xoA4k4BrALZCYYuZCiJp6kbLHZBqFLL8wjW5yj6dnHjPLZCzukF4eZBkbcNufydptfbyWysyrgFIO2sJVcM85L5rlkVJ8cGK8bYzYZCdGEmk3ckKwcIGDxK9pcgzovf6yKAZDZD';
 		
-		// Inicializa cURL
-		$ch = curl_init($apiUrl);
+	// 	// Inicializa cURL
+	// 	$ch = curl_init($apiUrl);
 		
-		// Configura las opciones de cURL
-		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-		curl_setopt($ch, CURLOPT_HTTPHEADER, [
-			'Authorization: Bearer ' . $accessToken,
-			'Content-Type: application/json'
-		]);
+	// 	// Configura las opciones de cURL
+	// 	curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+	// 	curl_setopt($ch, CURLOPT_HTTPHEADER, [
+	// 		'Authorization: Bearer ' . $accessToken,
+	// 		'Content-Type: application/json'
+	// 	]);
 		
-		// Ejecuta la solicitud
-		$response = curl_exec($ch);
+	// 	// Ejecuta la solicitud
+	// 	$response = curl_exec($ch);
 		
-		// Verifica si hubo un error en la solicitud
-		if (curl_errno($ch)) {
-			return 'Error en la solicitud: ' . curl_error($ch);
-		} else {
-			$httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+	// 	// Verifica si hubo un error en la solicitud
+	// 	if (curl_errno($ch)) {
+	// 		return 'Error en la solicitud: ' . curl_error($ch);
+	// 	} else {
+	// 		$httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
 
-			// Procesa la respuesta
-			$jsonResponse = json_decode($response, true);
+	// 		// Procesa la respuesta
+	// 		$jsonResponse = json_decode($response, true);
 	
-			// Verifica el código de estado HTTP
-			if ($httpCode == 200) {
-				// Mensaje de éxito con detalles
-				$resultado = "Estado de la API de WhatsApp: Correcto ✅ <br>";
-				$resultado .= "Nombre verificado: " . ($jsonResponse['verified_name'] ?? 'No disponible') . "<br>";
-				$resultado .= "Número mostrado: " . ($jsonResponse['display_phone_number'] ?? 'No disponible') . "<br>";
-				//$resultado .= "Estado de verificación del código: " . ($jsonResponse['code_verification_status'] ?? 'No disponible') . "<br>";
-				// $resultado .= "Calidad de la cuenta: " . ($jsonResponse['quality_rating'] ?? 'No disponible') . "<br>";
-				return $resultado;
-			} else {
-				// Manejo de errores basado en el código de estado
-				$error = "Error al consultar el estado de la API. Código de estado HTTP: " . $httpCode . "<br>";
-				$error .= "Mensaje de error: " . ($jsonResponse['error']['message'] ?? 'No se proporcionó un mensaje de error.') . "<br>";
+	// 		// Verifica el código de estado HTTP
+	// 		if ($httpCode == 200) {
+	// 			// Mensaje de éxito con detalles
+	// 			$resultado = "Estado de la API de WhatsApp: Correcto ✅ <br>";
+	// 			$resultado .= "Nombre verificado: " . ($jsonResponse['verified_name'] ?? 'No disponible') . "<br>";
+	// 			$resultado .= "Número mostrado: " . ($jsonResponse['display_phone_number'] ?? 'No disponible') . "<br>";
+	// 			//$resultado .= "Estado de verificación del código: " . ($jsonResponse['code_verification_status'] ?? 'No disponible') . "<br>";
+	// 			// $resultado .= "Calidad de la cuenta: " . ($jsonResponse['quality_rating'] ?? 'No disponible') . "<br>";
+	// 			return $resultado;
+	// 		} else {
+	// 			// Manejo de errores basado en el código de estado
+	// 			$error = "Error al consultar el estado de la API. Código de estado HTTP: " . $httpCode . "<br>";
+	// 			$error .= "Mensaje de error: " . ($jsonResponse['error']['message'] ?? 'No se proporcionó un mensaje de error.') . "<br>";
 	
-				return $error;
-			}
-		}
+	// 			return $error;
+	// 		}
+	// 	}
 	
-		// Cierra la sesión cURL
-		curl_close($ch);
-	}
+	// 	// Cierra la sesión cURL
+	// 	curl_close($ch);
+	// }
 
 
 
     // Configuración WEB
     public function configuracion() {
 		include_once("idiomas/".$_SESSION['idioma_surexport_appreclu'].".php");
+		$m = new sqlsrvModel();
 		if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 			if (isset($_POST['consultar'])) {
 				$params['resultado'] = $this->consultarCreditos();
-			} elseif (isset($_POST['consultar_meta'])) {
-				$params['resultado'] = $this->estadoapiwhatsapp();
+			} elseif (isset($_POST['rango_dias']) && $_POST['rango_dias'] == 1) {
+				if ($m->añadirRangoFechas($_POST)) {
+					$params['resultado'] = "Rango de fechas añadido correctamente.";
+					$m->reg_acciones('Añadir rango de fechas', '', $_SESSION["id_user_surexport_appreclu"], 'OK');
+				} else {
+					$params['resultado'] = "Error al añadir el rango de fechas.";
+					$m->reg_acciones('Añadir rango de fechas', '', $_SESSION["id_user_surexport_appreclu"], 'ERROR');
+				}
+			} elseif (isset($_POST['editar_rango']) && $_POST['editar_rango'] == 1) {
+				if ($m->editarRangoFechas($_POST)) {
+					$params['resultado'] = "Rango de fechas editado correctamente.";
+					$m->reg_acciones('Editar rango de fechas', $_POST['id_rango'], $_SESSION["id_user_surexport_appreclu"], 'OK');
+				} else {
+					$params['resultado'] = "Error al editar el rango de fechas.";
+					$m->reg_acciones('Editar rango de fechas', $_POST['id_rango'], $_SESSION["id_user_surexport_appreclu"], 'ERROR');
+				}
+			} elseif (isset($_POST['eliminar_rango']) && $_POST['eliminar_rango'] == 1) {
+				if ($m->eliminarRangoFechas($_POST['id_rango'])) {
+					$params['resultado'] = "Rango de fechas eliminado correctamente.";
+					$m->reg_acciones('Eliminar rango de fechas', '', $_SESSION["id_user_surexport_appreclu"], 'OK');
+				} else {
+					$params['resultado'] = "Error al eliminar el rango de fechas.";
+					$m->reg_acciones('Eliminar rango de fechas', '', $_SESSION["id_user_surexport_appreclu"], 'ERROR');
+				}
 			}
 		}
+
+		if (isset($_POST['filtro']) && $_POST['filtro'] == 1) {
+			$params['rango_fechas'] = $m->obtenerRangoFechas($_POST['filtro_anio']);
+		} else {
+			$params['rango_fechas'] = $m->obtenerRangoFechas(date('Y'));
+		}
+
+		$params['años'] = $m->obtenerAñosRangoFechas();
+		$params['tipo_jornadas'] = $m->obtenerTipoJornadas();
 
         require 'views/configuracion.php';
     }
@@ -397,20 +429,84 @@ class index{
 
 			// REGISTRAR LLAMAMIENTO
 			} elseif (isset($_POST["Tipo_llamamiento"]) && $_POST["Tipo_llamamiento"]== "Telefono") {
+				
 				$pernr = $_POST['pernr'];
 				$tipo_llamamiento = $_POST['Tipo_llamamiento'];
 				$pre_contacto = $_POST['prefijo'];
+				$fecha_llamamiento = $_POST['fecha_llamamiento'];
 				$fecha_registro = date('Y-m-d H:i:s'); 
 				$info_contacto = $_POST['contacto'];
 				$estado = $_POST['estado'];
 				$motivo = $_POST['motivo'];
 				$id_usuario = $_SESSION["id_user_surexport_appreclu"];
 				$descipcion = $_POST['descripcion'];
+
+				$url_just = null;
+				$url_just_bbdd = null;
+
+				if (!empty($_FILES["justificante"]["name"])) {
+
+					$url_base = "/var/www/files/justificantes/" . $pernr;
+
+					if (!file_exists($url_base)) {
+						if (!mkdir($url_base, 0777, true)) {
+							$error = error_get_last();
+							echo "❌ No se pudo crear la carpeta destino: $url_base<br>";
+							echo "🔧 Error: " . $error['message'];
+							exit;
+						}
+					}
+
+					$fileName = preg_replace("/[^a-zA-Z0-9\.\-_]/", "_", basename($_FILES["justificante"]["name"]));
+					$fileType = strtolower(pathinfo($fileName, PATHINFO_EXTENSION));
+
+					$allowTypes = ['jpg', 'jpeg', 'png', 'pdf', 'doc', 'docx'];
+					$maxSize = 5 * 1024 * 1024; // 5MB
+
+					if (!in_array($fileType, $allowTypes)) {
+						echo "Formato de archivo no permitido.";
+						die;
+					}
+
+					if ($_FILES["justificante"]["size"] > $maxSize) {
+						echo "El archivo excede el tamaño permitido (5MB).";
+						die;
+					}
+
+					if ($_FILES["justificante"]["error"] === 0) {
+						$newFileName = date("dmY") . "_" . uniqid() . "." . $fileType;
+						$url_just = $url_base . "/" . $newFileName;
+						$url_just_bbdd = "/justificantes/" . $pernr . "/" . $newFileName;
+
+						if (!is_dir($url_base)) {
+							echo "❌ La carpeta destino no existe: $url_base";
+							exit;
+						}
+						if (!is_writable($url_base)) {
+							echo "❌ La carpeta destino no es escribible: $url_base";
+							exit;
+						}
+
+						if (move_uploaded_file($_FILES["justificante"]["tmp_name"], $url_just)) {
+							// Archivo subido correctamente
+							// Aquí podrías guardar $url_just_bbdd en la base de datos
+						} else {
+
+							echo "❌ Error al mover el archivo a: " . $url_just . "<br>";
+							echo "🧪 Verifica permisos de escritura del contenedor sobre el volumen montado.<br>";
+							exit;
+						}
+					} else {
+						echo "❌ Error en la subida del archivo. Código de error: " . $_FILES["justificante"]["error"];
+						exit;
+					}
+				}
+
 				// Verificación de las variables
 				$id_remesa = isset($_POST['id_remesa']) && $_POST['id_remesa'] !== 'undefined' && !empty($_POST['id_remesa']) ? $_POST['id_remesa'] : null;
 				$ano_remesa = isset($_POST['ano_remesa']) && $_POST['ano_remesa'] !== 'undefined' && !empty($_POST['ano_remesa']) ? $_POST['ano_remesa'] : null;
 
-				if ($m->reg_llamada($pernr, $tipo_llamamiento, $pre_contacto, $fecha_registro, $info_contacto, $estado, $motivo, $descipcion, $id_usuario, $id_remesa, $ano_remesa)) {
+				if ($m->reg_llamada($pernr, $tipo_llamamiento, $pre_contacto, $fecha_llamamiento, $info_contacto, $estado, $motivo, $descipcion, $url_just_bbdd, $id_usuario, $id_remesa, $ano_remesa, $fecha_registro)) {
 					$params['resultado'] = $lang['index3'];
 
 					// REGISTRAR ACCIÓN todo ok
@@ -454,8 +550,71 @@ class index{
 				$motivo = $_POST['motivo']; 
 				$id_remesa = isset($_POST['id_remesa']) && $_POST['id_remesa'] !== 'undefined' && !empty($_POST['id_remesa']) ? $_POST['id_remesa'] : null;
 				$ano_remesa = isset($_POST['ano_remesa']) && $_POST['ano_remesa'] !== 'undefined' && !empty($_POST['ano_remesa']) ? $_POST['ano_remesa'] : null;
+				$descipcion = '';
 
-				if ($m->update_estado_llama($id_registro, $estado, $fecha, $motivo, $descipcion, $id_remesa, $ano_remesa)) {
+				$url_just = null;
+				$url_just_bbdd = null;
+
+				if (!empty($_FILES["justificante"]["name"])) {
+
+					$url_base = "/var/www/files/justificantes/" . $pernr;
+
+					if (!file_exists($url_base)) {
+						if (!mkdir($url_base, 0777, true)) {
+							$error = error_get_last();
+							echo "❌ No se pudo crear la carpeta destino: $url_base<br>";
+							echo "🔧 Error: " . $error['message'];
+							exit;
+						}
+					}
+
+					$fileName = preg_replace("/[^a-zA-Z0-9\.\-_]/", "_", basename($_FILES["justificante"]["name"]));
+					$fileType = strtolower(pathinfo($fileName, PATHINFO_EXTENSION));
+
+					$allowTypes = ['jpg', 'jpeg', 'png', 'pdf', 'doc', 'docx'];
+					$maxSize = 5 * 1024 * 1024; // 5MB
+
+					if (!in_array($fileType, $allowTypes)) {
+						echo "Formato de archivo no permitido.";
+						die;
+					}
+
+					if ($_FILES["justificante"]["size"] > $maxSize) {
+						echo "El archivo excede el tamaño permitido (5MB).";
+						die;
+					}
+
+					if ($_FILES["justificante"]["error"] === 0) {
+						$newFileName = date("dmY") . "_" . uniqid() . "." . $fileType;
+						$url_just = $url_base . "/" . $newFileName;
+						$url_just_bbdd = "/justificantes/" . $pernr . "/" . $newFileName;
+
+						if (!is_dir($url_base)) {
+							echo "❌ La carpeta destino no existe: $url_base";
+							exit;
+						}
+						if (!is_writable($url_base)) {
+							echo "❌ La carpeta destino no es escribible: $url_base";
+							exit;
+						}
+
+						if (move_uploaded_file($_FILES["justificante"]["tmp_name"], $url_just)) {
+							// Archivo subido correctamente
+							// Aquí podrías guardar $url_just_bbdd en la base de datos
+						} else {
+
+							echo "❌ Error al mover el archivo a: " . $url_just . "<br>";
+							echo "🧪 Verifica permisos de escritura del contenedor sobre el volumen montado.<br>";
+							exit;
+						}
+					} else {
+						echo "❌ Error en la subida del archivo. Código de error: " . $_FILES["justificante"]["error"];
+						exit;
+					}
+				}
+
+
+				if ($m->update_estado_llama($id_registro, $estado, $fecha, $motivo, $descipcion, $id_remesa, $ano_remesa, $url_just_bbdd)) {
 					$params['resultado'] = $lang['index5'];
 
 					// REGISTRAR ACCIÓN todo ok
@@ -477,7 +636,68 @@ class index{
 				$ano_remesa = isset($_POST['ano_remesa']) && $_POST['ano_remesa'] !== 'undefined' && !empty($_POST['ano_remesa']) ? $_POST['ano_remesa'] : null;
 				$descipcion = $_POST['descripcion'];
 
-				if ($m->update_estado_llama($id_registro, $estado, $fecha, $motivo, $descipcion, $id_remesa, $ano_remesa)) {
+				$url_just = null;
+				$url_just_bbdd = null;
+
+				if (!empty($_FILES["justificante"]["name"])) {
+
+					$url_base = "/var/www/files/justificantes/" . $pernr;
+
+					if (!file_exists($url_base)) {
+						if (!mkdir($url_base, 0777, true)) {
+							$error = error_get_last();
+							echo "❌ No se pudo crear la carpeta destino: $url_base<br>";
+							echo "🔧 Error: " . $error['message'];
+							exit;
+						}
+					}
+
+					$fileName = preg_replace("/[^a-zA-Z0-9\.\-_]/", "_", basename($_FILES["justificante"]["name"]));
+					$fileType = strtolower(pathinfo($fileName, PATHINFO_EXTENSION));
+
+					$allowTypes = ['jpg', 'jpeg', 'png', 'pdf', 'doc', 'docx'];
+					$maxSize = 5 * 1024 * 1024; // 5MB
+
+					if (!in_array($fileType, $allowTypes)) {
+						echo "Formato de archivo no permitido.";
+						die;
+					}
+
+					if ($_FILES["justificante"]["size"] > $maxSize) {
+						echo "El archivo excede el tamaño permitido (5MB).";
+						die;
+					}
+
+					if ($_FILES["justificante"]["error"] === 0) {
+						$newFileName = date("dmY") . "_" . uniqid() . "." . $fileType;
+						$url_just = $url_base . "/" . $newFileName;
+						$url_just_bbdd = "/justificantes/" . $pernr . "/" . $newFileName;
+
+						if (!is_dir($url_base)) {
+							echo "❌ La carpeta destino no existe: $url_base";
+							exit;
+						}
+						if (!is_writable($url_base)) {
+							echo "❌ La carpeta destino no es escribible: $url_base";
+							exit;
+						}
+
+						if (move_uploaded_file($_FILES["justificante"]["tmp_name"], $url_just)) {
+							// Archivo subido correctamente
+							// Aquí podrías guardar $url_just_bbdd en la base de datos
+						} else {
+
+							echo "❌ Error al mover el archivo a: " . $url_just . "<br>";
+							echo "🧪 Verifica permisos de escritura del contenedor sobre el volumen montado.<br>";
+							exit;
+						}
+					} else {
+						echo "❌ Error en la subida del archivo. Código de error: " . $_FILES["justificante"]["error"];
+						exit;
+					}
+				}
+
+				if ($m->update_estado_llama($id_registro, $estado, $fecha, $motivo, $descipcion, $url_just_bbdd, $id_remesa, $ano_remesa)) {
 					$params['resultado'] = $lang['index6'];
 
 					// REGISTRAR ACCIÓN todo ok
@@ -497,7 +717,68 @@ class index{
 				$id_remesa = $_POST['id_remesa'];  
 				$ano_remesa = $_POST['ano_remesa'];  
 
-				if ($m->update_estado_llama_aceptar($id_registro, $estado, $fecha, $id_remesa, $ano_remesa)) {
+								$url_just = null;
+				$url_just_bbdd = null;
+
+				if (!empty($_FILES["justificante"]["name"])) {
+
+					$url_base = "/var/www/files/justificantes/" . $pernr;
+
+					if (!file_exists($url_base)) {
+						if (!mkdir($url_base, 0777, true)) {
+							$error = error_get_last();
+							echo "❌ No se pudo crear la carpeta destino: $url_base<br>";
+							echo "🔧 Error: " . $error['message'];
+							exit;
+						}
+					}
+
+					$fileName = preg_replace("/[^a-zA-Z0-9\.\-_]/", "_", basename($_FILES["justificante"]["name"]));
+					$fileType = strtolower(pathinfo($fileName, PATHINFO_EXTENSION));
+
+					$allowTypes = ['jpg', 'jpeg', 'png', 'pdf', 'doc', 'docx'];
+					$maxSize = 5 * 1024 * 1024; // 5MB
+
+					if (!in_array($fileType, $allowTypes)) {
+						echo "Formato de archivo no permitido.";
+						die;
+					}
+
+					if ($_FILES["justificante"]["size"] > $maxSize) {
+						echo "El archivo excede el tamaño permitido (5MB).";
+						die;
+					}
+
+					if ($_FILES["justificante"]["error"] === 0) {
+						$newFileName = date("dmY") . "_" . uniqid() . "." . $fileType;
+						$url_just = $url_base . "/" . $newFileName;
+						$url_just_bbdd = "/justificantes/" . $pernr . "/" . $newFileName;
+
+						if (!is_dir($url_base)) {
+							echo "❌ La carpeta destino no existe: $url_base";
+							exit;
+						}
+						if (!is_writable($url_base)) {
+							echo "❌ La carpeta destino no es escribible: $url_base";
+							exit;
+						}
+
+						if (move_uploaded_file($_FILES["justificante"]["tmp_name"], $url_just)) {
+							// Archivo subido correctamente
+							// Aquí podrías guardar $url_just_bbdd en la base de datos
+						} else {
+
+							echo "❌ Error al mover el archivo a: " . $url_just . "<br>";
+							echo "🧪 Verifica permisos de escritura del contenedor sobre el volumen montado.<br>";
+							exit;
+						}
+					} else {
+						echo "❌ Error en la subida del archivo. Código de error: " . $_FILES["justificante"]["error"];
+						exit;
+					}
+				}
+
+				if ($m->update_estado_llama_aceptar($id_registro, $estado, $fecha, $url_just_bbdd, $id_remesa, $ano_remesa)) {
 					$params['resultado'] = $lang['index7'];
 
 					// REGISTRAR ACCIÓN todo ok
@@ -790,13 +1071,16 @@ class index{
 			header("Location: admin_cont.php?controller=index&action=error404");
 		}	
 		$m = new sqlsrvModel();
-		
+		$params['fincas_almacenes'] = $m->fincas_almacenes_sociedad();
+
 		if (isset($_POST['buscar'])) {
 			$ubi = $_POST['ubi_trab'] ? $_POST['ubi_trab'] : '';
-			$params['datos_trab_baja'] = $m->trabajadores_baja($ubi);
+			$fecha_ini = $_POST['fecha_ini'] ? $_POST['fecha_ini'] : '';
+			$fecha_fin = $_POST['fecha_fin'] ? $_POST['fecha_fin'] : '';
+			$params['datos_trab_baja'] = $m->trabajadores_baja($ubi, $fecha_ini, $fecha_fin);
 		} else {
 			$ubi = '';
-			$params['datos_trab_baja'] = $m->trabajadores_baja($ubi);
+			$params['datos_trab_baja'] = $m->trabajadores_baja($ubi, '', '');
 		}
 		
 		require 'views/trabajadores_baja.php';
@@ -808,10 +1092,12 @@ class index{
 
 	public function llamamientos(){
 		include_once("idiomas/".$_SESSION['idioma_surexport_appreclu'].".php");
-		if (!in_array(3, $_SESSION["permisos_surexport_appreclu"])) {
+		if (!in_array(5, $_SESSION["permisos_surexport_appreclu"])) {
 			header("Location: admin_cont.php?controller=index&action=error404");
 		}	
 		$m = new sqlsrvModel();
+		// Cargamos los datos de fincas y almacenes para la vista
+		$params['fincas_almacenes'] = $m->fincas_almacenes_sociedad();
 		require 'views/llamamientos.php';
 	}
 
@@ -825,21 +1111,21 @@ class index{
 		if (!in_array(5, $_SESSION["permisos_surexport_appreclu"])) {
 			header("Location: admin_cont.php?controller=index&action=error404");
 		}   
-	
 		$m = new sqlsrvModel();
 		$resultado = ""; // Inicializamos la variable para el resultado
-	
+
+		
 		if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 			if (isset($_POST['generar_rem'])) {
 				// Generamos una nueva remesa
 				$sms_auto = isset($_POST['sms_auto']) ? 1 : 0;
-	
+				
 				// Llamada a la función nuevaRemesa() que ahora devuelve un array con 'success' y 'message'
 				$resultado = $m->nuevaRemesa($_POST['nombre_remesa'], $_POST['telefono_rem'], $_POST['fecha_inc'], $sms_auto);
-	
+				
 				// Verificamos si la operación fue exitosa y registramos la acción
 				if ($resultado['success']) {
-
+					
 					// REGISTRAR ACCIÓN todo ok
 					$m->reg_acciones('Generar remesa', $_POST['nombre_remesa'], $_SESSION["id_user_surexport_appreclu"], 'OK');
 				} else {
@@ -847,7 +1133,7 @@ class index{
 					// REGISTRAR ACCIÓN en caso de error
 					$m->reg_acciones('Generar remesa', $_POST['nombre_remesa'], $_SESSION["id_user_surexport_appreclu"], 'Error');
 				}
-	
+				
 			} elseif (isset($_POST['add_candidato'])) {
 				// Añadimos nuevos candidatos a una remesa ya existente
 				$resultado = $m->anadirCandidatosARemesa(
@@ -858,10 +1144,10 @@ class index{
 					$_POST['fecha_inc'] ?? '', 
 					$_POST['sms_auto'] ?? ''
 				);
-	
+				
 				// Verificamos si la operación fue exitosa y registramos la acción
 				if ($resultado['success']) {
-
+					
 					// REGISTRAR ACCIÓN todo ok
 					$m->reg_acciones('Añadir trab remesa', $_POST['id_remesa'].'/'.$_POST['ano_remesa'], $_SESSION['id_user_surexport_appreclu'], 'OK');
 				} else {
@@ -871,10 +1157,10 @@ class index{
 				}
 			}
 		}
-	
+
 		// Cargamos los datos de trabajadores dados de baja para la vista
-		$params['datos_trab_baja'] = $m->trabajadores_baja_rem();
-	
+		// $params['datos_trab_baja'] = $m->trabajadores_baja_rem();
+		
 		// Asignamos el resultado para mostrarlo en la vista
 		$params['resultado'] = $resultado['message'] ?? ""; 
 	
@@ -1005,6 +1291,20 @@ class index{
 		$m = new sqlsrvModel();
 		$params['info_remesas'] = $m->InfoRemesa_llama($_GET['id'], $_GET['ano']);
 
+		if (isset($_GET['delete_trab_rem']) && $_GET['delete_trab_rem'] == 1) {
+			$pernr = $_POST['pernr'];
+			$id_remesa = $_POST['id_remesa'];
+			$ano_remesa = $_POST['ano_remesa'];
+
+			if ($m->EliminarTrabajadorRemesa($pernr, $id_remesa, $ano_remesa)) {
+				$params['resultado'] = 'Trabajador eliminado de la remesa correctamente';
+				$m->reg_acciones('Eliminar trabajador remesa', $pernr." - ".$id_remesa.'/'.$ano_remesa, $_SESSION["id_user_surexport_appreclu"], 'OK');
+			} else {
+				$params['resultado'] = 'El trabajador tiene un llamamiento para esta remesa, no se puede eliminar';
+				$m->reg_acciones('Eliminar trabajador remesa', $pernr." - ".$id_remesa.'/'.$ano_remesa, $_SESSION["id_user_surexport_appreclu"], 'Error');
+			}
+		}
+
 		require 'views/update_remesa_llama.php';
 	}
 
@@ -1022,24 +1322,8 @@ class index{
 		$params['trabajadores_auditoria'] = $m->trabajadoresAuditoria();
 		
 			if (isset($_POST['form_oficina'])) {
-				
-				$params['datos_export_ofi'] = $m->informePresenciaOficina2($_POST);
-				$params['detalles_export_ofi'] = [];
-
-				// Agrupamos los detalles por fecha y PERNR
-				foreach ($params['datos_export_ofi'] as $registro) {
-					$fecha = $registro['fecha']->format('Y-m-d'); // Formato de la fecha
-					$pernr = $registro['pernr']; // Número de empleado (PERNR)
-
-					if (!isset($params['detalles_export_ofi'][$fecha])) {
-						$params['detalles_export_ofi'][$fecha] = [];
-					}
-
-					if (!isset($params['detalles_export_ofi'][$fecha][$pernr])) {
-						$params['detalles_export_ofi'][$fecha][$pernr] = $m->informePresenciaOficinaDatos($fecha, $pernr);
-					}
-				}
-				
+				$params['datos_export_ofi'] = $m->informePresenciaOficina2($_POST);		
+			
 			} elseif (isset($_POST['modificado'])) {
 				$fecha = $_POST['fecha_valida'];
 				$id = $_POST['id'];
@@ -1052,10 +1336,10 @@ class index{
 
 				if ($m->validar_registro($id, $fecha, $estado, $motivo)) {
 					$params['resultado'] = 'Registro modificado correctamente';
-					$m->reg_acciones('Modificar jornada presencia', $pernr, $_SESSION["id_user_surexport_appreclu"], 'OK');
+					$m->reg_acciones('Modificar jornada presencia', $id." ".$pernr, $_SESSION["id_user_surexport_appreclu"], 'OK');
 				} else {
 					$params['resultado'] = 'Error al modificar el registro';
-					$m->reg_acciones('Modificar jornada presencia', $pernr, $_SESSION["id_user_surexport_appreclu"], 'ERROR');
+					$m->reg_acciones('Modificar jornada presencia', $id." ".$pernr, $_SESSION["id_user_surexport_appreclu"], 'ERROR');
 				}
 
 			} elseif (isset($_POST['fecha_valida'])) {
@@ -1070,10 +1354,10 @@ class index{
 
 				if ($m->validar_registro($id, $fecha, $estado, $motivo)) {
 					$params['resultado'] = 'Registro validado correctamente';
-					$m->reg_acciones('Validar jornada presencia', $pernr, $_SESSION["id_user_surexport_appreclu"], 'OK');
+					$m->reg_acciones('Validar jornada presencia', $id." ".$pernr, $_SESSION["id_user_surexport_appreclu"], 'OK');
 				} else {
 					$params['resultado'] = 'Error al validar el registro';
-					$m->reg_acciones('Validar jornada presencia', $pernr, $_SESSION["id_user_surexport_appreclu"], 'ERROR');
+					$m->reg_acciones('Validar jornada presencia', $id." ".$pernr, $_SESSION["id_user_surexport_appreclu"], 'ERROR');
 				}
 			}
 		require 'views/auditor.php';
@@ -1098,7 +1382,7 @@ class index{
 		if ($_SERVER['REQUEST_METHOD'] == 'POST' || $_SERVER['REQUEST_METHOD'] == 'GET') {
 			// Llamar al modelo con los valores correspondientes
 			if (in_array($tipo, ['1A', '1E', '9A'])) {
-				$params['trabajadores_presencia'] = $m->trabajadores_conta($fecha_inicio, $tipo);
+				$params['trabajadores_presencia'] = $m->trabajadores_conta($fecha_inicio, $tipo, $_POST['filtroAsistencia'] ?? null, $_POST['buscador'] ?? null);
 			}
 		}
 	
@@ -1481,7 +1765,7 @@ class index{
 	// Estado puertas
 	public function estado_puertas(){
 		include_once("idiomas/".$_SESSION['idioma_surexport_appreclu'].".php");
-			if (!in_array(23, $_SESSION["permisos_surexport_appreclu"])) {
+			if (!in_array(24, $_SESSION["permisos_surexport_appreclu"])) {
 				header("Location: admin_cont.php?controller=index&action=error404");
 			}	
 		
@@ -1493,7 +1777,7 @@ class index{
 	// Estado puertas
 	public function tesa_update_usu(){
 		include_once("idiomas/".$_SESSION['idioma_surexport_appreclu'].".php");
-			if (!in_array(24, $_SESSION["permisos_surexport_appreclu"])) {
+			if (!in_array(21, $_SESSION["permisos_surexport_appreclu"])) {
 				header("Location: admin_cont.php?controller=index&action=error404");
 			}	
 			

@@ -4,7 +4,7 @@
 ?>
 
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="es">
 <head>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
@@ -52,22 +52,22 @@
 
       <?php 
       
-      // $num_alertas = 0;
+      $num_alertas = 0;
 
-      // if (in_array(3, $_SESSION["permisos_surexport_appreclu"])) {
-      // // Sumar al contador por cada variable de sesión mayor a 0
-      //   if ($_SESSION["trab_sinrespuesta"] > 0) {
-      //     $num_alertas++;
-      //   }
+      if (in_array(4, $_SESSION["permisos_surexport_appreclu"])) {
+      // Sumar al contador por cada variable de sesión mayor a 0
+        if ($_SESSION["trab_sinrespuesta"] > 0) {
+          $num_alertas++;
+        }
 
-      //   if ($_SESSION["trab_aceptados_baja"] > 0) {
-      //     $num_alertas++;
-      //   }
+        // if ($_SESSION["trab_aceptados_baja"] > 0) {
+        //   $num_alertas++;
+        // }
         
-      //   if (count($_SESSION['trab_sinllama']) > 0) {
-      //     $num_alertas++;
-      //   }
-      // }
+        if (count($_SESSION['trab_sinllama']) > 0) {
+          $num_alertas++;
+        }
+      }
 
       // if (count($_SESSION["cumples"]) > 0) {
       //   $num_alertas++;
@@ -80,31 +80,38 @@
 
 
 
+
+
+      if ($num_alertas == 0) {
+
+      } else  {
       ?>
-      <!-- <li class="nav-item dropdown">
+
+
+      <li class="nav-item dropdown">
         <a class="nav-link nav-icon" href="#" data-bs-toggle="dropdown">
           <i class="bi bi-bell"></i>
           <span class="badge bg-primary badge-number"><?php echo $num_alertas; ?></span>
         </a>
 
         <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow notifications">
-          <li class="dropdown-header"> -->
+          <li class="dropdown-header">
           <?php
-            // if ($num_alertas == 0) {
-            //   echo $lang['noti1'];
-            // } else {
-            //   echo $lang['noti2']."
-            //   <li>
-            //     <hr class='dropdown-divider'>
-            //   </li>";
-            // }
+            if ($num_alertas == 0) {
+              echo $lang['noti1'];
+            } else {
+              echo $lang['noti2']."
+              <li>
+                <hr class='dropdown-divider'>
+              </li>";
+            }
           ?>
-          <!-- </li> -->
+          </li>
           <?php 
-          // if (in_array(3, $_SESSION["permisos_surexport_appreclu"])) {
-          //   // Trabajadores en remesa sin respuesta
-          //     if (!empty($_SESSION["trab_sinrespuesta"])) { ?>
-                <!-- <li class="notification-item d-flex justify-content-between align-items-center">
+          if (in_array(4, $_SESSION["permisos_surexport_appreclu"])) {
+            // Trabajadores en remesa sin respuesta
+              if (!empty($_SESSION["trab_sinrespuesta"])) { ?>
+                <li class="notification-item d-flex justify-content-between align-items-center">
                   <div class="d-flex align-items-center">
                     <i class="bi bi-x-circle"></i>
                     <div style="margin-left: 10px;">
@@ -115,10 +122,10 @@
                   </div>
                   <a href="admin_cont.php?controller=index&action=registros_llama&filtro=sin_respuesta" class="text-end">
                     <i class="bi bi-box-arrow-right"></i>
-                  </a>
-                </li> -->
+                  </a> 
+                </li>
               <?php 
-              // }
+              }
             ?>
 
           <!-- Trabajadores aceptados que siguen de baja -->
@@ -145,8 +152,8 @@
           
           <!-- Trabajadores en remesa sin llamamiento -->
           <?php 
-            // if (!empty($_SESSION["trab_sinllama"])) { ?>
-              <!-- <li>
+            if (!empty($_SESSION["trab_sinllama"])) { ?>
+              <li>
                 <hr class='dropdown-divider'>
               </li>
               <li class="notification-item d-flex justify-content-between align-items-center">
@@ -154,28 +161,28 @@
                   <i class="bx bxs-phone-off"></i>
                   <div style="margin-left: 10px;">
                     <h6>Llamamiento pendiente</h6>
-                    <p> -->
+                    <p>
                       <?php 
-                        // echo count($_SESSION["trab_sinllama"]); 
-                        // if (count($_SESSION["trab_sinllama"]) == 1){
-                        //   echo " trabajador sin llamamiento en una remesa";
-                        // } else {
-                        //   echo " trabajadores sin llamamientos en una remesa";
-                        // }
+                        echo count($_SESSION["trab_sinllama"]); 
+                        if (count($_SESSION["trab_sinllama"]) == 1){
+                          echo " trabajador sin llamamiento en una remesa";
+                        } else {
+                          echo " trabajadores sin llamamientos en una remesa";
+                        }
                       ?>
-                    <!-- </p>
+                    </p>
                   </div>
                 </div>
                 <a href="admin_cont.php?controller=index&action=reg_alertas&llama" class="text-end">
                   <i class="bi bi-box-arrow-right"></i>
                 </a>
-              </li> -->
+              </li>
             <?php 
-            // }
+            }
           ?>
 
           <?php 
-          // }
+          }
           ?>
           
 
@@ -242,9 +249,10 @@
             // }
           ?>
 
-        <!-- </ul> 
-      </li> -->
-     
+        </ul> 
+      </li>
+
+      <?php } ?>
 
       <!-- End Notification Nav -->
 
@@ -422,19 +430,20 @@
           echo '</li>';
         }
       }
-      if ($_SESSION["tipo_user_surexport_appreclu"] == '1') {
-        ?>
-          <li class="nav-item">
-            <a class="nav-link hvr-grow <?php if ($_GET['action']!="configuracion") {echo 'collapsed';} ?>" href="admin_cont.php?controller=index&action=configuracion">
-              <i class='bi bi-gear'></i>
-              <span><?php echo $lang['menu18']; ?></span></i>
-            </a>
-          </li>
-        <?php 
-      } 
+      foreach ($_SESSION["menu_surexport_appreclu"] as $menu_item) {
+        if ($_SESSION["tipo_user_surexport_appreclu"] == 1 || isset($menu_item['id_hijo']) && $menu_item['id_hijo'] == 25) {
+          ?>
+            <li class="nav-item">
+              <a class="nav-link hvr-grow <?php if ($_GET['action']!="configuracion") {echo 'collapsed';} ?>" href="admin_cont.php?controller=index&action=configuracion">
+                <i class='bi bi-gear'></i>
+                <span><?php echo $lang['menu18']; ?></span>
+              </a>
+            </li>
+          <?php
+          break; 
+        }
+      }
     }
   ?>
-    
-      
 </aside>
 <main id="main" class="main">

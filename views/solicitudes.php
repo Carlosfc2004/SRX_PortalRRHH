@@ -1,10 +1,6 @@
 <?php
     // var_dump($params['solicitudes_pendientes']);
     // die;
-
-    // var_dump($solicitud['observaciones']);
-    // die;
-
     include("header.php");
 
 ?>

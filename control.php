@@ -22,87 +22,78 @@ if(isset($_POST["tipo"]) && $_POST["tipo"] == 'rrhh'){
         $usuario = $_SESSION["usuario_web_azure"]["mail"];
 
         // Obtener grupos del usuario
-        $_SESSION["usuario_web_azure_grupos"] = getUserGroups($_SESSION['token_azure_acceso']); 
+        // $_SESSION["usuario_web_azure_grupos"] = getUserGroups($_SESSION['token_azure_acceso']);
+
+        $groupId = "4237b8ee-1381-48aa-842d-f4abbb347aae";
     }
 
 
-    if (isset($_SESSION["token_azure_acceso"]) && isset($_SESSION["usuario_web_azure"]) && isset($_SESSION["usuario_web_azure_grupos"])) {
-        if (in_array("4237b8ee-1381-48aa-842d-f4abbb347aae", $_SESSION["usuario_web_azure_grupos"])) {
+    if (isset($_SESSION["token_azure_acceso"]) && isset($_SESSION["usuario_web_azure"]) && isUserInGroup($_POST['token'], $groupId)) {
 
-            //Recepcion del Usuario y Contraseña
-            if (isset($usuario) && $usuario != "") {
-                $resul = $con_bdsrx->loginUser($usuario);
+        //Recepcion del Usuario y Contraseña
+        if (isset($usuario) && $usuario != "") {
+            $resul = $con_bdsrx->loginUser($usuario);
 
-                if ($resul!=false) {
-                    //usuario y contraseña válidos, almaceno el acceso en la base de datos
-                    $con_bdsrx->AccesoUser($resul['id'], $usuario);
-                    //defino una sesion y guardo datos
-                    session_start();
-                    $_SESSION["idioma_surexport_appreclu"] = "es";
-                    $_SESSION["autentificado_surexport_appreclu"] = "SI";
-                    $_SESSION["ultimoAcceso_surexport_appreclu"] = date("Y-n-j H:i:s");
-                    $_SESSION["id_user_surexport_appreclu"] = $resul['id'];
-                    $_SESSION["tipo_user_surexport_appreclu"] = $resul['tipo'];
-                    $_SESSION["telefono_user_surexport_appreclu"] = $resul['telf'];
-                    $_SESSION["correo_user_surexport_appreclu"] = $resul['usr_login'];
-                    $_SESSION["nombre_user_surexport_appreclu"] = $resul['nombre']." ".$resul['apellidos'];
-                    if (!is_null($resul['portal_rrhh']) || $resul['portal_rrhh']!="") {
-                        $_SESSION["permisos_surexport_appreclu"] = explode(",", $resul['portal_rrhh']);
-                    }else{
-                        $_SESSION["permisos_surexport_appreclu"] = array(1,2);
-                    }
-
-                    //Consultamos el menú de la aplicación
-                    $menu_app = $con_bdsrx->menuPortal();
-                    $_SESSION["menu_surexport_appreclu"] = $menu_app;
-                    
-                    // if (in_array(3, $_SESSION["permisos_surexport_appreclu"])) {
-
-                    //     $resul2 = $con_bdsrx->total_trabajadores_sinrespuesta();
-                    //     $_SESSION["trab_sinrespuesta"] = $resul2;
-
-                    //     $resul6 = $con_bdsrx->total_aceptados_baja_total();
-                    //     $_SESSION["trab_aceptados_baja"] = $resul6;
-
-                    //     $resul5 = $con_bdsrx->trabajadores_sinllamamiento();
-                    //     $_SESSION["trab_sinllama"] = $resul5;
-                        
-                    // }
-
-                    // $resul3 = $con_bdsrx->cumple_trabajador();
-                    // $_SESSION["cumples"] = $resul3;
-
-                    // $resul4 = $con_bdsrx->dni_caducados();
-                    // $_SESSION["dni_caducados"] = $resul4;
-
-                    header ("Location: admin_cont.php?controller=index&action=home");
-                    exit();
-                } else {
-                    //si no existe le mando otra vez a la portada
-                    header("Location: https://webcorporativa.surexport.es/?errorusuario=si&1");
-                    exit();
+            if ($resul!=false) {
+                //usuario y contraseña válidos, almaceno el acceso en la base de datos
+                $con_bdsrx->AccesoUser($resul['id'], $usuario);
+                //defino una sesion y guardo datos
+                session_start();
+                $_SESSION["idioma_surexport_appreclu"] = "es";
+                $_SESSION["autentificado_surexport_appreclu"] = "SI";
+                $_SESSION["ultimoAcceso_surexport_appreclu"] = date("Y-n-j H:i:s");
+                $_SESSION["id_user_surexport_appreclu"] = $resul['id'];
+                $_SESSION["tipo_user_surexport_appreclu"] = $resul['tipo'];
+                $_SESSION["telefono_user_surexport_appreclu"] = $resul['telf'];
+                $_SESSION["correo_user_surexport_appreclu"] = $resul['usr_login'];
+                $_SESSION["nombre_user_surexport_appreclu"] = $resul['nombre']." ".$resul['apellidos'];
+                if (!is_null($resul['portal_rrhh']) || $resul['portal_rrhh']!="") {
+                    $_SESSION["permisos_surexport_appreclu"] = explode(",", $resul['portal_rrhh']);
+                }else{
+                    $_SESSION["permisos_surexport_appreclu"] = array(1,2);
                 }
+
+                //Consultamos el menú de la aplicación
+                $menu_app = $con_bdsrx->menuPortal();
+                $_SESSION["menu_surexport_appreclu"] = $menu_app;
+                
+                if (in_array(4, $_SESSION["permisos_surexport_appreclu"])) {
+
+                    $resul2 = $con_bdsrx->total_trabajadores_sinrespuesta();
+                    $_SESSION["trab_sinrespuesta"] = $resul2;
+
+                    // $resul6 = $con_bdsrx->total_aceptados_baja_total();
+                    // $_SESSION["trab_aceptados_baja"] = $resul6;
+
+                    $resul5 = $con_bdsrx->trabajadores_sinllamamiento();
+                    $_SESSION["trab_sinllama"] = $resul5;
+                    
+                }
+
+                // $resul3 = $con_bdsrx->cumple_trabajador();
+                // $_SESSION["cumples"] = $resul3;
+
+                // $resul4 = $con_bdsrx->dni_caducados();
+                // $_SESSION["dni_caducados"] = $resul4;
+
+                header ("Location: admin_cont.php?controller=index&action=home");
+                exit();
             } else {
                 //si no existe le mando otra vez a la portada
-                header("Location: https://webcorporativa.surexport.es/?errorusuario=si&2");
+                header("Location: https://webcorporativa.surexport.es/?errorusuario=si&1");
                 exit();
             }
         } else {
             //si no existe le mando otra vez a la portada
-            header("Location: https://webcorporativa.surexport.es/?accesodenegado=si");
+            header("Location: https://webcorporativa.surexport.es/?errorusuario=si&2");
             exit();
         }
+    }else{
+        //si no existe le mando otra vez a la portada
+        header("Location: https://webcorporativa.surexport.es/?errorusuario=si&1");
+        exit();
     }
 }
-
-
-
-
-
-
-
-
-
 
 
 // Función para validar el token de acceso con Microsoft Graph
@@ -119,23 +110,51 @@ function getUserData($token) {
 }
 
 // Función para obtener los grupos del usuario con paginación
-function getUserGroups($token) {
-    $grupos = [];
-    $url = "https://graph.microsoft.com/v1.0/me/memberOf?\$select=id,displayName";
+// function getUserGroups($token) {
+//     $grupos = [];
+//     $url = "https://graph.microsoft.com/v1.0/me/memberOf?\$select=id,displayName";
     
-    $response = makeGraphRequest($url, $token);
-    do {
-        if (isset($response['value'])) {
-            foreach ($response['value'] as $group) {
-                $grupos[] = $group['id'];
-            }
-        }
+//     $response = makeGraphRequest($url, $token);
+//     do {
+//         if (isset($response['value'])) {
+//             foreach ($response['value'] as $group) {
+//                 $grupos[] = $group['id'];
+//             }
+//         }
         
-        $url = $response['@odata.nextLink'] ?? null;
-    } while ($url);
+//         $url = $response['@odata.nextLink'] ?? null;
+//     } while ($url);
     
-    return $grupos;
+//     return $grupos;
+// }
+
+//Función para saber si un usuario pertenece a un grupo
+function isUserInGroup($token, $groupId) {
+    $url = "https://graph.microsoft.com/v1.0/me/checkMemberGroups";
+
+    $body = json_encode([
+        "groupIds" => [ $groupId ]
+    ]);
+
+    $headers = [
+        "Authorization: Bearer $token",
+        "Content-Type: application/json"
+    ];
+
+    $ch = curl_init($url);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_POST, true);
+    curl_setopt($ch, CURLOPT_POSTFIELDS, $body);
+    curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+
+    $response = curl_exec($ch);
+    curl_close($ch);
+
+    $data = json_decode($response, true);
+
+    return in_array($groupId, $data['value'] ?? []);
 }
+
 
 // Función genérica para realizar solicitudes a Microsoft Graph usando cURL
 function makeGraphRequest($url, $token) {

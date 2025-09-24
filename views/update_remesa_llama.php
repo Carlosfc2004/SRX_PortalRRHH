@@ -136,16 +136,61 @@ include_once("header.php");
                                         }
                                     ?>
                                 </td>
+
                                 <td class="col-2">
-                                    <form action="admin_cont.php?controller=index&action=update_trabajador&id=<?php echo $remesa['PERNR']; ?>&showll&id_rem=<?php echo $remesa['id_remesa']; ?>&ano_rem=<?php echo $remesa['ano_remesa']; ?>&remesa" method="post">
-                                        <input type="hidden" value="<?php echo $remesa['id_remesa']; ?>" name="id_remesa">
-                                        <input type="hidden" value="<?php echo $remesa['ano_remesa']; ?>" name="ano_remesa">
-                                        <input type="hidden" name="datos_remesa" value="1">
-                                        <button type="submit" class="icono hvr-icon" style="background: none; border: none; cursor: pointer;">
-                                            <i class="bi bi-pencil-square fs-4" style="color: #012970;"></i>
-                                        </button>
-                                    </form>
+                                    <div style="display: flex; gap: 5px; align-items: center;">
+                                        <!-- Botón editar -->
+                                        <form action="admin_cont.php?controller=index&action=update_trabajador&id=<?php echo $remesa['PERNR']; ?>&showll&id_rem=<?php echo $remesa['id_remesa']; ?>&ano_rem=<?php echo $remesa['ano_remesa']; ?>&remesa=<?php echo $_GET['remesa']; ?>" method="post">
+                                            <input type="hidden" value="<?php echo $remesa['id_remesa']; ?>" name="id_remesa">
+                                            <input type="hidden" value="<?php echo $remesa['ano_remesa']; ?>" name="ano_remesa">
+                                            <input type="hidden" name="datos_remesa" value="1">
+                                            <input type="hidden" name="remesa" value="<?php echo $_GET['remesa']; ?>">
+                                            <button type="submit" class="icono hvr-icon" style="background: none; border: none; cursor: pointer;">
+                                                <i class="bi bi-pencil-square fs-4" style="color: #012970;"></i>
+                                            </button>
+                                        </form>
+
+                                        <?php 
+                                            if (isset($_GET['remesa']) && $_GET['remesa'] == 1) {
+
+                                            } else {
+                                            ?>
+                                            <!-- Botón eliminar -->
+                                            <form action="admin_cont.php?controller=index&action=view_remesa_llama&delete_trab_rem=1&id=<?php echo $remesa['id_remesa']; ?>&ano=<?php echo $remesa['ano_remesa']; ?>&remesa=<?php echo $_GET['remesa']; ?>" method="post" class="form-eliminar">
+                                                <input type="hidden" name="id_remesa" value="<?php echo $remesa['id_remesa']; ?>">
+                                                <input type="hidden" name="ano_remesa" value="<?php echo $remesa['ano_remesa']; ?>">
+                                                <input type="hidden" name="pernr" value="<?php echo $remesa['PERNR']; ?>">
+                                                <button type="button" class="icono hvr-icon btn-eliminar" style="background: none; border: none; cursor: pointer;">
+                                                    <i class="bx bxs-trash fs-3" style="color: #99353a;"></i>
+                                                </button>
+                                            </form>
+
+                                            <script>
+                                                document.addEventListener('DOMContentLoaded', function() {
+                                                    const botonesEliminar = document.querySelectorAll('.btn-eliminar');
+
+                                                    botonesEliminar.forEach(function(boton) {
+                                                        boton.addEventListener('click', function() {
+                                                            const form = this.closest('form');
+                                                            alertify.confirm(
+                                                                'Confirmar eliminación',
+                                                                '¿Está seguro de eliminar este trabajador de la remesa?',
+                                                                function() {
+                                                                    form.submit(); // ✅ Si acepta, envía el formulario
+                                                                },
+                                                                function() {
+                                                                    // ❌ Si cancela, no hace nada
+                                                                }
+                                                            );
+                                                        });
+                                                    });
+                                                });
+                                            </script>
+
+                                        <?php } ?>
+                                    </div>
                                 </td>
+                            
                             </tr>
                             <?php
                         }
@@ -155,9 +200,36 @@ include_once("header.php");
                     ?>
                 </tbody>
             </table>
+
+            <!-- botones de pdf y excel para exportar -->
+            <h5 class="mt-4 card-title" style="color: #012970;">Exportar remesa llamamiento</h5>
+            <form action='' id='exportar' method='post' style='display: inline-block; margin-left: 15px;'>
+                <input type="hidden" name="id_remesa" value="<?php echo $id_remesa; ?>">
+                <input type="hidden" name="ano_remesa" value="<?php echo $ano_remesa; ?>">
+                <input type="hidden" name="nombre_remesa" value="<?php echo $nombre_remesa; ?>">
+                
+                <button type="button" target="_blank" onclick="document.getElementById('exportar').action='exportar.php?informe_trabajadores_remesa_pdf'; document.getElementById('exportar').target='_blank'; document.getElementById('exportar').submit();" style="background-color: white; margin-right: 30px;">
+                    <img src="img/pdf.png" style="max-width: 100px; width: 35px;">
+                </button>
+
+                <button type="button" target="_blank" onclick="document.getElementById('exportar').action='exportar.php?informe_trabajadores_remesa_excel'; document.getElementById('exportar').submit();" style="background-color: white;">
+                    <img src="img/xls.png" style="max-width: 100px; width: 35px;">
+                </button>
+            </form>
+
         </div>
     </div>
 </section>
+
+<!-- redireccion de 4 segundos si encuentra en la url delete_trab_rem -->
+<?php if (isset($_GET['delete_trab_rem'])) { ?>
+    <script>
+        setTimeout(function() {
+            window.location.href = "admin_cont.php?controller=index&action=view_remesa_llama&id=<?php echo $id_remesa; ?>&ano=<?php echo $ano_remesa; ?>";
+        }, 4000);
+    </script>
+<?php } ?>
+
 
 <?php 
 include_once("footer.php");

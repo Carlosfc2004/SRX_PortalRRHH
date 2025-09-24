@@ -71,7 +71,7 @@ include_once("header.php");
 										</td>
 										<td>
 											<li class="hvr-icon-forward">
-												<a href="admin_cont.php?controller=index&action=view_remesa_llama&id=<?php echo $resultado['id_remesa']; ?>&ano=<?php echo $resultado['ano_remesa']; ?>">
+												<a href="admin_cont.php?controller=index&action=view_remesa_llama&id=<?php echo $resultado['id_remesa']; ?>&ano=<?php echo $resultado['ano_remesa']; ?>&remesa=<?php echo $resultado['sms_auto']; ?>">
 													<div class="hvr-icon" >
 														<i class="bi bi-pencil-square fs-4" style="color: #012970;"></i>
 													</div>

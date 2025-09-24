@@ -123,7 +123,8 @@ include_once("header.php");
                     </div>
                 </div>
 
-                <?php 
+
+                <?php
                     if (isset($params['datos_export'])) {
                     ?>
                         <div class="card">
@@ -167,13 +168,14 @@ include_once("header.php");
                                         
                                     }
                                 ?>
+
                                 <table class="table datatable" id="exportar_datos">
                                     <thead>
                                         <tr>
-                                            <th class="col-1">Cod. Trabajador</th>
-                                            <th class="col-1"><?php echo $lang['nombre']; ?></th>
-                                            <th class="col-1"><?php echo $lang['hora_ini']; ?></th>
-                                            <th class="col-1"><?php echo $lang['hora_fin']; ?></th>
+                                            <th class="col-1">Cod. Trabajdor</th>
+                                            <th class="col-2"><?php echo $lang['nombre']; ?></th>
+                                            <th class="col-2"><?php echo $lang['hora_ini']; ?></th>
+                                            <th class="col-2"><?php echo $lang['hora_fin']; ?></th>
                                             <th class="col-1"><?php echo $lang['hora_neta']; ?></th>
                                             <th class="col-1"><?php echo $lang['descanso']; ?></th>
                                             <th class="col-1"><?php echo $lang['finca']; ?></th>
@@ -182,16 +184,14 @@ include_once("header.php");
                                     <tbody>
                                         <?php
                                         foreach ($params['datos_export'] as $resultado) {
-                                            $HorasDescanso = ($resultado['HorasDescanso'] == ".00") ? 0 : $resultado['HorasDescanso'];
-                                            $HorasNetasProduccion = ($resultado['HorasNetasProduccion'] == ".00") ? 0 : $resultado['HorasNetasProduccion'];
                                         ?>
                                             <tr>
                                                 <td><?php echo $resultado['CodOperario']; ?></td>
-                                                <td><?php echo $resultado['NombreOpe'] . " " . $resultado['Apellido1Ope'] . " " . $resultado['Apellido2Ope']; ?></td>
-                                                <td><?php echo $resultado['FechaInicioProduccion']->format('d-m-Y') . " " . $resultado['HoraInicioProduccion']->format('H:i:s'); ?></td>
-                                                <td><?php echo $resultado['FechaFinProduccion']->format('d-m-Y') . " " . $resultado['HoraFinProduccion']->format('H:i:s'); ?></td>
-                                                <td><?php echo $HorasNetasProduccion; ?></td>
-                                                <td><?php echo $HorasDescanso; ?></td>
+                                                <td><?php echo $resultado['NombreOperario']; ?></td>
+                                                <td><?php echo substr($resultado['InicioPresencia'], 0, 19); ?></td>
+                                                <td><?php echo substr($resultado['FinPresencia'], 0, 19); ?></td>
+                                                <td><?php echo $resultado['HorasNetas']; ?></td>
+                                                <td><?php echo $resultado['MinutosDescanso']; ?></td>
                                                 <td><?php echo $resultado['Finca']; ?></td>
                                             </tr>
                                         <?php
@@ -199,11 +199,13 @@ include_once("header.php");
                                         ?>
                                     </tbody>
                                 </table>
+
                             </div>
                         </div>
                     <?php 
                     }
                 ?>
+
             </div>
 
             <div class="col-lg-12" id="div_oficina" style="display: none;">

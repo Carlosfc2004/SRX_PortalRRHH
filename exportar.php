@@ -1,4 +1,3 @@
-
 <?php
 $Meses = array('Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre');
 session_start();
@@ -565,18 +564,18 @@ if (isset($_GET['pdf'])) {
 
 		foreach ($datosInforme as $resultado) {
 			// Convertir las horas de descanso y producción a formato HH:mm
-			$HorasDescanso = ($resultado['HorasDescanso'] == ".00") ? "00:00:00" : decimalToTime($resultado['HorasDescanso']);
-    		$HorasNetasProduccion = ($resultado['HorasNetasProduccion'] == ".00") ? "00:00:00" : decimalToTime($resultado['HorasNetasProduccion']);
+			// $HorasDescanso = ($resultado['HorasDescanso'] == ".00") ? "00:00:00" : decimalToTime($resultado['HorasDescanso']);
+    		// $HorasNetasProduccion = ($resultado['HorasNetasProduccion'] == ".00") ? "00:00:00" : decimalToTime($resultado['HorasNetasProduccion']);
 			$pdf->SetFont('Arial', '', 9);
 			$pdf->Cell(23, 6, $resultado['CodOperario'], 1, 0, 'C');
-			$pdf->Cell(77, 6, utf8_decode($resultado['NombreOpe']) . " " . utf8_decode($resultado['Apellido1Ope']) . " " . utf8_decode($resultado['Apellido2Ope']), 1, 0);
-			$pdf->Cell(23, 6, date_format($resultado['FechaInicioProduccion'], 'd/m/Y'), 1, 0, 'C');
-			$pdf->Cell(22, 6, date_format($resultado['HoraInicioProduccion'], 'H:i'), 1, 0, 'C');
-			$pdf->Cell(21, 6, date_format($resultado['FechaFinProduccion'], 'd/m/Y'), 1, 0, 'C');
-			$pdf->Cell(19, 6, date_format($resultado['HoraFinProduccion'], 'H:i'), 1, 0, 'C');
-			$pdf->Cell(22, 6, $HorasNetasProduccion, 1, 0, 'C');
-			$pdf->Cell(18, 6, $HorasDescanso, 1, 0, 'C');
-			$pdf->Cell(35, 6, utf8_decode($resultado['Finca']), 1, 1, 'C');
+			$pdf->Cell(77, 6, $resultado['NombreOperario'], 1, 0);
+			$pdf->Cell(23, 6, date_format(new DateTime($resultado['InicioPresencia']), 'd/m/Y'), 1, 0, 'C');
+			$pdf->Cell(22, 6, date_format(new DateTime($resultado['InicioPresencia']), 'H:i'), 1, 0, 'C');
+			$pdf->Cell(21, 6, date_format(new DateTime($resultado['FinPresencia']), 'd/m/Y'), 1, 0, 'C');
+			$pdf->Cell(19, 6, date_format(new DateTime($resultado['FinPresencia']), 'H:i'), 1, 0, 'C');
+			$pdf->Cell(22, 6, $resultado['HorasNetas'], 1, 0, 'C');
+			$pdf->Cell(18, 6, $resultado['MinutosDescanso'], 1, 0, 'C');
+			$pdf->Cell(35, 6, $resultado['Finca'], 1, 1, 'C');
 
 			if($pdf->GetY() > 180) {// Ajusta este valor según sea necesario
                 $pdf->AddPage();
@@ -588,9 +587,12 @@ if (isset($_GET['pdf'])) {
                 $pdf->Image('img/logo-home.png', $x, 5, $logoWidth);
             }
         }
-    }
+    } else {
+		// redirigimos a la página de informes
+		header("Location: admin_cont.php?controller=index&action=exportar");
+		exit;
+	}
 
-	
 	//Mostramos el pdf en el navegador
 	$nombreArchivo = 'Informe_Presencia_Campo_'.date('Y-m-d H:i:s').'.pdf';
 	$pdf->Output('I', $nombreArchivo);
@@ -610,29 +612,29 @@ if (isset($_GET['pdf'])) {
 			$nombreDelDocumento = "Informe_Presencia_".$_POST['desde_informe']."_".$_POST['hasta_informe'].".xlsx";
 			//Establecemos un tamaño fijo de columna
 			$sheet->getColumnDimension('A')->setWidth(18);
-			$sheet->getColumnDimension('B')->setWidth(22);
-			$sheet->getColumnDimension('C')->setWidth(25);
+			$sheet->getColumnDimension('B')->setWidth(35);
+			// $sheet->getColumnDimension('C')->setWidth(25);
+			$sheet->getColumnDimension('C')->setWidth(22);
 			$sheet->getColumnDimension('D')->setWidth(22);
 			$sheet->getColumnDimension('E')->setWidth(22);
 			$sheet->getColumnDimension('F')->setWidth(22);
-			$sheet->getColumnDimension('G')->setWidth(22);
-			$sheet->getColumnDimension('H')->setWidth(16);
-			$sheet->getColumnDimension('I')->setWidth(13);
-			$sheet->getColumnDimension('J')->setWidth(15);
+			$sheet->getColumnDimension('G')->setWidth(16);
+			$sheet->getColumnDimension('H')->setWidth(13);
+			$sheet->getColumnDimension('I')->setWidth(15);
 
 			//Mostramos la cabecera
-			$sheet->getStyle('A1:J1')->getFont()->setBold(true);
-			$sheet->getStyle('A1:J1')->getFill()->setFillType("solid")->getStartColor()->setARGB('FFE5E5E5');
+			$sheet->getStyle('A1:I1')->getFont()->setBold(true);
+			$sheet->getStyle('A1:I1')->getFill()->setFillType("solid")->getStartColor()->setARGB('FFE5E5E5');
 			$sheet->setCellValue('A1', 'Cod. Trab');
 			$sheet->setCellValue('B1', 'Nombre');
-			$sheet->setCellValue('C1', 'Apellidos');
-			$sheet->setCellValue('D1', 'FechaInicioProduccion');
-			$sheet->setCellValue('E1', 'HoraInicioProduccion');
-			$sheet->setCellValue('F1', 'FechaFinProduccion');
-			$sheet->setCellValue('G1', 'HoraFinProduccion');
-			$sheet->setCellValue('H1', 'Horas Netas');
-			$sheet->setCellValue('I1', 'Descanso');
-			$sheet->setCellValue('J1', 'Finca');
+			// $sheet->setCellValue('C1', 'Apellidos');
+			$sheet->setCellValue('C1', 'FechaInicioProduccion');
+			$sheet->setCellValue('D1', 'HoraInicioProduccion');
+			$sheet->setCellValue('E1', 'FechaFinProduccion');
+			$sheet->setCellValue('F1', 'HoraFinProduccion');
+			$sheet->setCellValue('G1', 'Horas Netas');
+			$sheet->setCellValue('H1', 'Descanso');
+			$sheet->setCellValue('I1', 'Finca');
 		
 			//Consultamos los datos
 			$datos_presencia = $con_bdsrx->informePresencia($_POST['fincas_informe'], $_POST['desde_informe'], $_POST['hasta_informe'], $_POST['sociedad_informe'], $_POST['division_informe'], $_POST['operario_informe']);
@@ -641,18 +643,24 @@ if (isset($_GET['pdf'])) {
 				foreach($datos_presencia as $resultado) {
 
 					$sheet->setCellValue('A'.$i, $resultado['CodOperario']);
-					$sheet->setCellValue('B'.$i, $resultado['NombreOpe']);
-					$sheet->setCellValue('C'.$i, $resultado['Apellido1Ope']." ".$resultado['Apellido2Ope']);
-					$sheet->setCellValue('D'.$i, $resultado['FechaInicioProduccion']->format('d/m/Y'));
-					$sheet->getStyle('D'.$i)->getNumberFormat()->setFormatCode(NumberFormat::FORMAT_DATE_DDMMYYYY);
-					$sheet->setCellValue('E'.$i, $resultado['HoraInicioProduccion']->format('H:i:s'));
-					$sheet->setCellValue('F'.$i, $resultado['FechaFinProduccion']->format('d/m/Y'));
-					$sheet->getStyle('F'.$i)->getNumberFormat()->setFormatCode(NumberFormat::FORMAT_DATE_DDMMYYYY);
-					$sheet->setCellValue('G'.$i, $resultado['HoraFinProduccion']->format('H:i:s'));
+					$sheet->setCellValue('B'.$i, $resultado['NombreOperario']);
+					// $sheet->setCellValue('C'.$i, $resultado['Apellido1Ope']." ".$resultado['Apellido2Ope']);
+					$inicio = new DateTime($resultado['InicioPresencia']);
+					$fin = new DateTime($resultado['FinPresencia']);
+
+					$sheet->setCellValue('C'.$i, $inicio->format('d/m/Y'));
+					$sheet->getStyle('C'.$i)->getNumberFormat()->setFormatCode(NumberFormat::FORMAT_DATE_DDMMYYYY);
+
+					$sheet->setCellValue('D'.$i, $inicio->format('H:i:s'));
+
+					$sheet->setCellValue('E'.$i, $fin->format('d/m/Y'));
+					$sheet->getStyle('E'.$i)->getNumberFormat()->setFormatCode(NumberFormat::FORMAT_DATE_DDMMYYYY);
+
+					$sheet->setCellValue('F'.$i, $fin->format('H:i:s'));
 
 
 					// Suponiendo que $resultado['HorasNetasProduccion'] contiene el valor en horas decimales
-					$valor_decimal = $resultado['HorasNetasProduccion'];
+					$valor_decimal = $resultado['HorasNetas'];
 					// Convertir el valor decimal a minutos
 					$minutos_totales = $valor_decimal * 60;
 					// Calcular las horas y los minutos
@@ -661,30 +669,30 @@ if (isset($_GET['pdf'])) {
 					// Formatear la cadena como "h:m"
 					$horas_netas_produccion = $horas . ':' . str_pad($min, 2, '0', STR_PAD_LEFT);
 					// Establecer el valor de la celda con el formato "h:m"
-					$sheet->setCellValue('H' . $i, $horas_netas_produccion);
+					$sheet->setCellValue('G' . $i, $horas_netas_produccion);
 					
 					//$sheet->setCellValue('H'.$i, $resultado['HorasNetasProduccion']);
 
 
-					$sheet->setCellValue('I'.$i, $resultado['HorasDescanso']);
-					$sheet->setCellValue('J'.$i, $resultado['Finca']);
+					$sheet->setCellValue('H'.$i, $resultado['MinutosDescanso']);
+					$sheet->setCellValue('I'.$i, $resultado['Finca']);
 					// $sheet->setCellValue('W'.$i, $resultado['CodFinca']);
 					$i++;
 				}				
 				//Pintamos el borde de la tabla
-				$sheet->getStyle('A1:J'.($i-1))->getBorders()->getAllBorders()->setBorderStyle("thin");
+				$sheet->getStyle('A1:I'.($i-1))->getBorders()->getAllBorders()->setBorderStyle("thin");
 				//Centramos las columnas
-				$sheet->getStyle('A1:J'.($i-1))->getAlignment()->setHorizontal('center');
-				$sheet->getStyle('A1:J'.($i-1))->getAlignment()->setVertical('center');
+				$sheet->getStyle('A1:I'.($i-1))->getAlignment()->setHorizontal('center');
+				$sheet->getStyle('A1:I'.($i-1))->getAlignment()->setVertical('center');
 			}else{
 				//si la consulta no tiene datos, se exporta el fichero con el texto "No se han encontrado datos de esta finca y fecha"
-				$sheet->mergeCells('A3:J3');
+				$sheet->mergeCells('A3:I3');
 				$sheet->setCellValue('A3', "No se han encontrado registros");
 				//Pintamos el borde de la tabla
-				$sheet->getStyle('A3:J3')->getBorders()->getAllBorders()->setBorderStyle("thin");
+				$sheet->getStyle('A3:I3')->getBorders()->getAllBorders()->setBorderStyle("thin");
 				//Centramos las columnas
-				$sheet->getStyle('A3:J3')->getAlignment()->setHorizontal('center');
-				$sheet->getStyle('A3:J3')->getAlignment()->setVertical('center');
+				$sheet->getStyle('A3:I3')->getAlignment()->setHorizontal('center');
+				$sheet->getStyle('A3:I3')->getAlignment()->setVertical('center');
 			}
 			//Descargamos el archivo
 			header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
@@ -1167,7 +1175,7 @@ if (isset($_GET['pdf'])) {
 		$pdf->Cell(20,6,utf8_decode('Almuerzo'),1,0,'C',true);
 		$pdf->Cell(18,6,utf8_decode('Otros'),1,0,'C',true);
 		$pdf->Cell(30,6,utf8_decode('Descanso Total'),1,0,'C',true);
-		$pdf->Cell(30,6,utf8_decode('Horas Producidas'),1,0,'C',true);
+		$pdf->Cell(30,6,utf8_decode('Horas trabajadas'),1,0,'C',true);
 		$pdf->Cell(25,6,utf8_decode('Horas Totales'),1,1,'C',true);
 	}
 
@@ -1205,16 +1213,7 @@ if (isset($_GET['pdf'])) {
 			$nombre = '';
 
 			// Mostrar el nombre completo del trabajador
-			if ($resultado['APELLIDO1'] != '' && $resultado['NOMBRE'] != '' ) {
-				// Si existen APELLIDO1 y NOMBRE, mostrar en formato: APELLIDO1 APELLIDO2, NOMBRE
-				$nombre = $resultado['APELLIDO1'];
-		
-				if ($resultado['APELLIDO2'] != '') {
-					$nombre .= ' ' . $resultado['APELLIDO2'];
-				}
-		
-				$nombre .= ', ' . $resultado['NOMBRE'];
-			} elseif ($resultado['NOMBREYAPELLIDOS'] != '') {
+			if ($resultado['NOMBREYAPELLIDOS'] != '') {
 				// Si existe el campo NOMBREYAPELLIDOS completo
 				$nombre = $resultado['NOMBREYAPELLIDOS'];
 			} else {
@@ -1227,10 +1226,9 @@ if (isset($_GET['pdf'])) {
 			$pdf->Cell(20, 6, $resultado['pernr'], 1, 0, 'C');
 			$pdf->Cell(62, 6, utf8_decode($nombre), 1, 0);
 			 // Comprobar si 'fecha' no es NULL y es un objeto DateTime
-			if ($resultado['fecha'] instanceof DateTime) {
+			if (isset($resultado['fecha']) && $resultado['fecha'] instanceof DateTime) {
 				$pdf->Cell(20, 6, $resultado['fecha']->format('Y/m/d'), 1, 0, 'C');
 			} else {
-				// Si 'fecha' es NULL o no es un objeto DateTime, mostrar un valor por defecto o vacio
 				$pdf->Cell(20, 6, 'N/A', 1, 0, 'C');
 			}
 			$pdf->Cell(20, 6, utf8_decode($resultado['horas_desayuno']), 1, 0, 'C');
@@ -1265,7 +1263,7 @@ if (isset($_GET['pdf'])) {
 		$pdf->Cell(20,6,utf8_decode('Almuerzo'),1,0,'C',true);
 		$pdf->Cell(18,6,utf8_decode('Otros'),1,0,'C',true);
 		$pdf->Cell(30,6,utf8_decode('Descanso Total'),1,0,'C',true);
-		$pdf->Cell(30,6,utf8_decode('Horas Producidas'),1,0,'C',true);
+		$pdf->Cell(30,6,utf8_decode('Horas trabajadas'),1,0,'C',true);
 		$pdf->Cell(25,6,utf8_decode('Horas Totales'),1,1,'C',true);
 
 		function convertir_a_horas($segundos) {
@@ -1301,120 +1299,219 @@ if (isset($_GET['pdf'])) {
 
 } elseif (isset($_GET['informe_presencia_ofi_audi_excel'])) {	
 		
-	ob_clean();
-	
-	try {
-		// Crear el documento Excel
-		$documento = new Spreadsheet();
-		$sheet = $documento->getActiveSheet();
+ob_clean();
 
-		//Creamos la hoja de Informe PRESENCIA
-		$sheet->setTitle("INFORME PRESENCIA ALMACEN");
-		//Establecemos el nombre
-		if (isset($_POST['fecha_inicio_ofi']) && $_POST['fecha_fin_ofi'] == '') {
-			$nombreDelDocumento = "Presencia_Oficina_".$_POST['fecha_inicio_ofi'].".xlsx";
-		} else {
-			$nombreDelDocumento = "Presencia_Oficina_".$_POST['fecha_inicio_ofi']."_".$_POST['fecha_fin_ofi'].".xlsx";
-		}
-		//Establecemos un tamaño fijo de columna
-		$sheet->getColumnDimension('A')->setWidth(15);
-		$sheet->getColumnDimension('B')->setWidth(40);
-		$sheet->getColumnDimension('C')->setWidth(17);
-		$sheet->getColumnDimension('D')->setWidth(15);
-		$sheet->getColumnDimension('E')->setWidth(15);
-		$sheet->getColumnDimension('F')->setWidth(15);
-		$sheet->getColumnDimension('G')->setWidth(18);
-		$sheet->getColumnDimension('H')->setWidth(18);
-		$sheet->getColumnDimension('I')->setWidth(18);
+try {
+    // Crear el documento Excel
+    $documento = new Spreadsheet();
 
+    // Hoja 1: INFORME PRESENCIA ALMACEN (formato original)
+    $sheet1 = $documento->getActiveSheet();
+    $sheet1->setTitle("INFORME PRESENCIA ALMACEN");
 
-		//Mostramos la cabecera
-		$sheet->getStyle('A1:I1')->getFont()->setBold(true);
-		$sheet->getStyle('A1:I1')->getFill()->setFillType("solid")->getStartColor()->setARGB('FFE5E5E5');
-		$sheet->setCellValue('A1', 'Cod. Trab');
-		$sheet->setCellValue('B1', 'Nombre y apellidos');
-		$sheet->setCellValue('C1', 'Fecha');
-		$sheet->setCellValue('D1', 'Desayuno');
-		$sheet->setCellValue('E1', 'Almuerzo');
-		$sheet->setCellValue('F1', 'Otros');
-		$sheet->setCellValue('G1', 'Descanso Total');
-		$sheet->setCellValue('H1', 'Horas Producidas');
-		$sheet->setCellValue('I1', 'Hora Totales');
-		
-		$datos_presencia = $con_bdsrx->informePresenciaOficina2($_POST);
-		if(!empty($datos_presencia)){
-			$i=2;
-			foreach($datos_presencia as $resultado) {
-				// Inicializar $nombre para evitar el warning de variable indefinida
-				$nombre = '';
+    // Establecemos el nombre del archivo
+    if (isset($_POST['fecha_inicio_ofi']) && $_POST['fecha_fin_ofi'] == '') {
+        $nombreDelDocumento = "Presencia_Oficina_".$_POST['fecha_inicio_ofi'].".xlsx";
+    } else {
+        $nombreDelDocumento = "Presencia_Oficina_".$_POST['fecha_inicio_ofi']."_".$_POST['fecha_fin_ofi'].".xlsx";
+    }
 
-				// Mostrar el nombre completo del trabajador
-				if ($resultado['APELLIDO1'] != '' && $resultado['NOMBRE'] != '' ) {
-					// Si existen APELLIDO1 y NOMBRE, mostrar en formato: APELLIDO1 APELLIDO2, NOMBRE
-					$nombre = $resultado['APELLIDO1'];
-			
-					if ($resultado['APELLIDO2'] != '') {
-						$nombre .= ' ' . $resultado['APELLIDO2'];
-					}
-			
-					$nombre .= ', ' . $resultado['NOMBRE'];
-				} elseif ($resultado['NOMBREYAPELLIDOS'] != '') {
-					// Si existe el campo NOMBREYAPELLIDOS completo
-					$nombre = $resultado['NOMBREYAPELLIDOS'];
-				} else {
-					// Si no hay datos disponibles
-					$nombre = 'Desconocido';
-				}
-				
-				$sheet->setCellValue('A'.$i, $resultado['pernr']);
-				$sheet->getStyle('A'.$i)->getNumberFormat()->setFormatCode(NumberFormat::FORMAT_NUMBER);
-				$sheet->setCellValue('B'.$i, $nombre);
-				if ($resultado['fecha'] instanceof DateTime) {
-					$sheet->setCellValue('C' . $i, $resultado['fecha']->format('Y-m-d'));
-				} else {
-					$sheet->setCellValue('C' . $i, 'N/A');
-				}
-				$sheet->getStyle('C'.$i)->getNumberFormat()->setFormatCode(NumberFormat::FORMAT_DATE_YYYYMMDD);
-				$sheet->setCellValue('D'.$i, $resultado['horas_desayuno']);
-				$sheet->setCellValue('E'.$i, $resultado['horas_almuerzo']);
-				$sheet->setCellValue('F'.$i, $resultado['horas_otros']);
-				$sheet->setCellValue('G'.$i, $resultado['horas_descanso']);
-				$sheet->setCellValue('H'.$i, $resultado['horas_producido']);
-				$sheet->setCellValue('I'.$i, $resultado['horas_totales']);
+    // Definimos columnas ancho fijo para hoja 1
+    foreach (['A'=>15, 'B'=>40, 'C'=>17, 'D'=>15, 'E'=>15, 'F'=>15, 'G'=>18, 'H'=>18, 'I'=>18, 'J'=>18, 'K'=>18] as $col => $width) {
+        $sheet1->getColumnDimension($col)->setWidth($width);
+    }
 
-				$i++;
-			}				
-			//Pintamos el borde de la tabla
-			$sheet->getStyle('A1:I'.($i-1))->getBorders()->getAllBorders()->setBorderStyle("thin");
-			//Centramos las columnas
-			$sheet->getStyle('A1:I'.($i-1))->getAlignment()->setHorizontal('center');
-			$sheet->getStyle('A1:I'.($i-1))->getAlignment()->setVertical('center');
-		}else{
-			//si la consulta no tiene datos, se exporta el fichero con el texto "No se han encontrado registros de entrada/salida para oficina"
-			$sheet->mergeCells('A3:I3');
-			$sheet->setCellValue('A3', "No se han encontrado registros de entrada/salida para oficina");
-			//Pintamos el borde de la tabla
-			$sheet->getStyle('A3:I3')->getBorders()->getAllBorders()->setBorderStyle("thin");
-			//Centramos las columnas
-			$sheet->getStyle('A3:I3')->getAlignment()->setHorizontal('center');
-			$sheet->getStyle('A3:I3')->getAlignment()->setVertical('center');
-		}
+    // Cabecera hoja 1
+    $sheet1->getStyle('A1:K1')->getFont()->setBold(true);
+    $sheet1->getStyle('A1:K1')->getFill()->setFillType("solid")->getStartColor()->setARGB('FFE5E5E5');
+    $sheet1->setCellValue('A1', 'Cod. Trab');
+    $sheet1->setCellValue('B1', 'Nombre y apellidos');
+    $sheet1->setCellValue('C1', 'Fecha');
+    $sheet1->setCellValue('D1', 'Inicio Jornada');
+    $sheet1->setCellValue('E1', 'Fin Jornada');
+    $sheet1->setCellValue('F1', 'Desayuno');
+    $sheet1->setCellValue('G1', 'Almuerzo');
+    $sheet1->setCellValue('H1', 'Otros');
+    $sheet1->setCellValue('I1', 'Descanso Total');
+    $sheet1->setCellValue('J1', 'Horas trabajadas');
+    $sheet1->setCellValue('K1', 'Horas Totales');
+
+    // Crear segunda hoja para formato base 100
+    $sheet2 = $documento->createSheet();
+    $sheet2->setTitle("INFORME PRESENCIA BASE 100");
+
+    // Columnas para hoja 2 igual que hoja 1
+    foreach (['A'=>15, 'B'=>40, 'C'=>17, 'D'=>15, 'E'=>15, 'F'=>15, 'G'=>18, 'H'=>18, 'I'=>18, 'J'=>18, 'K'=>18] as $col => $width) {
+        $sheet2->getColumnDimension($col)->setWidth($width);
+    }
+
+    // Cabecera hoja 2
+    $sheet2->getStyle('A1:K1')->getFont()->setBold(true);
+    $sheet2->getStyle('A1:K1')->getFill()->setFillType("solid")->getStartColor()->setARGB('FFDDEEFF');
+    $sheet2->setCellValue('A1', 'Cod. Trab');
+    $sheet2->setCellValue('B1', 'Nombre y apellidos');
+    $sheet2->setCellValue('C1', 'Fecha');
+    $sheet2->setCellValue('D1', 'Inicio Jornada');
+    $sheet2->setCellValue('E1', 'Fin Jornada');
+    $sheet2->setCellValue('F1', 'Desayuno');
+    $sheet2->setCellValue('G1', 'Almuerzo');
+    $sheet2->setCellValue('H1', 'Otros');
+    $sheet2->setCellValue('I1', 'Descanso Total');
+    $sheet2->setCellValue('J1', 'Horas trabajadas');
+    $sheet2->setCellValue('K1', 'Horas Totales');
+
+    // Función para convertir hh:mm o hh:mm:ss a decimal base 100
+    function tiempo_a_decimal_base100($tiempo_str) {
+        if (empty($tiempo_str)) return 0;
+
+        // Asumiendo formato hh:mm o hh:mm:ss
+        $partes = explode(':', $tiempo_str);
+        if (count($partes) < 2) return 0;
+
+        $horas = (float)$partes[0];
+        $minutos = (float)$partes[1];
+        $segundos = isset($partes[2]) ? (float)$partes[2] : 0;
+
+        // Convertir minutos y segundos a decimal base 100
+        $decimal = $horas + (($minutos / 60) * 100 / 100) + (($segundos / 3600) * 100 / 100);
+
+        // Simplificando:
+        // minutos base 100 = minutos * 100 / 60
+        $minutos_base100 = $minutos * 100 / 60;
+        $segundos_base100 = $segundos * 100 / 3600;
+
+        return round($horas + ($minutos_base100 / 100) + ($segundos_base100 / 100), 2);
+    }
+
+	// Supongamos que obtienes $datos_presencia desde otra función
+	$datos_presencia = $con_bdsrx->informePresenciaOficina2($_POST);
 
 
-		//Descargamos el archivo
-		header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-		header('Content-Disposition: attachment;filename="' . $nombreDelDocumento . '"');
-		header('Cache-Control: max-age=0');
+    if (!empty($datos_presencia)) {
+        $i = 2; // fila hoja 1
+        $j = 2; // fila hoja 2
 
-		ob_end_clean();
-		$writer = IOFactory::createWriter($documento, 'Xlsx');
-		$writer->save('php://output');
-		exit;
-	} catch (Exception $e) {
-		// Manejar cualquier error que ocurra durante la generación
-		ob_end_clean();
-		echo "Error al generar el archivo Excel: " . $e->getMessage();
-	}
+        foreach ($datos_presencia as $resultado) {
+            // Nombre trabajador igual que antes
+            $nombre = '';
+            if ($resultado['NOMBREYAPELLIDOS'] != '') {
+                $nombre = $resultado['NOMBREYAPELLIDOS'];
+            } else {
+                $nombre = 'Desconocido';
+            }
+
+            // Hoja 1 valores sin modificar
+			$sheet1->setCellValue('A' . $i, $resultado['pernr']);
+			$sheet1->getStyle('A' . $i)->getNumberFormat()->setFormatCode(NumberFormat::FORMAT_NUMBER);
+			$sheet1->setCellValue('B' . $i, $nombre);
+
+			if (isset($resultado['fecha']) && $resultado['fecha'] instanceof DateTime) {
+				$sheet1->setCellValue('C' . $i, $resultado['fecha']->format('Y-m-d'));
+			} else {
+				$sheet1->setCellValue('C' . $i, 'N/A');
+			}
+			$sheet1->getStyle('C' . $i)->getNumberFormat()->setFormatCode(NumberFormat::FORMAT_DATE_YYYYMMDD);
+
+			// Entrada jornada
+			if (isset($resultado['primera_entrada']) && $resultado['primera_entrada'] instanceof DateTime) {
+				$sheet1->setCellValue('D' . $i, $resultado['primera_entrada']->format('m-d H:i:s'));
+			} else {
+				$sheet1->setCellValue('D' . $i, 'N/A');
+			}
+			$sheet1->getStyle('D' . $i)->getNumberFormat()->setFormatCode('mm-dd hh:mm:ss');
+
+			// Salida jornada
+			if (isset($resultado['ultima_salida']) && $resultado['ultima_salida'] instanceof DateTime) {
+				$sheet1->setCellValue('E' . $i, $resultado['ultima_salida']->format('m-d H:i:s'));
+			} else {
+				$sheet1->setCellValue('E' . $i, 'N/A');
+			}
+			$sheet1->getStyle('E' . $i)->getNumberFormat()->setFormatCode('mm-dd hh:mm:ss');
+
+			$sheet1->setCellValue('F' . $i, $resultado['horas_desayuno']);
+			$sheet1->setCellValue('G' . $i, $resultado['horas_almuerzo']);
+			$sheet1->setCellValue('H' . $i, $resultado['horas_otros']);
+			$sheet1->setCellValue('I' . $i, $resultado['horas_descanso']);
+			$sheet1->setCellValue('J' . $i, $resultado['horas_producido']);
+			$sheet1->setCellValue('K' . $i, $resultado['horas_totales']);
+
+			// Hoja 2 valores convertidos a base 100
+			$sheet2->setCellValue('A' . $j, $resultado['pernr']);
+			$sheet2->setCellValue('B' . $j, $nombre);
+
+			if (isset($resultado['fecha']) && $resultado['fecha'] instanceof DateTime) {
+				$sheet2->setCellValue('C' . $j, $resultado['fecha']->format('Y-m-d'));
+			} else {
+				$sheet2->setCellValue('C' . $j, 'N/A');
+			}
+			$sheet2->getStyle('C' . $j)->getNumberFormat()->setFormatCode(NumberFormat::FORMAT_DATE_YYYYMMDD);
+
+			// Entrada jornada
+			if (isset($resultado['primera_entrada']) && $resultado['primera_entrada'] instanceof DateTime) {
+				$sheet2->setCellValue('D' . $j, $resultado['primera_entrada']->format('m-d H:i:s'));
+			} else {
+				$sheet2->setCellValue('D' . $j, 'N/A');
+			}
+			$sheet2->getStyle('D' . $j)->getNumberFormat()->setFormatCode('mm-dd hh:mm:ss');
+
+			// Salida jornada
+			if (isset($resultado['ultima_salida']) && $resultado['ultima_salida'] instanceof DateTime) {
+				$sheet2->setCellValue('E' . $j, $resultado['ultima_salida']->format('m-d H:i:s'));
+			} else {
+				$sheet2->setCellValue('E' . $j, 'N/A');
+			}
+			$sheet2->getStyle('E' . $j)->getNumberFormat()->setFormatCode('mm-dd hh:mm:ss');
+
+			// Convertir las horas a decimal base 100 para las otras columnas
+			$sheet2->setCellValue('F' . $j, tiempo_a_decimal_base100($resultado['horas_desayuno']));
+			$sheet2->setCellValue('G' . $j, tiempo_a_decimal_base100($resultado['horas_almuerzo']));
+			$sheet2->setCellValue('H' . $j, tiempo_a_decimal_base100($resultado['horas_otros']));
+			$sheet2->setCellValue('I' . $j, tiempo_a_decimal_base100($resultado['horas_descanso']));
+			$sheet2->setCellValue('J' . $j, tiempo_a_decimal_base100($resultado['horas_producido']));
+			$sheet2->setCellValue('K' . $j, tiempo_a_decimal_base100($resultado['horas_totales']));
+
+            $i++;
+            $j++;
+        }
+
+        // Bordes hoja 1
+        $sheet1->getStyle('A1:K' . ($i - 1))->getBorders()->getAllBorders()->setBorderStyle("thin");
+        $sheet1->getStyle('A1:K' . ($i - 1))->getAlignment()->setHorizontal('center');
+        $sheet1->getStyle('A1:K' . ($i - 1))->getAlignment()->setVertical('center');
+
+        // Bordes hoja 2
+        $sheet2->getStyle('A1:K' . ($j - 1))->getBorders()->getAllBorders()->setBorderStyle("thin");
+        $sheet2->getStyle('A1:K' . ($j - 1))->getAlignment()->setHorizontal('center');
+        $sheet2->getStyle('A1:K' . ($j - 1))->getAlignment()->setVertical('center');
+
+    } else {
+        // Si no hay datos, poner mensaje en ambas hojas
+        $sheet1->mergeCells('A3:I3');
+        $sheet1->setCellValue('A3', "No se han encontrado registros de entrada/salida para oficina");
+        $sheet1->getStyle('A3:I3')->getBorders()->getAllBorders()->setBorderStyle("thin");
+        $sheet1->getStyle('A3:I3')->getAlignment()->setHorizontal('center');
+        $sheet1->getStyle('A3:I3')->getAlignment()->setVertical('center');
+
+        $sheet2->mergeCells('A3:I3');
+        $sheet2->setCellValue('A3', "No se han encontrado registros de entrada/salida para oficina");
+        $sheet2->getStyle('A3:I3')->getBorders()->getAllBorders()->setBorderStyle("thin");
+        $sheet2->getStyle('A3:I3')->getAlignment()->setHorizontal('center');
+        $sheet2->getStyle('A3:I3')->getAlignment()->setVertical('center');
+    }
+
+    // Descargar archivo
+    header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    header('Content-Disposition: attachment;filename="' . $nombreDelDocumento . '"');
+    header('Cache-Control: max-age=0');
+
+    ob_end_clean();
+    $writer = IOFactory::createWriter($documento, 'Xlsx');
+    $writer->save('php://output');
+    exit;
+} catch (Exception $e) {
+    ob_end_clean();
+    echo "Error al generar el archivo Excel: " . $e->getMessage();
+}
 } elseif (isset($_GET['etiqueta_nfc'])) {
 	// Verificar si el formulario envió datos
 	if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['etiqueta_nfc'])) {
@@ -1857,8 +1954,10 @@ if (isset($_GET['pdf'])) {
 
         $fecha_inicio = $_POST['fecha_inicio'] ?? date('Y-m-d');
         $tipo = $_POST['tipo'] ?? '';
+		$filtroAsistencia = $_POST['filtroAsistencia'] ?? '';
+		$buscador = $_POST['buscador'] ?? '';
 
-        $datos_presencia_sin = $con_bdsrx->trabajadores_conta($fecha_inicio, $tipo);
+        $datos_presencia_sin = $con_bdsrx->trabajadores_conta($fecha_inicio, $tipo, $filtroAsistencia, $buscador);
 
         $fila = 1;
 
@@ -1904,7 +2003,12 @@ if (isset($_GET['pdf'])) {
             foreach ($datos_presencia_sin as $resultado) {
                 $sheet->setCellValue('B' . $fila, $resultado['A1_PERNR']);
                 $sheet->setCellValue('C' . $fila, $resultado['NOMBREYAPELLIDOS']);
-                $sheet->setCellValue('D' . $fila, $resultado['Estado']);
+
+				if ($resultado['Estado'] === '1') {
+                    $sheet->setCellValue('D' . $fila, 'Con registro');
+                } else {
+                    $sheet->setCellValue('D' . $fila, 'Sin registro');
+                }
                 $fila++;
             }
 
@@ -1936,6 +2040,215 @@ if (isset($_GET['pdf'])) {
         ob_end_clean();
         echo "Error al generar el archivo Excel: " . $e->getMessage();
     }
+} elseif (isset($_GET['informe_trabajadores_remesa_pdf'])) {
+
+    // Evitar errores de salida prematura
+    ob_start();
+
+    // Comprobar y recoger los datos de POST de forma segura
+
+	if (isset($_POST['id_remesa'], $_POST['ano_remesa'], $_POST['nombre_remesa'])) {
+		$_SESSION['id_remesa'] = $_POST['id_remesa'];
+		$_SESSION['ano_remesa'] = $_POST['ano_remesa'];
+		$_SESSION['nombre_remesa'] = $_POST['nombre_remesa'];
+	}
+
+	$idRemesa = $_POST['id_remesa'] ?? $_SESSION['id_remesa'] ?? null;
+	$anoRemesa = $_POST['ano_remesa'] ?? $_SESSION['ano_remesa'] ?? null;
+	$nombreRemesa = $_POST['nombre_remesa'] ?? $_SESSION['nombre_remesa'] ?? 'SinNombre';
+
+    if ($idRemesa === null || $anoRemesa === null) {
+        ob_end_clean(); 
+        die("Faltan datos obligatorios para generar el informe.");
+    }
+
+    // Crear PDF
+    $pdf = new tFPDF('L');
+    $pdf->SetMargins(19, 20, 20);
+    $pdf->AliasNbPages();
+    $pdf->AddPage();
+    $pdf->SetFont('Arial', '', 10);
+    $pdf->SetFillColor(255, 255, 255);
+    $pdf->SetDrawColor(0, 0, 0);
+    $pdf->SetTextColor(153, 53, 58);
+    $pdf->Text(20, 12, iconv("UTF-8", "ISO-8859-1", "SUREXPORT COMPAÑÍA AGRARIA, S.L."));
+    $pdf->SetTextColor(0, 0, 0);
+    $pdf->Text(20, 16, "Poligono Matalagrana S/N, Apdo: 116");
+    $pdf->Text(20, 20, "CIF B21202817");
+    $pdf->Text(20, 24, "+34 959451550 | surexport@surexport.es");
+    $pdf->Text(20, 198, iconv("UTF-8", "ISO-8859-1", "Fecha de impresión: " . date('Y-m-d H:i:s')));
+    $pdf->Image('img/logo-home.png', 233, 7, 44);
+    $pdf->SetFont('Arial', 'B', 14);
+
+    $titulo = "Informe Trabajadores Remesa (" . $nombreRemesa . ")";
+    $pdf->Multicell(255, 15, $titulo, 0, 'C');
+
+	// Definición de tabla
+    $anchoTabla = 186;
+    $paginaAncho = $pdf->GetPageWidth();
+    $margenIzquierdo = ($paginaAncho - $anchoTabla) / 2;
+
+    $pdf->SetFont('Arial', 'B', 9);
+    $pdf->SetFillColor(222, 222, 222);
+	$pdf->SetX($margenIzquierdo);
+    $pdf->Cell(27, 6, 'Cod. Trab', 1, 0, 'C', true);
+    $pdf->Cell(63, 6, "Nombre y apellidos", 1, 0, 'C', true);
+    $pdf->Cell(26, 6, 'Telefono', 1, 0, 'C', true);
+    $pdf->Cell(70, 6, 'Correo', 1, 1, 'C', true);
+
+    $datosInforme = $con_bdsrx->InfoRemesa_llama($idRemesa, $anoRemesa);
+
+    if (!empty($datosInforme)) {
+        foreach ($datosInforme as $resultado) {
+            $pdf->SetFont('Arial', '', 9);
+			$pdf->SetX($margenIzquierdo);
+            $pdf->Cell(27, 6, $resultado['PERNR'], 1, 0, 'C');
+            $pdf->Cell(63, 6, $resultado['NOMBREYAPELLIDOS'], 1, 0);
+            $pdf->Cell(26, 6, $resultado['PREFIJO'] . $resultado['MOVIL'], 1, 0, 'C');
+            $pdf->Cell(70, 6, $resultado['CORREO'], 1, 1, 'C');
+
+            if ($pdf->GetY() > 190) {
+                $pdf->AddPage();
+                $logoWidth = 35;
+                $x = ($pdf->GetPageWidth() - $logoWidth) / 2;
+                $pdf->Image('img/logo-home.png', $x, 5, $logoWidth);
+            }
+        }
+    }
+
+    // Limpiar cualquier salida previa
+    ob_end_clean();
+
+    // Preparar headers para PDF
+    $nombreArchivo = 'Informe_trabajadores_' . $nombreRemesa . '.pdf';
+    header('Content-Type: application/pdf');
+    header('Content-Disposition: inline; filename="' . $nombreArchivo . '"');
+    header('Cache-Control: private, max-age=0, must-revalidate');
+    header('Pragma: public');
+
+    $pdf->Output('I', $nombreArchivo);
+} elseif (isset($_GET['informe_trabajadores_remesa_excel'])) {
+	// Generar informe en Excel
+	ob_clean();
+
+	$documento = new Spreadsheet();
+	$sheet = $documento->getActiveSheet();
+	$sheet->setTitle("Trabajadores Remesa");
+	$nombreDelDocumento = "Trabajadores_Remesa.xlsx";
+	// Ajuste de columnas
+	$sheet->getColumnDimension('A')->setWidth(15);
+	$sheet->getColumnDimension('B')->setWidth(45);
+	$sheet->getColumnDimension('C')->setWidth(20);
+	$sheet->getColumnDimension('D')->setWidth(45);
+	// Cabecera
+	$sheet->getStyle('A1:D1')->getFont()->setBold(true);
+	$sheet->getStyle('A1:D1')->getFill()->setFillType("solid")->getStartColor()->setARGB('FFE5E5E5');
+	$sheet->setCellValue('A1', 'Cod. Trab');
+	$sheet->setCellValue('B1', 'Nombre y apellidos');
+	$sheet->setCellValue('C1', 'Telefono');
+	$sheet->setCellValue('D1', 'Correo');
+	// Recoger datos de la remesa
+	$idRemesa = $_POST['id_remesa'] ?? $_SESSION['id_remesa'] ?? null;
+	$anoRemesa = $_POST['ano_remesa'] ?? $_SESSION['ano_remesa'] ?? null;
+	$nombreRemesa = $_POST['nombre_remesa'] ?? $_SESSION['nombre_remesa'] ?? 'SinNombre';
+	if ($idRemesa === null || $anoRemesa === null) {
+		ob_end_clean(); 
+		die("Faltan datos obligatorios para generar el informe.");
+	}
+	$datosInforme = $con_bdsrx->InfoRemesa_llama($idRemesa, $anoRemesa);
+	if (!empty($datosInforme)) {
+		$fila = 2;
+		foreach ($datosInforme as $resultado) {
+			$sheet->setCellValue('A' . $fila, $resultado['PERNR']);
+			$sheet->setCellValue('B' . $fila, $resultado['NOMBREYAPELLIDOS']);
+			$sheet->setCellValue('C' . $fila, $resultado['PREFIJO'] . $resultado['MOVIL']);
+			$sheet->setCellValue('D' . $fila, $resultado['CORREO']);
+			$fila++;
+		}
+		// Bordes y alineación
+		$sheet->getStyle('A1:D' . ($fila - 1))->getBorders()->getAllBorders()->setBorderStyle("thin");
+		$sheet->getStyle('A1:D' . ($fila - 1))->getAlignment()->setHorizontal('center');
+		$sheet->getStyle('A1:D' . ($fila - 1))->getAlignment()->setVertical('center');
+	} else {
+		// Si no hay datos
+		$sheet->mergeCells('A2:D2');
+		$sheet->setCellValue('A2', "No se han encontrado registros de trabajadores para la remesa");
+		// Bordes y alineación
+		$sheet->getStyle('A2:D2')->getBorders()->getAllBorders()->setBorderStyle("thin");
+		$sheet->getStyle('A2:D2')->getAlignment()->setHorizontal('center');
+		$sheet->getStyle('A2:D2')->getAlignment()->setVertical('center');
+	}
+
+	// Descargar el archivo
+	header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+	header('Content-Disposition: attachment;filename="' . $nombreDelDocumento . '"');
+	header('Cache-Control: max-age=0');
+	ob_end_clean();
+	$writer = IOFactory::createWriter($documento, 'Xlsx');
+	$writer->save('php://output');
+	exit;
+
+} elseif (isset($_GET['informe_trabajadores_baja_excel'])) {
+
+	ob_clean();
+	
+	try {
+		// Crear el documento Excel
+		$documento = new Spreadsheet();
+		$sheet = $documento->getActiveSheet();
+		
+		//Creamos la hoja de Informe trabajadores fijos discontinuos
+		$sheet->setTitle("Trabajadores fijos discontinuos");
+		//Establecemos el nombre
+		$nombreDelDocumento = "Trabajadores_fijo_discontinuo.xlsx";
+		//Establecemos un tamaño fijo de columna
+		$sheet->getColumnDimension('A')->setWidth(15);
+		$sheet->getColumnDimension('B')->setWidth(50);
+		$sheet->getColumnDimension('C')->setWidth(20);
+		$sheet->getColumnDimension('D')->setWidth(25);
+		
+		//Mostramos la cabecera
+		$sheet->getStyle('A1:D1')->getFont()->setBold(true);
+		$sheet->getStyle('A1:D1')->getFill()->setFillType("solid")->getStartColor()->setARGB('FFE5E5E5');
+		$sheet->setCellValue('A1', 'Cod. Trab');
+		$sheet->setCellValue('B1', 'Nombre y apellidos');
+		$sheet->setCellValue('C1', 'Fecha de baja');
+		$sheet->setCellValue('D1', 'Almacen');
+
+		$datosInforme = $con_bdsrx->trabajadores_baja($_GET['ubicacion'], $_GET['fecha_ini'], $_GET['fecha_fin']);
+		if (!empty($datosInforme)) {
+			$fila = 2;
+			foreach ($datosInforme as $resultado) {
+				$sheet->setCellValue('A' . $fila, $resultado['PERNR']);
+				$sheet->setCellValue('B' . $fila, $resultado['NOMBREYAPELLIDOS']);
+				$sheet->setCellValue('C' . $fila, $resultado['BEGDA']->format('Y-m-d'));
+				$sheet->setCellValue('D' . $fila, $resultado['DESC_ALMACEN'] ." (".$resultado['ZZLGORT'].")");
+				$fila++;
+			}
+		}
+
+		//Pintamos el borde de la tabla
+		$sheet->getStyle('A1:D' . ($fila - 1))->getBorders()->getAllBorders()->setBorderStyle("thin");
+		//Centramos las columnas
+		$sheet->getStyle('A1:D' . ($fila - 1))->getAlignment()->setHorizontal('center');
+		$sheet->getStyle('A1:D' . ($fila - 1))->getAlignment()->setVertical('center');
+		
+		//Descargamos el archivo
+		header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+		header('Content-Disposition: attachment;filename="' . $nombreDelDocumento . '"');
+		header('Cache-Control: max-age=0');
+		ob_end_clean();
+		$writer = IOFactory::createWriter($documento, 'Xlsx');
+		$writer->save('php://output');
+		exit;
+	} catch (Exception $e) {
+		// Manejo de errores
+		echo "Error: " . $e->getMessage();
+	}
+
+} else {
+	// o puedes mostrar un mensaje de error
+	echo "Acción no válida.";
 }
 
 ?>

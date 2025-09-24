@@ -1,4 +1,6 @@
 <?php
+var_dump($datos);
+die;
 include_once("../config.php");
 require_once("../models/sqlsrvModel.php");
 
@@ -155,7 +157,7 @@ $anio_inc = $datos[0]['fecha_incorporacion']->format('Y');
         <p class="justificado"> 
             Al objeto de poder coordinar las incorporaciones y los trabajos, <b>rogamos se ponga en contacto en un plazo máximo de cinco 
             días desde la recepción de esta comunicación</b> con D./Dª <b><?php echo $datos[0]['nombre']. " ". $datos[0]['apellidos']; ?></b> en el número de 
-            teléfono: <b><?php echo $datos[0]['telefono']; ?></b> y/o en el siguiente correo: <b><?php echo $datos[0]['usr_login']; ?></b>
+            teléfono: <b><?php echo $datos[0]['telf']; ?></b> y/o en el siguiente correo: <b><?php echo $datos[0]['usr_login']; ?></b>
         </p>
         <p class="justificado">
             Le recordamos que, en caso de no poder asistir por causa justificada, deberá justificar su ausencia a la mayor brevedad 

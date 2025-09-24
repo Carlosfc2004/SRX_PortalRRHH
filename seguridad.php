@@ -1,6 +1,4 @@
 <?php
-//Inicio la sesion
-
 
 //COMPRUEBA QUE EL USUARIO ESTA AUTENTIFICADO
 if ($_SESSION["autentificado_surexport_appreclu"] != "SI") {
