@@ -1324,22 +1324,27 @@ class index{
 			if (isset($_POST['form_oficina'])) {
 				$params['datos_export_ofi'] = $m->informePresenciaOficina2($_POST);		
 			
-			} elseif (isset($_POST['modificado'])) {
-				$fecha = $_POST['fecha_valida'];
+			} elseif (isset($_GET['modificar'])) {
+				$fecha = $_POST['fecha_mod'];
 				$id = $_POST['id'];
-				$estado = $_POST['estado'];
+				$estado = 3;
 				$pernr = $_POST['pernr'];
-				$motivo = isset($_POST['motivo']) ? $_POST['motivo'] : NULL;
+				$motivo = isset($_POST['comentario']) ? $_POST['comentario'] : NULL;
+
+				// var_dump($_POST);
+				// die;
+
+				$params['datos_export_ofi'] = $m->informePresenciaOficina2($_POST);
 
 				// Convertir fecha al formato compatible con SQL Server
 				$fecha = str_replace('T', ' ', $fecha);
 
-				if ($m->validar_registro($id, $fecha, $estado, $motivo)) {
+				if ($m->validar_registro($id, $fecha, $estado, $motivo, true)) {
 					$params['resultado'] = 'Registro modificado correctamente';
-					$m->reg_acciones('Modificar jornada presencia', $id." ".$pernr, $_SESSION["id_user_surexport_appreclu"], 'OK');
+					$m->reg_acciones('Modificar jornada presencia por RRHH', $id." ".$pernr, $_SESSION["id_user_surexport_appreclu"], 'OK');
 				} else {
 					$params['resultado'] = 'Error al modificar el registro';
-					$m->reg_acciones('Modificar jornada presencia', $id." ".$pernr, $_SESSION["id_user_surexport_appreclu"], 'ERROR');
+					$m->reg_acciones('Modificar jornada presencia por RRHH', $id." ".$pernr, $_SESSION["id_user_surexport_appreclu"], 'ERROR');
 				}
 
 			} elseif (isset($_POST['fecha_valida'])) {
@@ -1358,6 +1363,33 @@ class index{
 				} else {
 					$params['resultado'] = 'Error al validar el registro';
 					$m->reg_acciones('Validar jornada presencia', $id." ".$pernr, $_SESSION["id_user_surexport_appreclu"], 'ERROR');
+				}
+			} elseif (isset($_GET['guardar_nuevos_registros'])) {
+				$ok = true;
+				
+				// Decodificar los datos JSON que llegan como string
+				$registros = json_decode($_POST['registros'], true);
+				
+				if (!$registros) {
+					$params['resultado'] = 'Error al procesar los datos';
+					http_response_code(400);
+				} else {
+					foreach($registros as $registro) {
+						if($m->guardar_nuevo_registro($registro)) {
+							$m->reg_acciones('Registro creado por RRHH', $registro['pernr'], $_SESSION["id_user_surexport_appreclu"], 'OK');
+						} else {
+							$m->reg_acciones('Registro creado por RRHH', $registro['pernr'], $_SESSION["id_user_surexport_appreclu"], 'ERROR');
+							$ok = false;
+						}
+					}
+					
+					if($ok) {
+						$params['resultado'] = 'Registros guardados correctamente';
+						http_response_code(200);
+					} else {
+						$params['resultado'] = 'Error al guardar los registros';
+						http_response_code(500);
+					}
 				}
 			}
 		require 'views/auditor.php';

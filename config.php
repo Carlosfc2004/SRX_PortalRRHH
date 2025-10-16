@@ -4,8 +4,8 @@
 
 	class ConfigAppReclutamiento{
 		static public $bdsrx_hostname = "172.21.0.38";
-		static public $bdsrx_nombre   = "AppReclutamiento";
-		// static public $bdsrx_nombre   = "AppReclutamiento_test";
+		// static public $bdsrx_nombre   = "AppReclutamiento";
+		static public $bdsrx_nombre   = "AppReclutamiento_test";
 		static public $bdsrx_usuario  = "prosadoc";
 		static public $bdsrx_clave    = "Prosadoc2020";
 	}
@@ -37,8 +37,8 @@
 
 	class ConfigAgromobile{
 		// static public $bdsrx_hostname = "192.168.200.202";
-		static public $bdsrx_nombre   = "SUREXPORT_AGROMOBILE";
-		// static public $bdsrx_nombre   = "SUREXPORT_AGROMOBILE_TEST";
+		// static public $bdsrx_nombre   = "SUREXPORT_AGROMOBILE";
+		static public $bdsrx_nombre   = "SUREXPORT_AGROMOBILE_TEST";
 		// static public $bdsrx_usuario  = "prosadoc";
 		// static public $bdsrx_clave    = "Prosadoc2020";
 	}

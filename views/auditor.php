@@ -29,6 +29,32 @@ include_once("header.php");
         max-height: 585px;
         overflow-y: auto;
     }
+
+    /* Estilos para el autocompletado de trabajadores */
+    #sugerencias_trabajadores {
+        border: 1px solid #ddd;
+        border-top: none;
+        border-radius: 0 0 4px 4px;
+        background-color: white;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        width: calc(100% - 2px); /* Ajustar al ancho del input menos los bordes */
+        left: 1px; /* Alinear con el borde izquierdo del input */
+    }
+
+    #sugerencias_trabajadores .list-group-item {
+        border: none;
+        border-bottom: 1px solid #eee;
+        padding: 8px 12px;
+        font-size: 14px;
+    }
+
+    #sugerencias_trabajadores .list-group-item:hover {
+        background-color: #f8f9fa;
+    }
+
+    #sugerencias_trabajadores .list-group-item:last-child {
+        border-bottom: none;
+    }
 </style>
 
 <div class="pagetitle">
@@ -111,16 +137,16 @@ include_once("header.php");
                                 <option value="" <?php if (isset($_POST['estado_ofi']) && $_POST['estado_ofi'] == "") {
                                     echo "selected";
                                 } ?>></option>
-                                <option value="2" <?php if (isset($_POST['estado_ofi']) && $_POST['estado_ofi'] == "2") {
+                                <!-- <option value="2" <?php if (isset($_POST['estado_ofi']) && $_POST['estado_ofi'] == "2") {
                                     echo "selected";
-                                } ?>>Por validar</option>
+                                } ?>>Editado por RRHH</option> -->
                                 <option value="3" <?php if (isset($_POST['estado_ofi']) && $_POST['estado_ofi'] == "3") {
                                     echo "selected";
-                                } ?>>Validado</option>
-                                <!-- ambos -->
-                                <!-- <option value="6" <?php if (isset($_POST['estado_ofi']) && $_POST['estado_ofi'] == "6") {
+                                } ?>>Editado por RRHH</option>
+                                <option value="6" <?php if (isset($_POST['estado_ofi']) && $_POST['estado_ofi'] == "6") {
                                     echo "selected";
-                                } ?>>Ambos</option> -->
+                                } ?>>Creado/Editado por usuario</option>
+                                
                             </select>
                         </div>
 
@@ -569,6 +595,9 @@ include_once("header.php");
                         <div class="col-md-12">
                             <input type="submit" name="enviar_cont" id="submit_export"
                                 value="<?php echo $lang['exportar']; ?>" class="btn btn-primary">
+                            <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#modalNuevoRegistro">
+                                Nuevo registro
+                            </button>
                         </div>
 
                     </form>
@@ -898,7 +927,7 @@ include_once("header.php");
                                 <input type='hidden' name='fecha_fin_ofi'
                                     value='<?php echo isset($_POST['fecha_fin_ofi']) ? htmlspecialchars($_POST['fecha_fin_ofi']) : ''; ?>'>
                                 <input type='hidden' name='pernr_nom_trab'
-                                    value='<?php echo isset($_POST['pernr_nom_trab']) ? htmlspecialchars(implode(',', $_POST['pernr_nom_trab'])) : ''; ?>'>
+                                    value='<?php echo isset($_POST['pernr_nom_trab']) ? htmlspecialchars(is_array($_POST['pernr_nom_trab']) ? implode(',', $_POST['pernr_nom_trab']) : $_POST['pernr_nom_trab']) : ''; ?>'>
 
                                 <input type='hidden' name='filtro_horas'
                                     value='<?php echo isset($_POST['filtro_horas']) ? htmlspecialchars($_POST['filtro_horas']) : ''; ?>'>
@@ -995,10 +1024,7 @@ include_once("header.php");
                                 <?php
                                 foreach ($params['datos_export_ofi'] as $registro) {
 
-                                    $mostrarValidacion = false;
-                                    if (isset($registro['manual']) && ($registro['manual'] == '2' || $registro['manual'] == '3')) {
-                                        $mostrarValidacion = true;
-                                    }
+                                    
 
                                     // Verificar si estamos en modo totales
                                     $esTotales = !isset($registro['fecha']) || $registro['fecha'] === null;
@@ -1027,14 +1053,15 @@ include_once("header.php");
                                         }
 
                                         $tieneEstado3 = isset($registro['estado_consolidado']) && $registro['estado_consolidado'] == 3;
-                                        $tieneEstado2 = isset($registro['estado_consolidado']) && $registro['estado_consolidado'] == 2;
+                                        $tieneEstado6 = isset($registro['estado_consolidado']) && $registro['estado_consolidado'] == 6;
+                                        $tieneEstado7 = isset($registro['estado_consolidado']) && $registro['estado_consolidado'] == 7;
 
                                         if (!$esTotales) {
                                             // Clase adicional acumulativa dependiendo del estado validado o no validado
                                             $claseFilaPrincipal = '';
                                             if ($tieneEstado3) {
                                                 $claseFilaPrincipal = 'table-success';
-                                            } elseif ($tieneEstado2) {
+                                            } elseif ($tieneEstado6 || $tieneEstado7) {
                                                 $claseFilaPrincipal = 'table-warning';
                                             }
                                         }
@@ -1046,6 +1073,11 @@ include_once("header.php");
                                         data-fecha="<?php echo $fecha; ?>" data-pernr="<?php echo $pernr; ?>">
                                         <td>
                                             <?php echo $nombreCompleto . "<br>" . $registro['pernr']; ?>
+                                            <?php if ($tieneEstado3) { ?>
+                                                <br><small class="text-info"><i class="bi bi-pencil-square"></i> <strong>CREADO/EDITADO POR RRHH</strong></small>
+                                            <?php }elseif ($tieneEstado6 || $tieneEstado7) { ?>
+                                                <br><small class="text-info"><i class="bi bi-pencil-square"></i> <strong>CREADO/EDITADO POR USUARIO</strong></small>
+                                            <?php } ?>
                                             <?php if ($esTotales) { ?>
                                                 <br><small class="text-muted"><strong>TOTALES</strong></small>
                                             <?php } ?>
@@ -1189,16 +1221,18 @@ include_once("header.php");
                         }
 
                         function iconoDispositivo(dispositivo) {
-                            if (!dispositivo) return "<i class='bi bi-tablet-landscape'></i>";
+                            if (!dispositivo) return "<i class='bi bi-globe'></i>";
                             dispositivo = dispositivo.toLowerCase();
                             if (dispositivo.includes('android')) {
                                 return "<i class='bx bxl-android'></i>";
+                            } else if(dispositivo.includes('web manual') || dispositivo.includes('manual')) {
+                                return "<i class='bi bi-globe'></i>";
                             } else if (dispositivo.includes('windows') || dispositivo.includes('linux') || dispositivo.includes('macintosh')) {
                                 return "<i class='bi bi-laptop'></i>";
                             } else if (dispositivo.includes('iphone') || dispositivo.includes('ipad')) {
                                 return "<i class='bx bxl-apple'></i>";
                             } else {
-                                return "<i class='bi bi-tablet-landscape'></i>";
+                                return "<i class='bi bi-globe'></i>";
                             }
                         }
 
@@ -1252,7 +1286,7 @@ include_once("header.php");
                                                 </div>
                                                 <div class='modal-footer'>
                                                     <button type='button' class='btn btn-secondary' data-bs-dismiss='modal'>Cerrar</button>
-                                                    <button type='submit' class='btn btn-primary'>Validar</button>
+                                                    <button type='button' class='btn btn-primary' onclick='cerrarModalYEnviar("validacionsalida_${id}")'>Validar</button>
                                                 </div>
                                             </form>
                                         </div>
@@ -1263,56 +1297,33 @@ include_once("header.php");
 
                         function construirBotonModificacion(reg) {
                             const id = reg.id;
-
+                            const pernr = reg.pernr;
+                            
+                            // Extraer datos del registro
                             const fechaObj = reg.fecha_reg?.date ? reg.fecha_reg : reg.fecha;
                             const fechaOriginalStr = fechaObj?.date?.split('.')[0].replace(' ', 'T');
                             const fechaOriginal = fechaOriginalStr ? new Date(fechaOriginalStr) : null;
+                            
                             if (!fechaOriginal) return "";
-
+                            
                             const pad = n => n.toString().padStart(2, '0');
-
-                            // Si la hora es <= 3, usamos día anterior
+                            
+                            // Si la hora es <= 3, usamos día anterior para la fecha
                             const fechaParaInput = new Date(fechaOriginal);
                             if (fechaParaInput.getHours() <= 3) {
                                 fechaParaInput.setDate(fechaParaInput.getDate() - 1);
                             }
-
-                            const minFecha = `${fechaParaInput.getFullYear()}-${pad(fechaParaInput.getMonth() + 1)}-${pad(fechaParaInput.getDate())}T00:00`;
-                            const maxFecha = `${fechaOriginal.getFullYear()}-${pad(fechaOriginal.getMonth() + 1)}-${pad(fechaOriginal.getDate())}T23:59`;
-                            const fechaValue = `${fechaParaInput.getFullYear()}-${pad(fechaParaInput.getMonth() + 1)}-${pad(fechaParaInput.getDate())}T${pad(fechaOriginal.getHours())}:${pad(fechaOriginal.getMinutes())}`;
-
-                            const comentarioAnterior = escapeHTML(reg.motivo || '');
-
+                            
+                            const fechaStr = `${fechaParaInput.getFullYear()}-${pad(fechaParaInput.getMonth() + 1)}-${pad(fechaParaInput.getDate())}`;
+                            const horaStr = `${pad(fechaOriginal.getHours())}:${pad(fechaOriginal.getMinutes())}`;
+                            const tipoRegistro = reg.tipo_reg || '';
+                            const comentario = reg.motivo || '';
+                            
                             return `
-                                <button type='button' style='background-color: transparent;' data-bs-toggle='modal' data-bs-target='#modificacion_${id}'>
+                                <button type='button' style='background-color: transparent;' 
+                                        onclick="editarRegistro('${id}', '${pernr}', '${fechaStr}', '${horaStr}', '${tipoRegistro}', '${comentario.replace(/'/g, "\\'")}')">
                                     <i data-bs-toggle='tooltip' data-bs-placement='right' title='Modificar' class='bi bi-pencil-square fs-4' style='margin-left: 25px; color: #2c384e;'></i>
                                 </button>
-                                <div class='modal fade' id='modificacion_${id}' tabindex='-1' aria-hidden='true'>
-                                    <div class='modal-dialog modal-dialog-centered'>
-                                        <div class='modal-content'>
-                                            <form action='admin_cont.php?controller=index&action=auditor&modificar' method='post'>
-                                                <div class='modal-header'>
-                                                    <h5 class='modal-title'>Modificar registro</h5>
-                                                    <button type='button' class='btn-close' data-bs-dismiss='modal' aria-label='Close'></button>
-                                                </div>
-                                                <div class='modal-body'>
-                                                    <label for='fecha_mod_${id}'>Nueva fecha</label><br>
-                                                    <input type='datetime-local' class='form-control w-50 mt-1' name='fecha_mod' id='fecha_mod_${id}' 
-                                                        value='${fechaValue}' min='${minFecha}' max='${maxFecha}' required>
-                                                    
-                                                    <label for='comentario_${id}' class='mt-2'>Motivo</label><br>
-                                                    <input type='text' class='form-control mt-1' name='comentario' id='comentario_${id}' value='${comentarioAnterior}' required>
-
-                                                    <input type='hidden' name='id' value='${id}'>
-                                                </div>
-                                                <div class='modal-footer'>
-                                                    <button type='button' class='btn btn-secondary' data-bs-dismiss='modal'>Cerrar</button>
-                                                    <button type='submit' class='btn btn-primary'>Guardar cambios</button>
-                                                </div>
-                                            </form>
-                                        </div>
-                                    </div>
-                                </div>
                             `;
                         }
 
@@ -1328,7 +1339,7 @@ include_once("header.php");
                                 localizacion: data.some(reg => tieneContenido(reg.localizacion))
                             };
 
-                            let tabla = "<table class='table table-striped table-bordered'><thead><tr>";
+                            let tabla = "<table class='table table-bordered'><thead><tr>";
                             tabla += "<th class='col-md-1'></th>";
 
                             if (columnasConContenido.tipoReg) {
@@ -1343,22 +1354,42 @@ include_once("header.php");
                                 tabla += "<th class='col-md-2'>Comentario</th>";
                             }
 
-                            if (columnasConContenido.validacion) {
-                                tabla += "<th class='col-md-1'>Validación</th>";
-                            }
+                            // if (columnasConContenido.validacion) {
+                            //     tabla += "<th class='col-md-1'>Validación</th>";
+                            // }
 
                             if (columnasConContenido.motivo) {
                                 tabla += "<th class='col-md-2'>Motivo</th>";
                             }
 
+                            tabla += "<th class='col-md-1'>Editar</th>";
+
                             tabla += "</tr></thead><tbody>";
 
                             data.forEach(reg => {
-                                tabla += "<tr>";
-                                tabla += `<td>${iconoDispositivo(reg.dispositivo)}</td>`;
+                                // Detectar si el registro ha sido modificado (manual 6, 7 u 8)
+                                const esModificadoRRHH = reg.manual == 3;
+                                const esModificadoUsuario = reg.manual == 6;
+                                const esValidado = reg.manual == 7;
+                                const claseFilaRRHH = esModificadoRRHH ? 'table-info' : '';
+                                const claseFilaUsuario = esModificadoUsuario || esValidado ? 'table-warning' : '';
+
+                                tabla += `<tr class="${claseFilaRRHH} ${claseFilaUsuario}">`;
+                                tabla += `<td>${iconoDispositivo(reg.dispositivo)}`;
+                                if (esModificadoRRHH || esModificadoUsuario) {
+                                    let editado = ' <small class="text-info"><i class="bi bi-pencil-square"></i></small>';
+                                    tabla += `${editado}</td>`;
+                                }else if(esValidado){
+                                    let editado = ' <small class="text-info">Validado por responsable</small>';
+                                    tabla += `${editado}</td>`;
+                                }else{
+                                    tabla += `</td>`;
+                                }
+                                
 
                                 if (columnasConContenido.tipoReg) {
-                                    tabla += `<td>${escapeHTML(reg.tipo_reg || '-')}</td>`;
+                                    let tipoRegistro = escapeHTML(reg.tipo_reg || '-');
+                                    tabla += `<td>${tipoRegistro}</td>`;
                                 }
 
                                 const fecha = reg.fecha_reg?.date ? reg.fecha_reg.date.split(" ")[0] + " " + reg.fecha_reg.date.split(" ")[1].slice(0, 5) : '-';
@@ -1375,19 +1406,21 @@ include_once("header.php");
                                     tabla += `<td>${escapeHTML(reg.comentario || '-')}</td>`;
                                 }
 
-                                if (columnasConContenido.validacion) {
-                                    let celdaValidacion = "";
-                                    if (reg.manual == 2) {
-                                        celdaValidacion = construirBotonValidacion(reg);
-                                    } else if (reg.manual == 3) {
-                                        celdaValidacion = construirBotonModificacion(reg);
-                                    }
-                                    tabla += `<td>${celdaValidacion}</td>`;
-                                }
+                                // if (columnasConContenido.validacion) {
+                                //     let celdaValidacion = "";
+                                //     if (reg.manual == 2) {
+                                //         celdaValidacion = construirBotonValidacion(reg);
+                                //     } else if (reg.manual == 3) {
+                                //         celdaValidacion = construirBotonModificacion(reg);
+                                //     }
+                                //     tabla += `<td>${celdaValidacion}</td>`;
+                                // }
 
                                 if (columnasConContenido.motivo) {
                                     tabla += `<td>${escapeHTML(reg.motivo || '-')}</td>`;
                                 }
+
+                                tabla += `<td>${construirBotonModificacion(reg)}</td>`;
 
                                 tabla += "</tr>";
                             });
@@ -1462,16 +1495,206 @@ include_once("header.php");
 
 </section>
 
+<!-- Modal para Nuevo Registro -->
+<div class="modal fade" id="modalNuevoRegistro" tabindex="-1" aria-labelledby="modalNuevoRegistroLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalNuevoRegistroLabel">Nuevo Registro de Presencia</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="formNuevoRegistro">
+                    <div class="row mb-3">
+                        <!-- Select de trabajador -->
+                        <div class="col-md-6" style="position: relative;">
+                            <label for="trabajadoresNuevoRegistro" class="form-label" style="font-weight: bold;">Cod. Trabajador, Nombre:</label>
+                            <input type="text" class="form-control" name="trabajador_seleccionado" id="trabajadoresNuevoRegistro" placeholder="Escribir código o nombre del trabajador..." autocomplete="off">
+                            <input type="hidden" id="pernr_seleccionado" name="pernr_seleccionado">
+                            <div id="sugerencias_trabajadores" class="list-group" style="display: none; position: absolute; z-index: 1000; max-height: 200px; overflow-y: auto;"></div>
+                        </div>
+                        
+                        <!-- Fecha del registro -->
+                        <div class="col-md-3">
+                            <label for="fechaRegistro" class="form-label"><strong>Fecha:</strong></label>
+                            <input type="date" class="form-control" id="fechaRegistro" name="fecha_registro" value="<?php echo date('Y-m-d'); ?>" required>
+                        </div>
+                        
+                        <!-- Tipo de registro -->
+                        <div class="col-md-3">
+                            <label for="tipoRegistro" class="form-label"><strong>Tipo de Registro:</strong></label>
+                            <select class="form-select" id="tipoRegistro" name="tipo_registro" required>
+                                <option value="">Seleccionar...</option>
+                                <option value="entrada_salida">Entrada/Salida</option>
+                                <option value="desayuno">Desayuno</option>
+                                <option value="almuerzo">Almuerzo</option>
+                                <option value="otros">Otros</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Campos de hora según tipo de registro -->
+                    <div id="camposHora" style="display: none;">
+                        <!-- Para entrada/salida -->
+                        <div id="horasEntradaSalida" class="tipo-hora" style="display: none;">
+                            <div class="row mb-3 align-items-end">
+                                <div class="col-5">
+                                    <label class="form-label"><strong>Hora de Entrada:</strong></label>
+                                    <input type="time" class="form-control" name="entrada_hora" required>
+                                </div>
+                                <div class="col-5">
+                                    <label class="form-label"><strong>Hora de Salida:</strong></label>
+                                    <input type="time" class="form-control" name="salida_hora" required>
+                                </div>
+                                <div class="col-2">
+                                    <button type="button" class="btn btn-primary w-100" onclick="agregarRegistro()">
+                                        Añadir registro
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Para desayuno -->
+                        <div id="horasDesayuno" class="tipo-hora" style="display: none;">
+                            <div class="row mb-3 align-items-end">
+                                <div class="col-5">
+                                    <label class="form-label"><strong>Inicio Desayuno:</strong></label>
+                                    <input type="time" class="form-control" name="desayuno_inicio_hora" required>
+                                </div>
+                                <div class="col-5">
+                                    <label class="form-label"><strong>Fin Desayuno:</strong></label>
+                                    <input type="time" class="form-control" name="desayuno_fin_hora" required>
+                                </div>
+                                <div class="col-2">
+                                    <button type="button" class="btn btn-primary w-100" onclick="agregarRegistro()">
+                                        Añadir registro
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Para almuerzo -->
+                        <div id="horasAlmuerzo" class="tipo-hora" style="display: none;">
+                            <div class="row mb-3 align-items-end">
+                                <div class="col-5">
+                                    <label class="form-label"><strong>Inicio Almuerzo:</strong></label>
+                                    <input type="time" class="form-control" name="almuerzo_inicio_hora" required>
+                                </div>
+                                <div class="col-5">
+                                    <label class="form-label"><strong>Fin Almuerzo:</strong></label>
+                                    <input type="time" class="form-control" name="almuerzo_fin_hora" required>
+                                </div>
+                                <div class="col-2">
+                                    <button type="button" class="btn btn-primary w-100" onclick="agregarRegistro()">
+                                        Añadir registro
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Para otros -->
+                        <div id="horasOtros" class="tipo-hora" style="display: none;">
+                            <div class="row mb-3 align-items-end">
+                                <div class="col-5">
+                                    <label class="form-label"><strong>Inicio Otros:</strong></label>
+                                    <input type="time" class="form-control" name="otros_inicio_hora" required>
+                                </div>
+                                <div class="col-5">
+                                    <label class="form-label"><strong>Fin Otros:</strong></label>
+                                    <input type="time" class="form-control" name="otros_fin_hora" required>
+                                </div>
+                                <div class="col-2">
+                                    <button type="button" class="btn btn-primary w-100" onclick="agregarRegistro()">
+                                        Añadir registro
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <!-- Tabla de registros existentes -->
+                    <div id="tablaRegistrosExistentes" style="display: none;">
+                        <hr>
+                        <h6><strong>📋 Registros Existentes:</strong></h6>
+                        
+                        <div class="table-responsive" style="max-height: 300px; overflow-y: auto;">
+                            <div id="contenedorRegistrosExistentes">
+                                <!-- Aquí se mostrarán los registros existentes -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tabla de registros añadidos -->
+                    <div id="tablaRegistros" style="display: none;">
+                        <hr>
+                        <h6><strong>Registros a Añadir:</strong></h6>
+                        <div class="table-responsive">
+                            <div id="contenedorTrabajadores">
+                                <!-- Aquí se generarán las tablas agrupadas por trabajador -->
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-success" onclick="enviarDatos()" id="btnEnviarDatos" style="display: none;">
+                    <i class="bi bi-send"></i> Enviar Datos
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de edición de registro -->
+<div class="modal fade" id="editarModal" tabindex="-1" aria-labelledby="editarModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <form id="editarForm" action="admin_cont.php?controller=index&action=auditor&modificar" method="post">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editarModalLabel">Editar Registro</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="editarId" name="id">
+                    <input type="hidden" id="editarTipoRegistro" name="tipo_registro">
+                    <input type="hidden" id="editarPernr" name="pernr">
+                    <input type="hidden" id="editarFechaMod" name="fecha_mod">
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="editarFecha" class="form-label"><strong>Fecha:</strong></label>
+                            <input type="date" class="form-control" id="editarFecha" name="fecha" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="editarHora" class="form-label"><strong>Hora:</strong></label>
+                            <input type="time" class="form-control" id="editarHora" name="hora" required>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="editarComentario" class="form-label"><strong>Comentario (opcional):</strong></label>
+                        <textarea class="form-control" id="editarComentario" name="comentario" rows="3" maxlength="149" placeholder="Comentario opcional..."></textarea>
+                        <div class="form-text">Máximo 149 caracteres</div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 
 <!-- redireccion con js a los 3 segundos cunado encuentre en la url 'validado' -->
 
 <script>
-    setTimeout(function () {
-        if (window.location.href.indexOf('validado') !== -1) {
-            window.location.href = 'admin_cont.php?controller=index&action=auditor';
-        }
-    }, 3000);
+// Pasar datos de PHP a JavaScript
+window.trabajadoresAuditoria = <?php echo json_encode($params['trabajadores_auditoria']); ?>;
 </script>
+<script src="js/auditor.js"></script>
 
 <?php
 include_once("footer.php");

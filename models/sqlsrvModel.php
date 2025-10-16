@@ -2514,12 +2514,18 @@ class sqlsrvModel{
             p.dispositivo,
             CAST(p.fecha_inicio_jornada AS DATE) AS fecha_jornada
         FROM primeras_entradas p
-        WHERE CAST(p.fecha_inicio_jornada AS DATE) = ?
+        WHERE (
+            -- Registros con entrada previa (lógica original)
+            CAST(p.fecha_inicio_jornada AS DATE) = ?
+            OR 
+            -- Registros manuales (manual = 3) de la fecha seleccionada sin entrada previa
+            (p.manual = 3 AND CAST(p.fecha_reg AS DATE) = ?)
+        )
         ORDER BY p.fecha_reg ASC;
         ";
 
         // Preparar los parámetros para la consulta
-        $params = ["%$pernr%", $fecha_ini];
+        $params = ["%$pernr%", $fecha_ini, $fecha_ini];
 
         $consulta = sqlsrv_query($conn, $sql, $params);
         $resultado = [];
@@ -2529,9 +2535,6 @@ class sqlsrvModel{
         }
 
         while ($row = sqlsrv_fetch_array($consulta, SQLSRV_FETCH_ASSOC)) {
-            // Aquí ya filtraste por fecha_inicio_jornada en SQL
-            // Puedes hacer ajustes adicionales si quieres, pero no es necesario filtrar otra vez
-
             $resultado[] = $row;
         }
 
@@ -2541,8 +2544,12 @@ class sqlsrvModel{
 
 
     // Validar registro de presencia oficina
-    public function validar_registro($id, $fecha, $estado, $motivo) {
+    public function validar_registro($id, $fecha, $estado, $motivo, $editar=false) {
         $conn = $this->ConectarAppReclutamiento();  
+
+        if($editar){
+            $reg_antiguo = $this->obtenerRegistroPorId($id);
+        }
 
         $sql = "UPDATE webphp_registro_horario SET fecha_reg = '".$fecha."', manual = '".$estado."', motivo = '".$motivo."' WHERE id=".$id;
 
@@ -2551,6 +2558,38 @@ class sqlsrvModel{
         if ($consulta === false) {
             return false;
         }
+        if($editar){
+            $this->addTrazaRegHorario($id, $reg_antiguo['fecha_reg'], $fecha, 'Modificar jornada presencia por RRHH');
+        }
+        return true;
+    }
+
+    public function obtenerRegistroPorId($id) {
+        $conn = $this->ConectarAppReclutamiento();  
+        $sql = "SELECT * FROM webphp_registro_horario WHERE id = ?";
+        $params = [$id];
+        $consulta = sqlsrv_query($conn, $sql, $params);
+        
+        if ($consulta === false) {
+            return null;
+        }
+
+        $registro = sqlsrv_fetch_array($consulta, SQLSRV_FETCH_ASSOC);
+        return $registro ?: null;
+    }
+
+    public function addTrazaRegHorario($id_registro, $fecha_ant, $fecha_nueva, $accion){
+        $conn = $this->ConectarAppReclutamiento();
+        $sql = "INSERT INTO webphp_traza_registro_horario (id_registro, fecha_anterior, fecha_nueva, usuario_mod, fecha_mod, accion)
+                VALUES (?, ?, ?, ?, GETDATE(), ?)";
+        $params = [$id_registro, $fecha_ant, $fecha_nueva, $_SESSION["id_user_surexport_appreclu"], $accion];
+        $stmt = sqlsrv_query($conn, $sql, $params);
+        if ($stmt === false) {
+            error_log("Error al insertar traza: " . print_r(sqlsrv_errors(), true));
+            return false;
+        }
+        sqlsrv_free_stmt($stmt);
+        sqlsrv_close($conn);
         return true;
     }
 
@@ -5578,6 +5617,35 @@ class sqlsrvModel{
         }
 
         return $resultado;
+    }
+
+    // Guardar nuevos registros
+    public function guardar_nuevo_registro($registro) {
+        $conn = $this->ConectarAppReclutamiento();
+        
+        if (!$conn) {
+            error_log("Error de conexión a la base de datos en guardar_nuevo_registro");
+            return false;
+        }
+        
+        // Concatenar fecha y hora en formato SQL Server usando los parámetros pasados
+        $fecha = $registro['fecha']." ".$registro['hora'];
+        $fecha_reg = date('Y-m-d H:i:s');
+        $fecha = date('Y-m-d H:i:s', strtotime($fecha));
+        
+        $sql = "INSERT INTO webphp_registro_horario (fecha, pernr, fecha_reg, tipo_reg, manual) 
+                VALUES ('".$fecha_reg."', '".$registro['pernr']."', '".$fecha."', '".$registro['tipo']."', 3)";
+        
+        $consulta = sqlsrv_query($conn, $sql);
+        
+        if ($consulta === false) {
+            $errors = sqlsrv_errors();
+            error_log("Error al insertar registro: " . print_r($errors, true));
+            error_log("SQL: " . $sql);
+            return false;
+        }
+        
+        return true;
     }
 
 }
