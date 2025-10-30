@@ -1658,19 +1658,19 @@ if (isset($params['info_trabajador']) && is_array($params['info_trabajador'])) {
 																				<label>" . $lang['motivo'] . ":</label><br>
 																				<select name='motivo' id='motivo' style='width: 100%;' required>
 																					<option value=''>Seleccione un motivo</option>";
-													foreach ($params['motivos_pendiente'] as $motivo) {
-														echo '<option value="' . htmlspecialchars($motivo['id_motivo']) . '">' .
-															htmlspecialchars($motivo['desc_motivo']) . '</option>';
-													}
-													;
+																					foreach ($params['motivos_pendiente'] as $motivo) {
+																						echo '<option value="' . htmlspecialchars($motivo['id_motivo']) . '">' .
+																							htmlspecialchars($motivo['desc_motivo']) . '</option>';
+																					}
+																					;
 
-													echo "</select>
+																					echo "</select>
 																					</div>
 																					<div id='error-motivo' style='color: red; display: none; margin-top: 5px;'>
 																						" . $lang['select_motivo'] . "
 																					</div>
 																					
-																					<div class='col-md-12' id='descripcion-container' style='text-align: left; margin-top: 15px; display: none;'>
+																					<div class='col-md-12' id='descripcion-container' style='text-align: left; margin-top: 0px;'>
 																						<label>" . $lang['desc'] . ":</label><br>
 																						<textarea name='descripcion' id='descripcion' style='width: 100%;' rows='3' class='form-control'></textarea>
 																					</div>
@@ -1739,15 +1739,6 @@ if (isset($params['info_trabajador']) && is_array($params['info_trabajador'])) {
 																									document.getElementById('motivo').value = '';
 																									document.getElementById('motivo').required = false;
 																									errorMotivo.style.display = 'none';
-																								}
-
-																								if (this.value === '3') {
-																									descripcionContainer.style.display = 'block';
-																									descripcionField.required = true;
-																								} else {
-																									descripcionContainer.style.display = 'none';
-																									descripcionField.required = false;
-																									descripcionField.value = '';
 																								}
 																							});
 																						});
@@ -1918,38 +1909,82 @@ if (isset($params['info_trabajador']) && is_array($params['info_trabajador'])) {
 								<?php echo $lang['registros_llama']; ?>
 							</h5>
 
+							<?php
+							// Determinar qué columnas se muestran
+							$haydescripcion = false;
+							if (!empty($params['datos_llamamiento'])) {
+								foreach ($params['datos_llamamiento'] as $resultado) {
+									if (isset($resultado['DESCRIPCION']) && $resultado['DESCRIPCION'] !== null && $resultado['DESCRIPCION'] !== '') {
+										$haydescripcion = true;
+										break;
+									}
+								}
+							}
+							
+							$hayJustificante = false;
+							if (!empty($params['datos_llamamiento'])) {
+								foreach ($params['datos_llamamiento'] as $resultado) {
+									if (!empty($resultado['JUSTIFICANTE']) && file_exists($resultado['JUSTIFICANTE'])) {
+										$hayJustificante = true;
+										break;
+									}
+								}
+							}
+							
+							// Determinar si hay registros con modales de respuesta disponibles
+							$hayRespuesta = false;
+							if (!empty($params['datos_llamamiento'])) {
+								foreach ($params['datos_llamamiento'] as $resultado) {
+									$current_date = new DateTime("now", new DateTimeZone('Europe/Madrid'));
+									$registro_date = ($resultado['FECHA_REGISTRO'] instanceof DateTime)
+										? $resultado['FECHA_REGISTRO']
+										: new DateTime($resultado['FECHA_REGISTRO'], new DateTimeZone('Europe/Madrid'));
+									$diff_seconds = $current_date->getTimestamp() - $registro_date->getTimestamp();
+									$diff_hours = $diff_seconds / 3600;
+									
+									// Verificar si el registro tiene opciones de respuesta disponibles
+									$sinRespuesta15dias = ($diff_hours > 360 && $resultado['ESTADO'] == "0" && $resultado['NUM_ENVIO'] == "1") 
+										|| ($diff_hours > 360 && $resultado['ESTADO'] == "3" && $resultado['NUM_ENVIO'] == "1");
+									$sinRespuesta5dias = ($diff_hours > 120 && $resultado['ESTADO'] == "0" && $resultado['NUM_ENVIO'] == "2") 
+										|| ($diff_hours > 120 && $resultado['ESTADO'] == "3" && $resultado['NUM_ENVIO'] == "2");
+									
+									// Si tiene modales disponibles (estado 0 o 3, sin relaciones, y no ha pasado el tiempo límite)
+									if ((($resultado['ESTADO'] == "0" || $resultado['ESTADO'] == "3") && $resultado['NUM_RELACIONES'] == "0") 
+										&& !$sinRespuesta15dias && !$sinRespuesta5dias) {
+										$hayRespuesta = true;
+										break;
+									}
+								}
+							}
+							
+							$esSupervisor = ($_SESSION["tipo_user_surexport_appreclu"] == 'Supervisor');
+							?>
+							
 							<table class="table datatable">
 								<thead>
 									<tr>
-										<th class="col-1">Fecha llamamiento</th>
-										<th class="col-1"><?php echo $lang['tipo_llama']; ?></th>
-										<th class="col-3"><?php echo $lang['estado']; ?></th>
-										<th class="col-2"><?php echo $lang['persona_cont']; ?></th>
+										<th>Fecha llamamiento</th>
+										<th><?php echo $lang['tipo_llama']; ?></th>
+										<th><?php echo $lang['estado']; ?></th>
+										<?php 
+											if ($haydescripcion) {
+												echo '<th>Descripción</th>';
+											}
+										?>
+										<th><?php echo $lang['persona_cont']; ?></th>
 										<?php
-										if ($_SESSION["tipo_user_surexport_appreclu"] != 'Supervisor') {
+										if (!$esSupervisor && $hayRespuesta) {
 											?>
-											<th class="col-2"><?php echo $lang['respuesta']; ?></th>
+											<th><?php echo $lang['respuesta']; ?></th>
 											<?php
 										}
 										?>
 
 										<?php
-										// Comprobar si hay algún justificante para mostrar la columna
-										$hayJustificante = false;
-										if (!empty($params['datos_llamamiento'])) {
-											foreach ($params['datos_llamamiento'] as $resultado) {
-												if (!empty($resultado['JUSTIFICANTE'])) {
-													$hayJustificante = true;
-													break;
-												}
-											}
-										}
-
 										if ($hayJustificante) {
-											echo '<th class="col-2">Justificante</th>';
+											echo '<th>Justificante</th>';
 										}
 										?>
-
 									</tr>
 								</thead>
 								<tbody>
@@ -1958,7 +1993,7 @@ if (isset($params['info_trabajador']) && is_array($params['info_trabajador'])) {
 										foreach ($params['datos_llamamiento'] as $resultado) {
 											?>
 											<tr>
-												<td class="col-2">
+												<td>
 													<?php
 													if ($resultado['TIPO_LLAMAMIENTO'] == 'Telefono') {
 														$fecha = $resultado['FECHA_LLAMAMIENTO'] ?? $resultado['FECHA_REGISTRO'];
@@ -1968,7 +2003,7 @@ if (isset($params['info_trabajador']) && is_array($params['info_trabajador'])) {
 													}
 													?>
 												</td>
-												<td class="col-3">
+												<td>
 													<?php echo $resultado['TIPO_LLAMAMIENTO']; ?>
 
 													<!-- mostrar solo si el tipo de llamamiento es SMS -->
@@ -2032,11 +2067,22 @@ if (isset($params['info_trabajador']) && is_array($params['info_trabajador'])) {
 													}
 													?>
 												</td>
+												<?php 
+													if ($haydescripcion) {
+														echo '<td>';
+														if (!empty($resultado['DESCRIPCION'])) {
+															echo $resultado['DESCRIPCION'];
+														} else {
+															echo '';
+														}
+														echo '</td>';
+													}
+												?>
 												<td>
 													<?php echo $resultado['NOMBRE_USUARIO']; ?>
 												</td>
 												<?php
-												if ($_SESSION["tipo_user_surexport_appreclu"] != 'Supervisor') {
+												if (!$esSupervisor && $hayRespuesta) {
 													?>
 													<td>
 														<?php
@@ -2094,6 +2140,11 @@ if (isset($params['info_trabajador']) && is_array($params['info_trabajador'])) {
 																											<input type='hidden' name='ano_remesa' value='" . $ano_remesa . "'>
 																											<input type='hidden' name='pernr' value='" . $pernr . "'>
 																											
+																											<div class='col-md-12' style='text-align: left; margin-top: 0px;'>
+																												<label>" . $lang['desc'] . ":</label><br>
+																												<textarea name='descripcion' id='descripcion_acep_" . $resultado['ID'] . "' style='width: 100%;' rows='3' class='form-control'></textarea>
+																											</div>
+
 																											<div class='col-md-12' id='justificante-container' style='text-align: left; margin-top: 15px;'>
 																												<label>Justificante (opcional):</label><br>
 																												<input type='file' name='justificante' id='justificante' class='form-control'>
@@ -2153,6 +2204,11 @@ if (isset($params['info_trabajador']) && is_array($params['info_trabajador'])) {
 																											</div>
 																											<div id='error-motivo_rech_" . $resultado['ID'] . "' style='color: red; display: none;'>
 																												" . $lang['select_motivo'] . "
+																											</div>
+
+																											<div class='col-md-12' style='text-align: left; margin-top: 0px;'>
+																												<label>" . $lang['desc'] . ":</label><br>
+																												<textarea name='descripcion' id='descripcion_rech_" . $resultado['ID'] . "' style='width: 100%;' rows='3' class='form-control'></textarea>
 																											</div>
 
 																											<div class='col-md-12' id='justificante-container' style='text-align: left; margin-top: 15px;'>
@@ -2217,7 +2273,7 @@ if (isset($params['info_trabajador']) && is_array($params['info_trabajador'])) {
 																												" . $lang['select_motivo'] . "
 																											</div>
 
-																											<div class='col-md-12' id='descripcion-container' style='text-align: left; margin-top: 15px;'>
+																											<div class='col-md-12' id='descripcion-container' style='text-align: left; margin-top: 0px;'>
 																												<label>" . $lang['desc'] . ":</label><br>
 																												<textarea name='descripcion' id='descripcion' style='width: 100%;' rows='3' class='form-control'></textarea>
 																											</div>
@@ -2271,7 +2327,12 @@ if (isset($params['info_trabajador']) && is_array($params['info_trabajador'])) {
 																											<input type='hidden' name='id_remesa' value='" . $id_remesa . "'>
 																											<input type='hidden' name='ano_remesa' value='" . $ano_remesa . "'>
 
-																											<div class='col-md-12' id='justificante-container' style='text-align: left;'>
+																											<div class='col-md-12' style='text-align: left; margin-top: 0px;'>
+																												<label>" . $lang['desc'] . ":</label><br>
+																												<textarea name='descripcion' id='descripcion_acep_pend_" . $resultado['ID'] . "' style='width: 100%;' rows='3' class='form-control'></textarea>
+																											</div>
+
+																											<div class='col-md-12' id='justificante-container' style='text-align: left; margin-top: 15px;'>
 																												<label>Justificante (opcional):</label><br>
 																												<input type='file' name='justificante' id='justificante' class='form-control'>
 																											</div>
@@ -2321,16 +2382,21 @@ if (isset($params['info_trabajador']) && is_array($params['info_trabajador'])) {
 																												<label>" . $lang['select_moti_2'] . ":</label><br>
 																												<select name='motivo' id='motivo_rech_" . $resultado['ID'] . "' style='width: 350px;' required>
 																													<option value=''>Seleccione un motivo</option>";
-																foreach ($params['motivos_pendiente'] as $motivo) {
-																	echo '<option value="' . htmlspecialchars($motivo['id_motivo']) . '">' .
-																		htmlspecialchars($motivo['desc_motivo']) . '</option>';
-																}
-																;
+																														foreach ($params['motivos_pendiente'] as $motivo) {
+																															echo '<option value="' . htmlspecialchars($motivo['id_motivo']) . '">' .
+																																htmlspecialchars($motivo['desc_motivo']) . '</option>';
+																														}
+																														;
 
-																echo "</select>
+																												echo "</select>
 																											</div>
 																											<div id='error-motivo_rech_" . $resultado['ID'] . "' style='color: red; display: none; margin-top: 5px;'>
 																												" . $lang['select_motivo'] . "
+																											</div>
+
+																											<div class='col-md-12' style='text-align: left; margin-top: 15px;'>
+																												<label>" . $lang['desc'] . ":</label><br>
+																												<textarea name='descripcion' id='descripcion_rech_pend_" . $resultado['ID'] . "' style='width: 100%;' rows='3' class='form-control'></textarea>
 																											</div>
 
 																											<div class='col-md-12' id='justificante-container' style='text-align: left; margin-top: 15px;'>

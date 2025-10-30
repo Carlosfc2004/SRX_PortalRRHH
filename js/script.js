@@ -140,7 +140,14 @@ $(document).ready(function() {
 
 
 	//Ventanas emergentes
-	$("#emergente").lightbox_me({centered: true});
+	$("#emergente").lightbox_me({
+		centered: true,
+		onClose: function() {
+			// Asegurar que el overlay se elimine completamente
+			$('.js_lb_overlay').remove();
+			$('body').css('overflow', 'auto');
+		}
+	});
 
     //Ampliamos las imagenes de los productos
     $('.image-popup-vertical-fit').magnificPopup({
@@ -150,7 +157,6 @@ $(document).ready(function() {
         image: {
             verticalFit: true
         }
-        
     });
     $('.image-popup-fit-width').magnificPopup({
         type: 'image',

@@ -13,8 +13,8 @@
 
 	class ConfigMuleSoft{
 		static public $bdsrx_hostname = "172.21.0.38";
-		// static public $bdsrx_nombre   = "Mulesoft";
-		static public $bdsrx_nombre   = "MulesoftTest";
+		static public $bdsrx_nombre   = "Mulesoft";
+		// static public $bdsrx_nombre   = "MulesoftTest";
 		static public $bdsrx_usuario  = "prosadoc";
 		static public $bdsrx_clave    = "Prosadoc2020";
 	}

@@ -109,25 +109,6 @@ function getUserData($token) {
     return makeGraphRequest($url, $token);
 }
 
-// Función para obtener los grupos del usuario con paginación
-// function getUserGroups($token) {
-//     $grupos = [];
-//     $url = "https://graph.microsoft.com/v1.0/me/memberOf?\$select=id,displayName";
-    
-//     $response = makeGraphRequest($url, $token);
-//     do {
-//         if (isset($response['value'])) {
-//             foreach ($response['value'] as $group) {
-//                 $grupos[] = $group['id'];
-//             }
-//         }
-        
-//         $url = $response['@odata.nextLink'] ?? null;
-//     } while ($url);
-    
-//     return $grupos;
-// }
-
 //Función para saber si un usuario pertenece a un grupo
 function isUserInGroup($token, $groupId) {
     $url = "https://graph.microsoft.com/v1.0/me/checkMemberGroups";

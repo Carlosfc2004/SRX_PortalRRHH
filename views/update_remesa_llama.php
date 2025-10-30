@@ -34,6 +34,18 @@ include_once("header.php");
 
         echo '<h1 style="font-size: 24px; margin-bottom: 0; font-weight: 600; color: #012970;">'.$nombre_remesa.' ('.count($info_remesas).' candidatos)</h1>';
     ?>
+    
+    <?php
+    // Mostrar mensaje de resultado de respuesta masiva
+    if (isset($params['resultado'])) {
+        $es_error = strpos($params['resultado'], 'errores') !== false || strpos($params['resultado'], 'Error') !== false;
+        $clase_alerta = $es_error ? 'alert-warning' : 'alert-success';
+        echo '<div class="alert '.$clase_alerta.' alert-dismissible fade show mt-3" role="alert">';
+        echo '<i class="bi '.($es_error ? 'bi-exclamation-triangle' : 'bi-check-circle').'"></i> '.$params['resultado'];
+        echo '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>';
+        echo '</div>';
+    }
+    ?>
 </div>
 <br>
 <nav>
@@ -54,6 +66,11 @@ include_once("header.php");
                 <input type="hidden" name="ano_remesa" value="<?php echo $_GET['ano']; ?>">
                 <input type="submit" name="add_remesa" value="<?php echo $lang['add_trab']; ?>" class="btn btn-primary mb-2">
             </form>
+
+            <!-- Botón para responder llamamientos masivamente -->
+            <button type="button" class="btn btn-success mb-2" data-bs-toggle="modal" data-bs-target="#modalRespuestaMasiva" style="margin-left: 5px;">
+                <i class="bi bi-check2-all"></i> Responder llamamientos
+            </button>
 
             
             <!-- Informacion del estado del llamamiento de todos los trabajadores de la remesa -->
@@ -221,14 +238,258 @@ include_once("header.php");
     </div>
 </section>
 
-<!-- redireccion de 4 segundos si encuentra en la url delete_trab_rem -->
-<?php if (isset($_GET['delete_trab_rem'])) { ?>
-    <script>
-        setTimeout(function() {
-            window.location.href = "admin_cont.php?controller=index&action=view_remesa_llama&id=<?php echo $id_remesa; ?>&ano=<?php echo $ano_remesa; ?>";
-        }, 4000);
+<!-- Modal para respuesta masiva de llamamientos -->
+<div class="modal fade" id="modalRespuestaMasiva" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Responder llamamientos</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form method="POST" action="admin_cont.php?controller=index&action=view_remesa_llama&respuesta_masiva=1&id=<?php echo $id_remesa; ?>&ano=<?php echo $ano_remesa; ?>&remesa=<?php echo isset($_GET['remesa']) ? $_GET['remesa'] : '0'; ?>" id="formRespuestaMasiva" enctype="multipart/form-data">
+                    <input type="hidden" name="id_remesa" value="<?php echo $id_remesa; ?>">
+                    <input type="hidden" name="ano_remesa" value="<?php echo $ano_remesa; ?>">
+                    
+                    <!-- Selección de acción -->
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <label class="form-label"><b>Acción a realizar:</b></label>
+                            <select name="accion_masiva" id="accion_masiva" class="form-select" required>
+                                <option value="">Seleccione una acción</option>
+                                <option value="1">Aceptar</option>
+                                <option value="2">Rechazar</option>
+                                <option value="3">Pendiente</option>
+                            </select>
+                        </div>
+                        
+                        <!-- Motivo (solo para Rechazar y Pendiente) -->
+                        <div class="col-md-4" id="contenedor_motivo" style="display: none;">
+                            <label class="form-label"><b>Motivo:</b></label>
+                            <select name="motivo_masivo" id="motivo_masivo" class="form-select">
+                                <option value="">Seleccione un motivo</option>
+                                <?php
+                                if (!empty($params['motivos_pendiente'])) {
+                                    foreach ($params['motivos_pendiente'] as $motivo) {
+                                        echo '<option value="' . htmlspecialchars($motivo['id_motivo']) . '">' .
+                                            htmlspecialchars($motivo['desc_motivo']) . '</option>';
+                                    }
+                                }
+                                ?>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <!-- Descripción -->
+                    <div class="row mb-3">
+                        <div class="col-md-12">
+                            <label class="form-label"><b>Descripción (opcional):</b></label>
+                            <textarea name="descripcion_masiva" id="descripcion_masiva" class="form-control" rows="3"></textarea>
+                        </div>
+                    </div>
+                    
+                    <!-- Tabla de trabajadores con llamamientos contestables -->
+                    <div class="row mb-3">
+                        <div class="col-md-12">
+                            <h6>Seleccione los trabajadores:</h6>
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="checkbox" id="seleccionar_todos">
+                                <label class="form-check-label" for="seleccionar_todos">
+                                    <b>Seleccionar todos</b>
+                                </label>
+                            </div>
+                            <div style="max-height: 400px; overflow-y: auto;">
+                                <table class="table table-bordered table-hover">
+                                    <thead class="table-light" style="position: sticky; top: 0; z-index: 10;">
+                                        <tr>
+                                            <th style="width: 5%;">
+                                                <input type="checkbox" id="check_all_header" class="form-check-input">
+                                            </th>
+                                            <th style="width: 30%;">Trabajador</th>
+                                            <th style="width: 10%;">PERNR</th>
+                                            <th style="width: 15%;">Tipo Llamamiento</th>
+                                            <th style="width: 15%;">Fecha Llamamiento</th>
+                                            <th style="width: 15%;">Estado Actual</th>
+                                            <th style="width: 10%;">Contacto</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="tbody_trabajadores">
+                                        <?php
+                                        // Obtener llamamientos contestables
+                                        if (!empty($params['llamamientos_contestables'])) {
+                                            foreach ($params['llamamientos_contestables'] as $llamamiento) {
+                                                $estado_texto = '';
+                                                if ($llamamiento['ESTADO'] == 0) {
+                                                    $estado_texto = 'Enviado';
+                                                } elseif ($llamamiento['ESTADO'] == 3) {
+                                                    $estado_texto = 'Pendiente';
+                                                }
+                                                
+                                                $fecha_llama = '';
+                                                if ($llamamiento['TIPO_LLAMAMIENTO'] == 'Telefono' && !empty($llamamiento['FECHA_LLAMAMIENTO'])) {
+                                                    $fecha_llama = date_format($llamamiento['FECHA_LLAMAMIENTO'], 'Y-m-d H:i');
+                                                } elseif (!empty($llamamiento['FECHA_REGISTRO'])) {
+                                                    $fecha_llama = date_format($llamamiento['FECHA_REGISTRO'], 'Y-m-d H:i');
+                                                }
+                                                ?>
+                                                <tr>
+                                                    <td class="text-center">
+                                                        <input type="checkbox" name="trabajadores_seleccionados[]" 
+                                                               value="<?php echo $llamamiento['ID']; ?>" 
+                                                               class="form-check-input checkbox-trabajador"
+                                                               data-pernr="<?php echo $llamamiento['PERNR']; ?>">
+                                                    </td>
+                                                    <td><?php echo $llamamiento['NOMBREYAPELLIDOS']; ?></td>
+                                                    <td><?php echo $llamamiento['PERNR']; ?></td>
+                                                    <td><?php echo $llamamiento['TIPO_LLAMAMIENTO']; ?></td>
+                                                    <td><?php echo $fecha_llama; ?></td>
+                                                    <td><?php echo $estado_texto; ?></td>
+                                                    <td><?php echo $llamamiento['INFO_CONTACTO']; ?></td>
+                                                </tr>
+                                                <?php
+                                            }
+                                        } else {
+                                            echo '<tr><td colspan="7" class="text-center">No hay llamamientos contestables en esta remesa</td></tr>';
+                                        }
+                                        ?>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                <button type="button" class="btn btn-primary" id="btnGuardarRespuestaMasiva">
+                    Guardar respuestas
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Mostrar/ocultar campo de motivo según la acción seleccionada
+        document.getElementById('accion_masiva').addEventListener('change', function() {
+            const contenedorMotivo = document.getElementById('contenedor_motivo');
+            const selectMotivo = document.getElementById('motivo_masivo');
+            
+            if (this.value === '2' || this.value === '3') { // Rechazar o Pendiente
+                contenedorMotivo.style.display = 'block';
+                selectMotivo.required = true;
+            } else {
+                contenedorMotivo.style.display = 'none';
+                selectMotivo.required = false;
+                selectMotivo.value = '';
+            }
+        });
+        
+        // Seleccionar todos los checkboxes
+        document.getElementById('seleccionar_todos').addEventListener('change', function() {
+            const checkboxes = document.querySelectorAll('.checkbox-trabajador');
+            checkboxes.forEach(checkbox => {
+                checkbox.checked = this.checked;
+            });
+        });
+        
+        // Header checkbox también selecciona todos
+        document.getElementById('check_all_header').addEventListener('change', function() {
+            document.getElementById('seleccionar_todos').checked = this.checked;
+            document.getElementById('seleccionar_todos').dispatchEvent(new Event('change'));
+        });
+        
+        // Actualizar estado del checkbox "seleccionar todos" cuando cambian los individuales
+        document.querySelectorAll('.checkbox-trabajador').forEach(checkbox => {
+            checkbox.addEventListener('change', function() {
+                const total = document.querySelectorAll('.checkbox-trabajador').length;
+                const checked = document.querySelectorAll('.checkbox-trabajador:checked').length;
+                const selectTodos = document.getElementById('seleccionar_todos');
+                const checkAllHeader = document.getElementById('check_all_header');
+                
+                selectTodos.checked = (total === checked);
+                checkAllHeader.checked = (total === checked);
+            });
+        });
+        
+        // Validar y enviar formulario
+        document.getElementById('btnGuardarRespuestaMasiva').addEventListener('click', function() {
+            const accion = document.getElementById('accion_masiva').value;
+            const motivo = document.getElementById('motivo_masivo').value;
+            const checkboxes = document.querySelectorAll('.checkbox-trabajador:checked');
+            
+            // Quitar resaltado previo
+            document.getElementById('accion_masiva').classList.remove('is-invalid');
+            document.getElementById('motivo_masivo').classList.remove('is-invalid');
+            document.querySelectorAll('.checkbox-trabajador').forEach(cb => {
+                cb.classList.remove('is-invalid');
+            });
+
+            let error = false;
+
+            // Validar que se haya seleccionado una acción
+            if (!accion) {
+                alertify.error('Debe seleccionar una acción');
+                document.getElementById('accion_masiva').classList.add('is-invalid');
+                error = true;
+            }
+
+            // Validar que se haya seleccionado al menos un trabajador
+            if (checkboxes.length === 0) {
+                alertify.error('Debe seleccionar al menos un trabajador');
+                document.querySelectorAll('.checkbox-trabajador').forEach(cb => {
+                    cb.classList.add('is-invalid');
+                });
+                error = true;
+            }
+
+            // Validar motivo para Rechazar y Pendiente
+            if ((accion === '2' || accion === '3') && !motivo) {
+                alertify.error('Debe seleccionar un motivo');
+                document.getElementById('motivo_masivo').classList.add('is-invalid');
+                error = true;
+            }
+
+            if (error) {
+                return;
+            }
+
+            // Confirmar acción
+            const accionTexto = accion === '1' ? 'aceptar' : (accion === '2' ? 'rechazar' : 'poner como pendiente');
+            const mensaje = `¿Está seguro de ${accionTexto} ${checkboxes.length} llamamiento(s)?`;
+
+            alertify.confirm(
+                'Confirmar respuesta masiva',
+                mensaje,
+                function() {
+                    document.getElementById('formRespuestaMasiva').submit();
+                },
+                function() {
+                    // Cancelar
+                }
+            );
+        });
+    });
     </script>
-<?php } ?>
+
+    <style>
+        .is-invalid {
+            border-color: #dc3545 !important;
+            box-shadow: 0 0 0 0.2rem rgba(220,53,69,.25) !important;
+        }
+    </style>
+
+    <!-- redireccion de 4 segundos si encuentra en la url delete_trab_rem -->
+    <?php if (isset($_GET['delete_trab_rem']) || (isset($_GET['respuesta_masiva']) && $_GET['respuesta_masiva'] == 1)) { ?>
+        <script>
+            setTimeout(function() {
+                window.location.href = "admin_cont.php?controller=index&action=view_remesa_llama&id=<?php echo $id_remesa; ?>&ano=<?php echo $ano_remesa; ?>&remesa=<?php echo isset($_GET['remesa']) ? $_GET['remesa'] : '0'; ?>";
+            }, 4000);
+        </script>
+    <?php } ?>
+    
 
 
 <?php 

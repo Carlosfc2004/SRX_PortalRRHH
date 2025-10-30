@@ -314,21 +314,6 @@
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 <!-- ======= Sidebar ======= -->
 <aside id="sidebar" class="sidebar">
   <ul class="sidebar-nav" id="sidebar-nav">
@@ -337,8 +322,6 @@
         <i class="bi bi-house-door"></i><span>Home</span></i>
       </a>
     </li>
-
-
 
   <!-- Menu dinamico -->
     
@@ -400,6 +383,8 @@
                 echo '<i class="bi bi-gear"></i>';
               }elseif ($value['id_hijo']==28){
                 echo '<i class="bi bi-calendar2-check"></i>';
+              }elseif ($value['id_hijo']==30) {
+                echo '<i class="bi bi-clock-fill"></i>';
               }
               ?>
               <!-- Título -->

@@ -31,6 +31,7 @@ include_once("header.php");
                                         class="form-control" 
                                         name="id_dispositivo" 
                                         id="id_dispositivo" 
+                                        style="background-color: #dee2e6ff;"
                                         value="<?php echo htmlspecialchars($params['info_dispositivo'][0]['id_dispositivo']); ?>" 
                                         readonly>
                                 </div>
@@ -55,6 +56,7 @@ include_once("header.php");
                                         class="form-control" 
                                         name="ubi_dispositivo" 
                                         id="ubi_dispositivo" 
+                                        style="background-color: #dee2e6ff;"
                                         value="<?php echo htmlspecialchars($params['info_dispositivo'][0]['ubicacion']); ?>"
                                         readonly>
                                 </div>
@@ -67,6 +69,7 @@ include_once("header.php");
                                         class="form-control" 
                                         name="sede_dispositivo" 
                                         id="sede_dispositivo" 
+                                        style="background-color: #dee2e6ff;"
                                         value="<?php echo htmlspecialchars($params['info_dispositivo'][0]['sede']); ?>"
                                         readonly>
                                 </div>
@@ -79,6 +82,7 @@ include_once("header.php");
                                         class="form-control" 
                                         name="ubicacion_dispositivo" 
                                         id="ubicacion_dispositivo" 
+                                        style="background-color: #dee2e6ff;"
                                         value="<?php echo htmlspecialchars($params['info_dispositivo'][0]['nombre_ubi']); ?>"
                                         readonly>
                                 </div>

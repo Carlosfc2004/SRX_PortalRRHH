@@ -1618,7 +1618,7 @@ try {
 
 			// Datos trabajador
 			$pdf->Cell(20, 6, $resultado['pernr'], 1, 0, 'C');
-			$pdf->Cell(55, 6, $resultado['nombre']." ".$resultado['apellidos'], 1, 0);
+			$pdf->Cell(55, 6, $resultado['nombre'], 1, 0);
 
 			// Fechas
 			$pdf->Cell(35, 6, date_format($resultado['fecha_solicitud'], 'Y/m/d'), 1, 0, 'C');
@@ -1746,7 +1746,7 @@ try {
 				$sheet->setCellValue('A'.$i, $resultado['pernr']);
 
 				// Nombre y apellidos
-				$sheet->setCellValue('B'.$i, $resultado['nombre']." ".$resultado['apellidos']);
+				$sheet->setCellValue('B'.$i, $resultado['nombre']);
 
 				// Fechas
 				$sheet->setCellValue('C'.$i, date_format($resultado['fecha_solicitud'], 'Y/m/d'));
@@ -1788,10 +1788,14 @@ try {
 				$sheet->setCellValue('G'.$i, $estado);
 
 				// Justificante
-				if ($resultado['justificante'] != '') {
-					$justificante = 'Entregado';
+				if ($resultado['tipo'] == '2') {
+					if ($resultado['justificante'] != '') {
+						$justificante = 'Entregado';
+					} else {
+						$justificante = 'No entregado';
+					}
 				} else {
-					$justificante = 'No entregado';
+					$justificante = 'No aplica';
 				}
 				$sheet->setCellValue('H'.$i, $justificante);
 
@@ -2215,7 +2219,7 @@ try {
 		$sheet->setCellValue('C1', 'Fecha de baja');
 		$sheet->setCellValue('D1', 'Almacen');
 
-		$datosInforme = $con_bdsrx->trabajadores_baja($_GET['ubicacion'], $_GET['fecha_ini'], $_GET['fecha_fin']);
+		$datosInforme = $con_bdsrx->trabajadores_baja($_GET['ubicacion'], $_GET['fecha_ini'], $_GET['fecha_fin'], $_GET['relacion_laboral'], $_GET['codigos']);
 		if (!empty($datosInforme)) {
 			$fila = 2;
 			foreach ($datosInforme as $resultado) {
