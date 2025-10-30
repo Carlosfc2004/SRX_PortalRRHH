@@ -432,6 +432,45 @@ if (isset($_GET['obtener_detalle_solicitud']) && !empty($_GET['id_solicitud'])) 
 	}
 
 
+	// Verificar registros existentes para múltiples trabajadores en una fecha
+	if (isset($_GET['verificar_registros_existentes'])) {
+		header('Content-Type: application/json');
+		
+		$data = json_decode(file_get_contents("php://input"), true);
+		$fecha = $data['fecha'] ?? date('Y-m-d');
+		$trabajadores = $data['trabajadores'] ?? [];
+
+		if (empty($trabajadores)) {
+			echo json_encode([
+				'success' => false,
+				'error' => 'No se proporcionaron trabajadores'
+			]);
+			exit;
+		}
+
+		try {
+			$registros_por_trabajador = [];
+			
+			foreach ($trabajadores as $pernr) {
+				$datos = $m->informePresenciaOficinaDatos($fecha, $pernr);
+				$registros_por_trabajador[$pernr] = $datos;
+			}
+
+			echo json_encode([
+				'success' => true,
+				'fecha' => $fecha,
+				'registros' => $registros_por_trabajador
+			]);
+		} catch (Exception $e) {
+			http_response_code(500);
+			echo json_encode([
+				'success' => false,
+				'error' => $e->getMessage()
+			]);
+		}
+	}
+
+
 
 
 

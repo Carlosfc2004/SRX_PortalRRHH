@@ -37,8 +37,8 @@
 
 	class ConfigAgromobile{
 		// static public $bdsrx_hostname = "192.168.200.202";
-		static public $bdsrx_nombre   = "SUREXPORT_AGROMOBILE";
-		// static public $bdsrx_nombre   = "SUREXPORT_AGROMOBILE_TEST";
+		// static public $bdsrx_nombre   = "SUREXPORT_AGROMOBILE";
+		static public $bdsrx_nombre   = "SUREXPORT_AGROMOBILE_TEST";
 		// static public $bdsrx_usuario  = "prosadoc";
 		// static public $bdsrx_clave    = "Prosadoc2020";
 	}
