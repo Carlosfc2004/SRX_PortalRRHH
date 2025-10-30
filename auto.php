@@ -9,6 +9,53 @@ $m = new sqlsrvModel();
 if (isset($_GET['idioma'])) {
     $_SESSION["idioma_surexport_appreclu"] = $_GET['idioma'];
 }
+
+// AJAX: Obtener detalles de una solicitud
+if (isset($_GET['obtener_detalle_solicitud']) && !empty($_GET['id_solicitud'])) {
+    header('Content-Type: application/json; charset=utf-8');
+    
+    $id_solicitud = $_GET['id_solicitud'];
+    $detalle = $m->solicitud_detalle($id_solicitud);
+    
+    if (isset($detalle['error'])) {
+        echo json_encode(array(
+            'success' => false,
+            'error' => $detalle['error']
+        ));
+    } else {
+        // Formatear fechas para JSON
+        if (isset($detalle['fecha_desde']) && $detalle['fecha_desde'] instanceof DateTime) {
+            $detalle['fecha_desde_formatted'] = $detalle['fecha_desde']->format('d-m-Y');
+        }
+        if (isset($detalle['fecha_hasta']) && $detalle['fecha_hasta'] instanceof DateTime) {
+            $detalle['fecha_hasta_formatted'] = $detalle['fecha_hasta']->format('d-m-Y');
+        }
+        if (isset($detalle['fecha_solicitud']) && $detalle['fecha_solicitud'] instanceof DateTime) {
+            $detalle['fecha_solicitud_formatted'] = $detalle['fecha_solicitud']->format('d-m-Y');
+        }
+        if (isset($detalle['hora_desde']) && $detalle['hora_desde'] instanceof DateTime) {
+            $detalle['hora_desde_formatted'] = $detalle['hora_desde']->format('H:i');
+        }
+        if (isset($detalle['hora_hasta']) && $detalle['hora_hasta'] instanceof DateTime) {
+            $detalle['hora_hasta_formatted'] = $detalle['hora_hasta']->format('H:i');
+        }
+        
+        // Formatear fechas en observaciones
+        if (isset($detalle['observaciones'])) {
+            foreach ($detalle['observaciones'] as &$obs) {
+                if (isset($obs['fecha_modificacion']) && $obs['fecha_modificacion'] instanceof DateTime) {
+                    $obs['fecha_modificacion_formatted'] = $obs['fecha_modificacion']->format('d-m-Y H:i:s');
+                }
+            }
+        }
+
+        echo json_encode(array(
+            'success' => true,
+            'data' => $detalle
+        ));
+    }
+    exit;
+}
 ?>
 
 <?php
@@ -63,23 +110,22 @@ if (isset($_GET['idioma'])) {
 			<select style="width: 100%;" class="form-control" name="operarios[]" id="operarios" multiple>
 				<?php
 				foreach ($operarios as $result) {
-				// Generar la opción
+					// Generar la opción
+					if (!empty($result['APELLIDO1']) && !empty($result['NOMBRE'])) {
+						// Si existen APELLIDO1 y NOMBRE, mostrar en formato: APELLIDO1 APELLIDO2, NOMBRE
+						$nombre = $result['APELLIDO1'];
 
-				if (!empty($result['APELLIDO1']) && !empty($result['NOMBRE'])) {
-					// Si existen APELLIDO1 y NOMBRE, mostrar en formato: APELLIDO1 APELLIDO2, NOMBRE
-					$nombre = $result['APELLIDO1'];
+						if (!empty($result['APELLIDO2'])) {
+							$nombre .= ' ' . $result['APELLIDO2'];
+						}
 
-					if (!empty($result['APELLIDO2'])) {
-						$nombre .= ' ' . $result['APELLIDO2'];
-					}
+						$nombre .= ', ' . $result['NOMBRE'];
+					} elseif (!empty($result['NOMBREYAPELLIDOS'])) {
+						// Si existe el campo NOMBREYAPELLIDOS completo
+						$nombre = $result['NOMBREYAPELLIDOS'];
+					} 
 
-					$nombre .= ', ' . $result['NOMBRE'];
-				} elseif (!empty($result['NOMBREYAPELLIDOS'])) {
-					// Si existe el campo NOMBREYAPELLIDOS completo
-					$nombre = $result['NOMBREYAPELLIDOS'];
-				} 
-
-				echo '<option value="' . $result['PERNR'] . '">' . $result['PERNR'] . ' - ' . $nombre . '</option>';
+					echo '<option value="' . $result['PERNR'] . '">' . $result['PERNR'] . ' - ' . $nombre . '</option>';
 				}
 				?>
 			</select>
@@ -189,14 +235,14 @@ if (isset($_GET['idioma'])) {
 
 		if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 			if (isset($_POST['id_remesa']) && isset($_POST['ano_remesa']) && isset($_POST['ubi_trab'])) {
-				$datosRemesa = $m->trabajadores_baja_rem($_POST['id_remesa'], $_POST['ano_remesa'], $_POST['ubi_trab'], $_POST['fecha_ini'] ?? null, $_POST['fecha_fin'] ?? null);
+				$datosRemesa = $m->trabajadores_baja_rem($_POST['id_remesa'], $_POST['ano_remesa'], $_POST['ubi_trab'], $_POST['fecha_ini'] ?? null, $_POST['fecha_fin'] ?? null, $_POST['codigos_formateados'] ?? null, $_POST['relacion_laboral'] ?? null);
 			} elseif (isset($_POST['id_remesa']) && isset($_POST['ano_remesa'])) {
-				$datosRemesa = $m->trabajadores_baja_rem($_POST['id_remesa'], $_POST['ano_remesa']);
-			} 
+				$datosRemesa = $m->trabajadores_baja_rem($_POST['id_remesa'], $_POST['ano_remesa'], null, null, null, $_POST['codigos_formateados'] ?? null, $_POST['relacion_laboral'] ?? null);
+			}
 			// else {
 			// 	$datosRemesa = $m->trabajadores_baja();
 			// }
-		} 
+		}
 		// else {
 		// 	$datosRemesa = $m->trabajadores_baja();
 		// }
@@ -239,6 +285,8 @@ if (isset($_GET['idioma'])) {
 				'ANO_REMESA' => $resultado['ano_remesa'],
 				'NOMBRE_REMESA' => $resultado['nombre_remesa'],
 				'FECHA_ULT_LLAMA' => $resultado['FECHA_REGISTRO'],
+				'RELACION_LABORAL' => $resultado['RELACION_LABORAL'],
+				'DESC_RELACION_LABORAL' => $resultado['DESC_RELACION_LABORAL']
 				);
 				array_push($data, $row);
 			}
@@ -424,228 +472,192 @@ if (isset($_GET['idioma'])) {
 
 
 
-	if (isset($_GET['rango_fechas'])) {
-		header('Content-Type: application/json; charset=utf-8');
 
-		$id = $_GET['id'] ?? null;
-		if (!$id) {
-			http_response_code(400);
-			echo json_encode(['error' => 'ID de rango de fechas no proporcionado']);
-			exit;
-		}
 
-		$rango = $m->getRangoFechasById($id);
+	if (isset($_GET['grupo_horario'])) {
+		$grupoId = $_GET['grupo_horario'];
 
-		if ($rango) {
-			$response = [
-				'id' => $rango['id'],
-				'fecha_inicio' => ($rango['fecha_inicio'] instanceof DateTime) ? $rango['fecha_inicio']->format('Y-m-d') : substr($rango['fecha_inicio'], 0, 10),
-				'fecha_fin' => ($rango['fecha_fin'] instanceof DateTime) ? $rango['fecha_fin']->format('Y-m-d') : substr($rango['fecha_fin'], 0, 10),
-				'tipo' => $rango['tipo']
-			];
-			echo json_encode($response);
-		} else {
-			http_response_code(404);
-			echo json_encode(['error' => 'Rango de fechas no encontrado']);
+		try {
+			$datosGrupo = $m->obtenerGrupoHorarioPorId($grupoId);
+			if ($datosGrupo) {
+				header('Content-Type: application/json');
+				echo json_encode($datosGrupo);
+			} else {
+				http_response_code(404);
+				echo json_encode(['error' => 'Grupo no encontrado']);
+			}
+		} catch (Exception $e) {
+			http_response_code(500);
+			echo json_encode(['error' => 'Error interno: ' . $e->getMessage()]);
 		}
 	}
 
 
-// --- BLOQUE NUEVO: Comprobar si una fecha ya está configurada en el calendario laboral ---
-// if (isset($_GET['comprobar_rango'])) {
-//     $data = json_decode(file_get_contents("php://input"), true);
-//     $fechaInicio = $data['inicio'] ?? null;
-//     $fechaFin    = $data['fin'] ?? null;
-//     $tipoNuevo   = $data['tipo'] ?? null;
 
-//     $existe = false;
-//     $mensaje = "";
-//     $conflicto = null;
+	// Endpoint: Obtener áreas de trabajo (PERSK)
+	if (isset($_GET['obtener_areas_trabajo'])) {
+		header('Content-Type: application/json');
+		
+		try {
+			$areas = $m->obtener_areas_trabajo();
+			echo json_encode(['areas' => $areas]);
+		} catch (Exception $e) {
+			http_response_code(500);
+			echo json_encode(['error' => 'Error al obtener áreas: ' . $e->getMessage()]);
+		}
+		exit;
+	}
 
-//     if ($fechaInicio && $fechaFin && $tipoNuevo) {
-//         $resultados = $m->obtenerRangoFechas(date('Y', strtotime($fechaInicio)));
+	// Endpoint: Obtener tipos de contrato
+	if (isset($_GET['obtener_tipos_contrato'])) {
+		header('Content-Type: application/json');
+		
+		try {
+			$contratos = $m->obtener_tipos_contrato();
+			echo json_encode(['contratos' => $contratos]);
+		} catch (Exception $e) {
+			http_response_code(500);
+			echo json_encode(['error' => 'Error al obtener tipos de contrato: ' . $e->getMessage()]);
+		}
+		exit;
+	}
 
-//         foreach ($resultados as $rango) {
-//             $inicio = ($rango['fecha_inicio'] instanceof DateTime)
-//                 ? $rango['fecha_inicio']->format('Y-m-d')
-//                 : substr($rango['fecha_inicio'], 0, 10);
+	// Endpoint: Obtener trabajadores por áreas seleccionadas
+	$data = json_decode(file_get_contents('php://input'), true);
+	if (isset($data['action']) && $data['action'] === 'obtener_trabajadores_por_areas') {
+		header('Content-Type: application/json');
+		
+		try {
+			$areas = isset($data['areas']) ? $data['areas'] : [];
+			$contratos = isset($data['contratos']) ? $data['contratos'] : null;
+			
+			// Validar que al menos haya un filtro activo
+			if (empty($areas) && empty($contratos)) {
+				echo json_encode(['trabajadores' => []]);
+				exit;
+			}
+			
+			$trabajadores = $m->obtener_trabajadores_por_areas_y_contratos($areas, $contratos);
+			echo json_encode(['trabajadores' => $trabajadores]);
+		} catch (Exception $e) {
+			http_response_code(500);
+			echo json_encode(['error' => 'Error al obtener trabajadores: ' . $e->getMessage()]);
+		}
+		exit;
+	}
 
-//             $fin = ($rango['fecha_fin'] instanceof DateTime)
-//                 ? $rango['fecha_fin']->format('Y-m-d')
-//                 : substr($rango['fecha_fin'], 0, 10);
+	// Endpoint para buscar trabajadores manualmente
+	if (isset($data['action']) && $data['action'] === 'buscar_trabajadores_manual') {
+		header('Content-Type: application/json');
+		
+		try {
+			$termino = isset($data['termino']) ? trim($data['termino']) : '';
+			$trabajadores = $m->buscar_trabajadores_manual($termino);
+			echo json_encode(['trabajadores' => $trabajadores]);
+		} catch (Exception $e) {
+			http_response_code(500);
+			echo json_encode(['error' => 'Error al buscar trabajadores: ' . $e->getMessage()]);
+		}
+		exit;
+	}
 
-//             $tipoExistente = $rango['tipo'];
-
-//             $haySolape = !($fechaFin < $inicio || $fechaInicio > $fin);
-
-//             if ($haySolape) {
-//                 // --- Festivos ---
-//                 if ($tipoNuevo === 'festivo_nacional') {
-//                     if (in_array($tipoExistente, ['festivo_nacional', 'festivo_autonomico'])) {
-//                         $existe = true;
-//                         $mensaje = "❌ Festivo nacional solapa con otro festivo ($tipoExistente) entre $inicio y $fin.";
-//                         $conflicto = ['inicio' => $inicio, 'fin' => $fin, 'tipo' => $tipoExistente];
-//                         break;
-//                     }
-//                     continue; // puede pisar jornadas
-//                 }
-
-//                 if ($tipoNuevo === 'festivo_autonomico') {
-//                     if ($tipoExistente === 'festivo_nacional') {
-//                         $existe = true;
-//                         $mensaje = "❌ Festivo autonómico no puede solaparse con festivo nacional ($inicio - $fin).";
-//                         $conflicto = ['inicio' => $inicio, 'fin' => $fin, 'tipo' => $tipoExistente];
-//                         break;
-//                     }
-//                     if ($tipoExistente === 'festivo_autonomico') {
-//                         $existe = true;
-//                         $mensaje = "❌ Festivo autonómico no puede solaparse con otro festivo autonómico ($inicio - $fin).";
-//                         $conflicto = ['inicio' => $inicio, 'fin' => $fin, 'tipo' => $tipoExistente];
-//                         break;
-//                     }
-//                     continue; // puede pisar jornadas
-//                 }
-
-//                 // --- Especial ---
-//                 if ($tipoNuevo === 'especial') {
-//                     if (in_array($tipoExistente, ['reducida', 'especial'])) {
-//                         if ($tipoExistente === 'especial') continue; // mismo tipo permitido
-//                         $existe = true;
-//                         $mensaje = "❌ Especial no puede solaparse con reducida ($inicio - $fin).";
-//                         $conflicto = ['inicio' => $inicio, 'fin' => $fin, 'tipo' => $tipoExistente];
-//                         break;
-//                     }
-//                     if (in_array($tipoExistente, ['festivo_nacional', 'festivo_autonomico'])) {
-//                         $existe = true;
-//                         $mensaje = "❌ Especial no puede solaparse con el festivo ($tipoExistente) entre $inicio y $fin.";
-//                         $conflicto = ['inicio' => $inicio, 'fin' => $fin, 'tipo' => $tipoExistente];
-//                         break;
-//                     }
-//                 }
-
-//                 // --- Reducida ---
-//                 if ($tipoNuevo === 'reducida') {
-//                     if ($tipoExistente !== 'reducida') {
-//                         $existe = true;
-//                         $mensaje = "❌ Reducida no puede solaparse con $tipoExistente ($inicio - $fin). Solo puede solaparse con otra reducida.";
-//                         $conflicto = ['inicio' => $inicio, 'fin' => $fin, 'tipo' => $tipoExistente];
-//                         break;
-//                     }
-//                     // mismo tipo reducida → permitido
-//                 }
-//             }
-//         }
-//     }
-
-//     header('Content-Type: application/json');
-//     echo json_encode([
-//         'existe' => $existe,
-//         'mensaje' => $mensaje,
-//         'conflicto' => $conflicto
-//     ]);
-//     exit;
-// }
-
-
-
-if (isset($_GET['comprobar_rango'])) {
-    $data = json_decode(file_get_contents("php://input"), true);
-    $fechaInicio = $data['inicio'] ?? null;
-    $fechaFin    = $data['fin'] ?? null;
-    $tipoNuevo   = $data['tipo'] ?? null;
-
-    $existe = false;
-    $mensaje = "";
-    $conflicto = null;
-
-    // Mapeo de tipos legibles
-    $tiposLegibles = [
-        'festivo_nacional'   => 'Festivo Nacional',
-        'festivo_autonomico' => 'Festivo Autonómico',
-        'especial'           => 'Jornada Especial (09:00 - 14:00)',
-        'reducida'           => 'Jornada Reducida (08:00 - 15:00)'
-    ];
-
-    if ($fechaInicio && $fechaFin && $tipoNuevo) {
-        $resultados = $m->obtenerRangoFechas(date('Y', strtotime($fechaInicio)));
-
-        // Recorrer cada día del rango
-        for ($d = new DateTime($fechaInicio); $d <= new DateTime($fechaFin); $d->modify('+1 day')) {
-            $fechaStr = $d->format('Y-m-d');
-            $solapamientoEspecialConReducida = false;
-
-            foreach ($resultados as $rango) {
-                $inicio = ($rango['fecha_inicio'] instanceof DateTime)
-                    ? $rango['fecha_inicio']->format('Y-m-d')
-                    : substr($rango['fecha_inicio'], 0, 10);
-                $fin = ($rango['fecha_fin'] instanceof DateTime)
-                    ? $rango['fecha_fin']->format('Y-m-d')
-                    : substr($rango['fecha_fin'], 0, 10);
-                $tipoExistente = $rango['tipo'];
-
-                $enRango = ($fechaStr >= $inicio && $fechaStr <= $fin);
-
-                // 1️⃣ Mismo tipo y mismo día → bloquear
-                if ($enRango && $tipoNuevo === $tipoExistente) {
-                    $existe = true;
-                    $mensaje = "❌ Ya existe un día $fechaStr de tipo ".$tiposLegibles[$tipoNuevo].".";
-                    $conflicto = ['fecha' => $fechaStr, 'tipo' => $tipoExistente];
-                    break 2; // salir de ambos bucles
-                }
-
-                // 2️⃣ Regla de prioridad y solapamientos
-                if ($enRango) {
-                    // Festivos
-                    if (in_array($tipoNuevo, ['festivo_nacional', 'festivo_autonomico'])) {
-                        if (in_array($tipoExistente, ['festivo_nacional', 'festivo_autonomico'])) {
-                            $existe = true;
-                            $mensaje = "❌ El rango seleccionado se solapa con otro ".$tiposLegibles[$tipoExistente]." entre $inicio y $fin.";
-                            $conflicto = ['inicio' => $inicio, 'fin' => $fin, 'tipo' => $tipoExistente];
-                            break 2;
-                        }
-                        continue; // puede pisar jornadas
-                    }
-
-                    // Especial
-                    if ($tipoNuevo === 'especial') {
-                        if ($tipoExistente === 'especial') continue; // mismo tipo permitido
-                        if (in_array($tipoExistente, ['festivo_nacional', 'festivo_autonomico'])) {
-                            $existe = true;
-                            $mensaje = "❌ ".$tiposLegibles[$tipoNuevo]." no puede solaparse con ".$tiposLegibles[$tipoExistente]." entre $inicio y $fin.";
-                            $conflicto = ['inicio' => $inicio, 'fin' => $fin, 'tipo' => $tipoExistente];
-                            break 2;
-                        }
-                        if ($tipoExistente === 'reducida') {
-                            // Especial sobre Reducida → aviso informativo
-                            $solapamientoEspecialConReducida = true;
-                        }
-                    }
-
-                    // Reducida
-                    if ($tipoNuevo === 'reducida') {
-                        if ($tipoExistente !== 'reducida') {
-                            $existe = true;
-                            $mensaje = "❌ ".$tiposLegibles[$tipoNuevo]." no puede solaparse con ".$tiposLegibles[$tipoExistente]." ($inicio - $fin). Solo puede solaparse con otra reducida.";
-                            $conflicto = ['inicio' => $inicio, 'fin' => $fin, 'tipo' => $tipoExistente];
-                            break 2;
-                        }
-                    }
-                }
-            }
-
-            // Si hay solapamiento Especial con Reducida, mostrar aviso pero no bloquear
-            if ($solapamientoEspecialConReducida && !$existe) {
-                $mensaje = "ℹ️ El día $fechaStr ya es ".$tiposLegibles['reducida'].", pero puedes añadirlo como ".$tiposLegibles['especial'].".";
-            }
-        }
-    }
-
-    header('Content-Type: application/json');
-    echo json_encode([
-        'existe' => $existe,
-        'mensaje' => $mensaje,
-        'conflicto' => $conflicto
-    ]);
-    exit;
-}
+	// Endpoint para agregar festivo a un grupo de horario
+	if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+		$data = json_decode(file_get_contents("php://input"), true);
+		
+		if (isset($data['action']) && $data['action'] === 'agregar_festivo_grupo') {
+			header('Content-Type: application/json');
+			
+			$grupo_id = $data['grupo_id'] ?? null;
+			$fecha = $data['fecha'] ?? null;
+			$tipo_festivo = $data['tipo_festivo'] ?? null;
+			
+			// Validar datos
+			if (!$grupo_id || !$fecha || !$tipo_festivo) {
+				echo json_encode(['success' => false, 'message' => 'Datos incompletos']);
+				exit;
+			}
+			
+			// Usar el método del modelo
+			$resultado = $m->agregar_festivo_grupo($grupo_id, $fecha, $tipo_festivo);
+			echo json_encode($resultado);
+			exit;
+		}
+		
+		// Endpoint para eliminar festivo de un grupo
+		if (isset($data['action']) && $data['action'] === 'eliminar_festivo_grupo') {
+			header('Content-Type: application/json');
+			
+			$grupo_id = $data['grupo_id'] ?? null;
+			$fecha = $data['fecha'] ?? null;
+			
+			// Validar datos
+			if (!$grupo_id || !$fecha) {
+				echo json_encode(['success' => false, 'message' => 'Datos incompletos']);
+				exit;
+			}
+			
+			// Usar el método del modelo
+			$resultado = $m->eliminar_festivo_grupo($grupo_id, $fecha);
+			echo json_encode($resultado);
+			exit;
+		}
+		
+	// Endpoint para clonar grupo de horario a otro año
+	if (isset($data['action']) && $data['action'] === 'clonar_grupo_horario') {
+		header('Content-Type: application/json');
+		
+		$grupo_id_original = $data['grupo_id_original'] ?? null;
+		$anio_destino = $data['anio_destino'] ?? null;
+		$nuevo_nombre = $data['nuevo_nombre'] ?? null;
+		$clonar_trabajadores = isset($data['clonar_trabajadores']) ? (bool)$data['clonar_trabajadores'] : false;
+		
+		// Validar datos
+		if (!$grupo_id_original || !$anio_destino || !$nuevo_nombre) {
+			echo json_encode(['success' => false, 'message' => 'Datos incompletos']);
+			exit;
+		}
+		
+		// Usar el método del modelo
+		$resultado = $m->clonar_grupo_horario($grupo_id_original, $anio_destino, $nuevo_nombre, $clonar_trabajadores);
+		
+		echo json_encode($resultado);
+		exit;
+	}		// Endpoint para guardar asignación de trabajadores a grupo de horario
+		if (isset($data['action']) && $data['action'] === 'guardar_asignacion_trabajadores') {
+			header('Content-Type: application/json');
+			
+			$grupo_id = $data['grupo_id'] ?? null;
+			$trabajadores = $data['trabajadores'] ?? [];
+			
+			// Validar datos - Permitir array vacío para eliminar todos los trabajadores del grupo
+			if (!$grupo_id || !is_array($trabajadores)) {
+				echo json_encode(['success' => false, 'message' => 'Datos incompletos']);
+				exit;
+			}
+			
+			// Usar el método del modelo
+			$resultado = $m->guardar_asignacion_trabajadores($grupo_id, $trabajadores);
+			echo json_encode($resultado);
+			exit;
+		}
+		
+		// Endpoint para obtener trabajadores asignados a un grupo de horario
+		if (isset($data['action']) && $data['action'] === 'obtener_trabajadores_asignados') {
+			header('Content-Type: application/json');
+			
+			$grupo_id = $data['grupo_id'] ?? null;
+			
+			// Validar datos
+			if (!$grupo_id) {
+				echo json_encode(['success' => false, 'message' => 'ID de grupo no proporcionado']);
+				exit;
+			}
+			
+			// Usar el método del modelo
+			$resultado = $m->obtener_trabajadores_asignados($grupo_id);
+			echo json_encode($resultado);
+			exit;
+		}
+	}
 ?>

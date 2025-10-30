@@ -197,7 +197,7 @@
                     $obs = 0;
                     foreach ($params['solicitudes_pendientes'] as $solicitud) {
                         echo "<tr>";
-                        echo "<td>" . $solicitud['nombre']. " " . $solicitud['apellidos'] . "<br>".$solicitud['pernr']."</td>";
+                        echo "<td>" . $solicitud['NOMBREYAPELLIDOS'] . "<br>".$solicitud['pernr']."</td>";
                         echo "<td>" . date_format($solicitud['fecha_desde'], 'd-m-Y') . "</td>";
                         echo "<td>" . date_format($solicitud['fecha_hasta'], 'd-m-Y') . "</td>";
                         $fecha_desde_t = clone($solicitud['fecha_desde']);
@@ -206,9 +206,9 @@
                         // Iterar a través de las fechas
                         while ($fecha_desde_t <= $fecha_hasta_t) {
                             // Si el día no es sábado (6) ni domingo (7), contar como día laboral
-                            if ($fecha_desde_t->format('N') < 6) { // 'N' devuelve el número del día de la semana (1 = lunes, ..., 7 = domingo)
+                            // if ($fecha_desde_t->format('N') < 6) { // 'N' devuelve el número del día de la semana (1 = lunes, ..., 7 = domingo)
                                 $total_dias++;
-                            }
+                            // }
 
                             // Avanzar al siguiente día
                             $fecha_desde_t->modify('+1 day');
@@ -288,265 +288,20 @@
                             ?>
                         </td>
                         <td>
-                            <button type="button" class="btn btn-primary btn-sm"
+                            <button type="button" class="btn btn-primary btn-sm btn-ver-detalle"
+                                    data-id-solicitud="<?php echo $solicitud['id_solicitud']; ?>"
+                                    data-pernr="<?php echo $solicitud['pernr']; ?>"
                                     data-bs-toggle="modal"
-                                    data-bs-target="#modalDetallesSolicitud_<?php echo $solicitud['id_solicitud']; ?>">
+                                    data-bs-target="#modalDetallesSolicitud">
                                 <i class="bi bi-eye"></i>
                                 <span class="d-none d-sm-inline">Ver detalles</span>
                             </button>
-                            <div class="modal fade" id="modalDetallesSolicitud_<?php echo $solicitud['id_solicitud']; ?>" tabindex="-1" aria-labelledby="crearEventoLabel" aria-hidden="true">
-                                <div class="modal-dialog modal-dialog-centered">
-                                    <div class="modal-content">
-                                        <div class="modal-header">
-                                            <h5 class="modal-title">Detalles solicitud</h5>
-                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                                        </div>
-                                        <div class="modal-body">
-                                            <div>
-                                                <div class="row">
-                                                    <div class="col-md-6 mb-3">
-                                                        <label for="FechaSol" class="form-label"><b>Fecha Solicitud</b></label>
-                                                        <input type="text" class="form-control" value='<?php echo date_format($solicitud['fecha_solicitud'], 'd-m-Y'); ?>' name="FechaSol" id="FechaSol" disabled>
-                                                    </div>
-                                                </div>
-                                                <div class="row">
-                                                    <div class="col-md-6 mb-3">
-                                                        <label for="FechaInicioSol" class="form-label"><b>Inicio</b></label>
-                                                        <input type="text" class="form-control" value="<?php echo date_format($solicitud['fecha_desde'], 'd-m-Y'); if (isset($solicitud['hora_desde'])) echo " " . $solicitud['hora_desde']; ?>" name="FechaInicioSol" id="FechaInicioSol" disabled>
-                                                    </div>
-                                                    <div class="col-md-6 mb-3">
-                                                        <label for="FechaFinSol" class="form-label"><b>Fin</b></label>
-                                                        <input type="text" class="form-control" value="<?php echo date_format($solicitud['fecha_hasta'], 'd-m-Y'); if (isset($solicitud['hora_hasta'])) echo " " . $solicitud['hora_hasta']; ?>" name="FechaFinSol" id="FechaFinSol" disabled>
-                                                    </div>
-                                                </div>
-                                                <div class="row">
-                                                    <div class="col-md-6 mb-3">
-                                                        <label for="tipoSol" class="form-label"><b>Tipo</b></label>
-                                                        <input type="text" class="form-control" value='<?php echo $solicitud['tipo'] == '1' ? 'Vacaciones' : ($solicitud['tipo'] == '2' ? 'Otras ausencias' : ($solicitud['tipo'] == '3' ? 'Festivo local' : ($solicitud['tipo'] == '4' ? 'Asuntos propios' : 'Otro'))); ?>' name="tipoSol" id="tipoSol" disabled>
-                                                    </div>
-                                                    <?php
-                                                        $nombreMotivo = '';
-
-                                                        // Buscar el nombre del motivo por ID
-                                                        foreach ($params['otras_aus'] as $motivo) {
-                                                            if ($motivo['id'] == $solicitud['motivo']) {
-                                                                $nombreMotivo = $motivo['tipo_ausencia'];
-                                                                break;
-                                                            }
-                                                        }
-                                                    ?> 
-
-                                                    <?php 
-                                                        if ($nombreMotivo != '') {
-                                                        ?>
-                                                            <div class="col-md-6 mb-3">
-                                                                <label for="motivo" class="form-label"><b>Motivo</b></label>
-                                                                <input type="text" class="form-control" value="<?php echo htmlspecialchars($nombreMotivo); ?>" name="motivo" id="motivo" disabled>
-                                                            </div>
-                                                        <?php
-                                                        } else {
-                                                            echo '<div class="clear"></div>';
-                                                        }
-                                                    ?>
-                                                    <div class="col-md-6 mb-3">
-                                                        <label for="estadoSol" class="form-label"><b>Estado</b></label>
-                                                        <input type="text" class="form-control" value='<?php echo $solicitud['estado'] == '1' ? 'Pendiente' : 
-                                                                                                                 ($solicitud['estado'] == '3' ? 'Aceptada' : 
-                                                                                                                 ($solicitud['estado'] == '4' ? 'Rechazada' : 
-                                                                                                                 ($solicitud['estado'] == '5' ? 'Anulada' : 
-                                                                                                                 ($solicitud['estado'] == '6' ? 'Pendiente' :
-                                                                                                                 ($solicitud['estado'] == '7' ? 'Pendiente anulación' :
-                                                                                                                 ($solicitud['estado'] == '8' ? 'Anulación rechazada, en curso' :
-                                                                                                                 'Desconocido')))))); ?>' name="estadoSol" id="estadoSol" disabled>
-                                                    </div>
-                                                    <div class="col-md-6 mb-3">
-                                                        <label for="superior" class="form-label"><b>Superior</b></label>
-                                                        <input type="text" class="form-control" value='<?php echo $solicitud['nombre_superior'] ." ". $solicitud['apellidos_superior']; ?>' name="superior" id="superior" disabled>
-                                                    </div>
-                                                </div>
-                                                <div class="row">
-                                                    <div class="col-md-12 mt-2">
-                                                        <label for="justificante" class="form-label"><b>Justificante</b></label>
-                                                        <?php if ($solicitud['tipo'] == 2) { ?>
-                                                            <?php if ($justifi == 1) { ?>
-                                                                <?php if ($solicitud['justificante'] != '') { ?>
-                                                                    <div class="alert alert-success" role="alert">
-                                                                        <b>Justificante entregado</b>
-                                                                        <div class="mt-2">
-                                                                            <a href="<?php echo $solicitud['justificante']; ?>" target="_blank" class="btn btn-success btn-sm">
-                                                                                Ver justificante
-                                                                            </a>
-                                                                        </div>
-                                                                    </div>
-                                                                <?php } else { ?>
-                                                                    <div class="alert alert-danger" role="alert">
-                                                                        <b>Justificante no entregado</b>
-                                                                    </div>
-                                                                <?php } ?>
-                                                            <?php } else { ?>
-                                                                <div class="alert alert-info" role="alert">
-                                                                    <b>Justificante no aplica</b>
-                                                                </div>
-                                                            <?php } ?>
-                                                        <?php } else { ?>
-                                                            <div class="alert alert-info" role="alert">
-                                                                <b>Justificante no aplica</b>
-                                                            </div>
-                                                        <?php } ?>
-                                                    </div>
-                                                </div>
-
-
-                                                <div class="row" id="observaciones" style="margin-left: 2%;">
-                                                    <div class="col-md-12">
-                                                        <b>Observaciones</b>
-                                                        <ul class="timeline" id="timeline">
-                                                            <?php  
-                                                                for ($i = 0; $i < 3; $i++) {
-                                                                    if (isset($solicitud['observaciones'][$i])) { ?>
-                                                                        <li class="timeline-item mb-4 mt-2" id="obs_item_<?php echo $i + 1; ?>">
-                                                                            <p class="fw-bold" style="font-size: 17px;" id="nombre_<?php echo $i + 1; ?>">
-                                                                                <?php 
-                                                                                    if (isset($solicitud['observaciones'][$i]['tipo_coment']) && $solicitud['observaciones'][$i]['tipo_coment'] == 'RRHH') {
-                                                                                        echo "RRHH";
-                                                                                    } else {
-                                                                                        echo !empty($solicitud['observaciones'][$i]['nombre']) ? $solicitud['observaciones'][$i]['nombre'] : ''; 
-                                                                                    }
-                                                                                ?>
-                                                                            </p>
-                                                                            <p class="text-muted mb-2 fw-bold" id="fecha_mod_<?php echo $i + 1; ?>">
-                                                                                <?php echo !empty($solicitud['observaciones'][$i]['fecha_modificacion']) ? $solicitud['observaciones'][$i]['fecha_modificacion']->format('Y-m-d H:i') : ''; ?>
-                                                                            </p>
-                                                                            <p class="text-muted" id="observacion_<?php echo $i + 1; ?>">
-                                                                                <?php echo !empty($solicitud['observaciones'][$i]['comentario']) ? $solicitud['observaciones'][$i]['comentario'] : ''; ?>
-                                                                            </p>
-                                                                        </li>
-                                                                    <?php 
-                                                                    }  
-                                                                } 
-                                                            ?>
-                                                        </ul>
-                                                    </div>
-                                                </div>   
-                                            </div>
-                                            
-                                            <?php 
-                                                $tipo_rrhh = false;
-
-                                                // Verificamos la existencia de los índices antes de acceder a ellos
-                                                for ($i = 0; $i < 3; $i++) {
-                                                    if (isset($solicitud['observaciones'][$i]['tipo_coment']) && $solicitud['observaciones'][$i]['tipo_coment'] == 'RRHH') {
-                                                        $tipo_rrhh = true;
-                                                        break;
-                                                    }
-                                                }
-                                                if (!$tipo_rrhh) {
-                                                ?>
-                                                    <form class="mb-3" action="admin_cont.php?controller=index&action=solicitudes&addComentario" method="post" id="formComentario">
-                                                        <input type="hidden" name="observacion">
-                                                        <input type="hidden" name="id_sol" value="<?php echo $solicitud['id_solicitud']; ?>">
-                                                        <input type="hidden" name="pernr_mod" value="<?php echo $_SESSION['id_user_surexport_appreclu']; ?>">
-                                                        <input type="hidden" name="fecha_crea" value="<?php echo date('Y-m-d H:i:s'); ?>">
-                                                        <input type="hidden" name="fecha" value="<?php echo date('Y-m-d'); ?>">
-                                                        <input type="hidden" name="pernr_usu" id="pernr_usu" value="<?php echo $solicitud['pernr']; ?>">
-                                                        <div class="row">
-                                                            <div class="col-md-9">
-                                                                <input placeholder="Añadir comentario..." class="form-control" name="comentario" id="comentario" required>
-                                                            </div>
-                                                            <div class="col-md-3">
-                                                                <button type="submit" value="enviar" class="btn btn-primary">Añadir</button>
-                                                            </div>
-                                                        </div>
-                                                    </form>
-                                                <?php
-                                                } else {
-                                                    
-                                                }
-                                            ?>
-
-                                            <?php 
-                                            if ($solicitud['estado'] == '3' || $solicitud['estado'] == '4') {
-
-                                            } else {
-                                                if ($solicitud['estado'] != '5' && $solicitud['estado'] != '8') {
-                                            ?>
-                                                <!-- div con linea separatoria del body con el footer del modal -->
-                                                <div class="dropdown-divider" style="background-color: #dee2e6; height: 1px; width: calc(100% + 2rem); margin-left: -1rem;" id="linea_div"></div>
-
-                                                <div class="mt-3" id="acciones">
-                                                    <form action="admin_cont.php?controller=index&action=solicitudes&comunicado_rrhh" method="post" id="formAcciones">
-                                                        <input type="hidden" name="pernr_usu" id="pernr_usu" value="<?php echo $solicitud['pernr']; ?>">
-                                                        <input type="hidden" name="fecha_res_rrhh" value="<?= date('Y-m-d'); ?>">
-                                                        <input type="hidden" name="firma_rrhh" value="1">
-                                                        <input type="hidden" name="id_sol" value="<?php echo $solicitud['id_solicitud']; ?>" id="id_sol">
-                                                        <input type="hidden" name="mail_s" value="<?php echo $solicitud['mail_s']; ?>">
-                                                        <input type="hidden" name="nombre_s" value="<?php echo $solicitud['nombre_superior'] . " " . $solicitud['apellidos_superior']; ?>">
-                                                        <input type="hidden" name="nombre" value="<?php echo $solicitud['nombre'] . " " . $solicitud['apellidos']; ?>">
-                                                        <input type="hidden" name="mail" value="<?php echo $solicitud['mail']; ?>">
-                                                        <input type="hidden" name="estado" value="<?php echo $solicitud['estado']; ?>">
-                                                        <input type="hidden" name="fecha_sol" value="<?php echo date_format($solicitud['fecha_solicitud'], 'd-m-Y'); ?>">
-                                                        <button type="submit" class='btn btn-success' name="aceptar" id="btnAceptar">Aprobar</button>
-                                                        <button type="submit" class='btn btn-danger' name="rechazar" id="btnRechazar">Rechazar</button>
-                                                    </form>
-                                                    <script>
-                                                        document.addEventListener('DOMContentLoaded', function () {
-                                                            const form = document.getElementById('formAcciones');
-                                                            const btnAceptar = document.getElementById('btnAceptar');
-                                                            const btnRechazar = document.getElementById('btnRechazar');
-
-                                                            let accion = ''; // "aceptar" o "rechazar"
-
-                                                            btnAceptar.addEventListener('click', function (e) {
-                                                                e.preventDefault();
-                                                                accion = 'aceptar';
-                                                                confirmarEnvio();
-                                                            });
-
-                                                            btnRechazar.addEventListener('click', function (e) {
-                                                                e.preventDefault();
-                                                                accion = 'rechazar';
-                                                                confirmarEnvio();
-                                                            });
-
-                                                            function confirmarEnvio() {
-                                                                const mensaje = (accion === 'aceptar') 
-                                                                    ? '¿Estás seguro de que deseas aprobar esta solicitud?' 
-                                                                    : '¿Estás seguro de que deseas rechazar esta solicitud?';
-
-                                                                alertify.confirm('Confirmar acción', mensaje,
-                                                                    function () {
-                                                                        // Crear input dinámico con el name de la acción que se confirmó
-                                                                        const inputAccion = document.createElement('input');
-                                                                        inputAccion.type = 'hidden';
-                                                                        inputAccion.name = accion;
-                                                                        form.appendChild(inputAccion);
-
-                                                                        form.submit();
-                                                                    },
-                                                                    function () {
-                                                                        alertify.error('Acción cancelada');
-                                                                    }
-                                                                );
-                                                            }
-                                                        });
-                                                        </script>
-                                                </div>
-                                            <?php
-                                                }
-                                            }
-                                            ?>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
                         </td>
                         <?php
                         echo "</tr>";
                         $obs++;
                     }
-                    ?>
-
-                </tbody>
+                    ?>                </tbody>
             </table>
         </div>
     </div>
@@ -567,11 +322,297 @@
 
 <!-- FIN Solicitudes  -->
 
+<!-- Modal único para detalles de solicitud -->
+<div class="modal fade" id="modalDetallesSolicitud" tabindex="-1" aria-labelledby="modalDetallesSolicitudLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalDetallesSolicitudLabel">Detalles solicitud</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="modalDetallesContent">
+                <div class="text-center">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Cargando...</span>
+                    </div>
+                    <p class="mt-2">Cargando detalles...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 
 </section>
 
-
 <script>
+    // AJAX para cargar detalles de solicitud
+    document.addEventListener('DOMContentLoaded', function() {
+        const botonesVerDetalle = document.querySelectorAll('.btn-ver-detalle');
+        const modalContent = document.getElementById('modalDetallesContent');
+        const otrasAusencias = <?php echo json_encode($params['otras_aus']); ?>;
+        
+        botonesVerDetalle.forEach(function(boton) {
+            boton.addEventListener('click', function() {
+                const idSolicitud = this.getAttribute('data-id-solicitud');
+                const pernr = this.getAttribute('data-pernr');
+                
+                // Mostrar spinner
+                modalContent.innerHTML = `
+                    <div class="text-center">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Cargando...</span>
+                        </div>
+                        <p class="mt-2">Cargando detalles...</p>
+                    </div>
+                `;
+                
+                // Petición AJAX
+                fetch('auto.php?obtener_detalle_solicitud&id_solicitud=' + idSolicitud)
+                    .then(response => response.json())
+                    .then(result => {
+                        if (result.success) {
+                            const solicitud = result.data;
+                            
+                            // Obtener nombre del motivo
+                            let nombreMotivo = '';
+                            let justifi = '';
+                            if (solicitud.motivo) {
+                                const motivo = otrasAusencias.find(m => m.id == solicitud.motivo);
+                                if (motivo) {
+                                    nombreMotivo = motivo.tipo_ausencia;
+                                    justifi = motivo.Justificante;
+                                }
+                            }
+                            
+                            // Mapear tipo de ausencia
+                            const tipoTexto = {
+                                '1': 'Vacaciones',
+                                '2': 'Otras ausencias',
+                                '3': 'Festivo local',
+                                '4': 'Asuntos propios'
+                            }[solicitud.tipo] || 'Otro';
+                            
+                            // Mapear estado
+                            const estadoTexto = {
+                                '1': 'Pendiente',
+                                '3': 'Aceptada',
+                                '4': 'Rechazada',
+                                '5': 'Anulada',
+                                '6': 'Pendiente',
+                                '7': 'Pendiente anulación',
+                                '8': 'Anulación rechazada, en curso'
+                            }[solicitud.estado] || 'Desconocido';
+                            
+                            // Construir HTML
+                            let html = `
+                                <div>
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <label class="form-label"><b>Fecha Solicitud</b></label>
+                                            <input type="text" class="form-control" value="${solicitud.fecha_solicitud_formatted || ''}" disabled>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <label class="form-label"><b>Inicio</b></label>
+                                            <input type="text" class="form-control" value="${solicitud.fecha_desde_formatted || ''} ${solicitud.hora_desde_formatted || ''}" disabled>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label class="form-label"><b>Fin</b></label>
+                                            <input type="text" class="form-control" value="${solicitud.fecha_hasta_formatted || ''} ${solicitud.hora_hasta_formatted || ''}" disabled>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <label class="form-label"><b>Tipo</b></label>
+                                            <input type="text" class="form-control" value="${tipoTexto}" disabled>
+                                        </div>`;
+                            
+                            if (nombreMotivo) {
+                                html += `
+                                        <div class="col-md-6 mb-3">
+                                            <label class="form-label"><b>Motivo</b></label>
+                                            <input type="text" class="form-control" value="${nombreMotivo}" disabled>
+                                        </div>`;
+                            }
+                            
+                            html += `
+                                        <div class="col-md-6 mb-3">
+                                            <label class="form-label"><b>Estado</b></label>
+                                            <input type="text" class="form-control" value="${estadoTexto}" disabled>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label class="form-label"><b>Superior</b></label>
+                                            <input type="text" class="form-control" value="${solicitud.nombre_superior || ''}" disabled>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-12 mt-2">
+                                            <label class="form-label"><b>Justificante</b></label>`;
+                            
+                            // Justificante
+                            if (solicitud.tipo == 2) {
+                                if (justifi == 1) {
+                                    if (solicitud.justificante && solicitud.justificante != '') {
+                                        html += `
+                                            <div class="alert alert-success" role="alert">
+                                                <b>Justificante entregado</b>
+                                                <div class="mt-2">
+                                                    <a href="${solicitud.justificante}" target="_blank" class="btn btn-success btn-sm">Ver justificante</a>
+                                                </div>
+                                            </div>`;
+                                    } else {
+                                        html += `<div class="alert alert-danger" role="alert"><b>Justificante no entregado</b></div>`;
+                                    }
+                                } else {
+                                    html += `<div class="alert alert-info" role="alert"><b>Justificante no aplica</b></div>`;
+                                }
+                            } else {
+                                html += `<div class="alert alert-info" role="alert"><b>Justificante no aplica</b></div>`;
+                            }
+                            
+                            html += `
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="row" style="margin-left: 2%;">
+                                        <div class="col-md-12">
+                                            <b>Observaciones</b>
+                                            <ul class="timeline">`;
+                            
+                            // Observaciones
+                            let tipoRrhh = false;
+                            if (solicitud.observaciones && solicitud.observaciones.length > 0) {
+                                solicitud.observaciones.slice(0, 3).forEach(function(obs) {
+                                    if (obs.tipo_coment == 'RRHH') {
+                                        tipoRrhh = true;
+                                    }
+                                    html += `
+                                        <li class="timeline-item mb-4 mt-2">
+                                            <span class="fw-bold">
+                                                ${obs.tipo_coment == 'RRHH' ? 'RRHH' : (obs.nombre || '')}
+                                            </span>
+                                            <p class="text-muted mb-0 fw-bold">
+                                                ${obs.fecha_modificacion_formatted || ''}
+                                            </p>
+                                            <p class="text-muted">
+                                                ${obs.comentario || ''}
+                                            </p>
+                                        </li>`;
+                                });
+                            }
+                            
+                            html += `
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>`;
+                            
+                            // Formulario para añadir comentario (si no es RRHH)
+                            if (!tipoRrhh) {
+                                html += `
+                                    <form class="mb-3" action="admin_cont.php?controller=index&action=solicitudes&addComentario" method="post">
+                                        <input type="hidden" name="observacion">
+                                        <input type="hidden" name="id_sol" value="${solicitud.id_solicitud}">
+                                        <input type="hidden" name="pernr_mod" value="<?php echo $_SESSION['id_user_surexport_appreclu']; ?>">
+                                        <input type="hidden" name="pernr_usu" value="${solicitud.pernr}">
+                                        <div class="row">
+                                            <div class="col-md-9">
+                                                <input placeholder="Añadir comentario..." class="form-control" name="comentario" required>
+                                            </div>
+                                            <div class="col-md-3">
+                                                <button type="submit" class="btn btn-primary">Añadir</button>
+                                            </div>
+                                        </div>
+                                    </form>`;
+                            }
+                            
+                            // Botones de acción (si el estado lo permite)
+                            if (solicitud.estado != '3' && solicitud.estado != '4' && solicitud.estado != '5' && solicitud.estado != '8') {
+                                html += `
+                                    <div class="dropdown-divider" style="background-color: #dee2e6; height: 1px; width: calc(100% + 2rem); margin-left: -1rem;"></div>
+                                    <div class="mt-3">
+                                        <form action="admin_cont.php?controller=index&action=solicitudes&comunicado_rrhh" method="post" id="formAcciones_${solicitud.id_solicitud}">
+                                            <input type="hidden" name="pernr_usu" value="${solicitud.pernr}">
+                                            <input type="hidden" name="fecha_res_rrhh" value="${new Date().toISOString().slice(0, 10)}">
+                                            <input type="hidden" name="firma_rrhh" value="1">
+                                            <input type="hidden" name="id_sol" value="${solicitud.id_solicitud}">
+                                            <input type="hidden" name="mail_s" value="${solicitud.mail_s || ''}">
+                                            <input type="hidden" name="nombre_s" value="${solicitud.nombre_superior || ''} ${solicitud.apellidos_superior || ''}">
+                                            <input type="hidden" name="nombre" value="${solicitud.nombre || ''} ${solicitud.apellidos || ''}">
+                                            <input type="hidden" name="mail" value="${solicitud.mail || ''}">
+                                            <input type="hidden" name="estado" value="${solicitud.estado}">
+                                            <input type="hidden" name="fecha_sol" value="${solicitud.fecha_solicitud_formatted || ''}">
+                                            <button type="button" class="btn btn-success btn-aceptar-solicitud" data-form-id="formAcciones_${solicitud.id_solicitud}">Aprobar</button>
+                                            <button type="button" class="btn btn-danger btn-rechazar-solicitud" data-form-id="formAcciones_${solicitud.id_solicitud}">Rechazar</button>
+                                        </form>
+                                    </div>`;
+                            }
+                            
+                            modalContent.innerHTML = html;
+                            
+                            // Agregar listeners para botones de acción
+                            const btnAceptar = document.querySelector('.btn-aceptar-solicitud');
+                            const btnRechazar = document.querySelector('.btn-rechazar-solicitud');
+                            
+                            if (btnAceptar) {
+                                btnAceptar.addEventListener('click', function() {
+                                    const formId = this.getAttribute('data-form-id');
+                                    const form = document.getElementById(formId);
+                                    
+                                    alertify.confirm('Confirmar acción', '¿Estás seguro de que deseas aprobar esta solicitud?',
+                                        function() {
+                                            const inputAccion = document.createElement('input');
+                                            inputAccion.type = 'hidden';
+                                            inputAccion.name = 'aceptar';
+                                            form.appendChild(inputAccion);
+                                            form.submit();
+                                        },
+                                        function() {
+                                            alertify.error('Acción cancelada');
+                                        }
+                                    );
+                                });
+                            }
+                            
+                            if (btnRechazar) {
+                                btnRechazar.addEventListener('click', function() {
+                                    const formId = this.getAttribute('data-form-id');
+                                    const form = document.getElementById(formId);
+                                    
+                                    alertify.confirm('Confirmar acción', '¿Estás seguro de que deseas rechazar esta solicitud?',
+                                        function() {
+                                            const inputAccion = document.createElement('input');
+                                            inputAccion.type = 'hidden';
+                                            inputAccion.name = 'rechazar';
+                                            form.appendChild(inputAccion);
+                                            form.submit();
+                                        },
+                                        function() {
+                                            alertify.error('Acción cancelada');
+                                        }
+                                    );
+                                });
+                            }
+                            
+                        } else {
+                            modalContent.innerHTML = `
+                                <div class="alert alert-danger" role="alert">
+                                    <strong>Error:</strong> ${result.error || 'No se pudieron cargar los detalles'}
+                                </div>`;
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        modalContent.innerHTML = `
+                            <div class="alert alert-danger" role="alert">
+                                <strong>Error:</strong> Error al cargar los detalles de la solicitud
+                            </div>`;
+                    });
+            });
+        });
+    });
+    
     function redirigir() {
         // Obtén los parámetros de la URL actual
         var urlParams = new URLSearchParams(window.location.search);

@@ -1,6 +1,19 @@
 <?php
 include_once("header.php");
 ?>
+<style>
+    /* Asegurar que el select desplegado tenga borde en todos los lados */
+    .form-select option {
+        border: 1px solid #dee2e6;
+        border-right: 1px solid #dee2e6 !important;
+    }
+    
+    /* Alternativa: forzar borde en el select cuando está enfocado/desplegado */
+    select.form-select:focus option,
+    select.form-select option {
+        border-right: 1px solid #ced4da !important;
+    }
+</style>
 <div class="pagetitle">
 	<?php
 		if (isset($_POST['add_remesa'])) {
@@ -46,10 +59,41 @@ include_once("header.php");
 						</select>
 					</div>
 
+					<!-- Botón para abrir modal formateador -->
+                    <div class="col-md-2">
+                        <button type="button" class="btn btn-success w-100" data-bs-toggle="modal"
+                            data-bs-target="#modalFormateadorCodigos">
+                            <i class="bi bi-list-ol"></i> Trabajadores
+                            <?php if (isset($_POST['codigos_formateados']) && !empty($_POST['codigos_formateados'])) { ?>
+                                <span class="badge bg-light ms-1 text-dark" id="badgeTrabajadores">✓</span>
+                            <?php } else { ?>
+                                <span class="badge bg-light ms-1 text-dark" id="badgeTrabajadores" style="display: none;"></span>
+                            <?php } ?>
+                        </button>
+                        <?php if (isset($_POST['codigos_formateados']) && !empty($_POST['codigos_formateados'])) { ?>
+                            <button type="button" class="btn btn-sm btn-outline-danger mt-1 w-100"
+                                onclick="limpiarCodigosSeleccionados()" title="Limpiar trabajadores seleccionados">
+                                <i class="bi bi-x-circle"></i> Limpiar
+                            </button>
+                        <?php } else { ?>
+                            <button type="button" class="btn btn-sm btn-outline-danger mt-1 w-100" id="btnLimpiarCodigos"
+                                onclick="limpiarCodigosSeleccionados()" style="display: none;"
+                                title="Limpiar trabajadores seleccionados">
+                                <i class="bi bi-x-circle"></i> Limpiar
+                            </button>
+                        <?php } ?>
+                    </div>
+
+                    <!-- Campos ocultos para códigos -->
+                    <input type="hidden" id="codigos_formateados" name="codigos_formateados"
+                        value="<?php echo isset($_POST['codigos_formateados']) ? htmlspecialchars($_POST['codigos_formateados']) : ''; ?>">
+                    <input type="hidden" id="codigos_originales" name="codigos_originales"
+                        value="<?php echo isset($_POST['codigos_originales']) ? htmlspecialchars($_POST['codigos_originales']) : ''; ?>">
+
 					<!-- Fecha inicio -->
 					<div class="col-md-3">
 						<label for="fecha_ini" class="form-label">Fecha baja:</label>
-						<input type="date" class="form-control" id="fecha_ini" name="fecha_ini" value="<?php echo isset($_POST['fecha_ini']) ? $_POST['fecha_ini'] : date('Y-m-d', strtotime('-18 months')); ?>">
+						<input type="date" class="form-control" id="fecha_ini" name="fecha_ini" value="<?php echo isset($_POST['fecha_ini']) ? $_POST['fecha_ini'] : date('Y-m-d', strtotime('-16 months')); ?>">
 					</div>
 
 					<!-- Separador "a" -->
@@ -61,6 +105,21 @@ include_once("header.php");
 					<div class="col-md-3">
 						<label for="fecha_fin" class="form-label" style="color: white">Fecha baja fin:</label>
 						<input type="date" class="form-control" id="fecha_fin" name="fecha_fin" value="<?php echo isset($_POST['fecha_fin']) ? $_POST['fecha_fin'] : date('Y-m-d'); ?>">
+					</div>
+
+					<!-- Campo para relaciones laborales -->
+					<div class="col-md-3 mt-3">
+						<label for="relacion_laboral" class="form-label">Relación Laboral:</label>
+						<select class="form-select w-100" name="relacion_laboral" id="relacion_laboral">
+							<option value=""></option>
+							<?php
+								if (isset($params['relaciones_laborales'])) {
+									foreach ($params['relaciones_laborales'] as $key => $value) {
+										echo '<option value="' . $value['RELACION_LABORAL'] . '" ' . (isset($_POST['relacion_laboral']) && $_POST['relacion_laboral'] == $value['RELACION_LABORAL'] ? 'selected' : '') . '>' . $value['RELACION_LABORAL'] . " - " . $value['DESC_RELACION_LABORAL'] . '</option>';
+									}
+								}
+							?>
+						</select>
 					</div>
 				</div>
 				<br>
@@ -115,20 +174,187 @@ include_once("header.php");
 			<table id="table-info" class="table datatable display" style="width:100%;">
 				<thead>
 					<tr>
-						<th style="width:3%"></th>
-						<th style="width:8%">Cod. Trabajador</th>
-						<th style="width:28%"><?php echo $lang['nombre']; ?></th>
-						<th style="width:15%">Almacen</th>
-						<th style="width:15%">Fecha Baja</th>
-						<th style="width:12%"><?php echo $lang['telefono']; ?></th>
-						<th style="width:15%"><?php echo $lang['correo2']; ?></th>
-						<th style="width:6%"></th>
+						<th style="width:2%"></th>
+						<th style="width:7%">Cod. Trabajador</th>
+						<th style="width:20%"><?php echo $lang['nombre']; ?></th>
+						<th style="width:11%">Almacen</th>
+						<th style="width:18%">Relacion Laboral</th>
+						<th style="width:10%">Fecha Baja</th>
+						<th style="width:10%"><?php echo $lang['telefono']; ?></th>
+						<th style="width:18%"><?php echo $lang['correo2']; ?></th>
+						<th style="width:4%"></th>
 					</tr>
 				</thead>
 			</table>
 		</div>
 	</div>
 </div>
+
+
+    <!-- Modal Formateador de Códigos -->
+    <div class="modal fade" id="modalFormateadorCodigos" tabindex="-1" aria-labelledby="modalFormateadorCodigosLabel"
+        aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title" id="modalFormateadorCodigosLabel">
+                        <i class="bi bi-search me-2"></i>Buscar Trabajadores por Código
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                        aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="codigosInput" class="form-label"><strong>Pega aquí los códigos PERNR o DNI/NIE desde
+                                Excel:</strong></label>
+                        <textarea class="form-control font-monospace" id="codigosInput" rows="10"
+                            placeholder="1004207&#10;01005734&#10;...&#10;12345678A&#10;87654321C&#10;...&#10;X0134567A&#10;A0123456Z&#10;..."></textarea>
+                        <div class="form-text">
+                            <i class="bi bi-info-circle"></i> Los códigos de 7 dígitos se convertirán automáticamente a
+                            8 dígitos (añadiendo un 0 a la izquierda).
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" onclick="aplicarCodigos()">
+                        <i class="bi bi-check-circle"></i> Aplicar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        /**
+         * Inicializar badge al cargar la página si hay códigos del POST
+         */
+        document.addEventListener('DOMContentLoaded', function () {
+            const codigosFormateados = document.getElementById('codigos_formateados').value;
+            const codigosOriginales = document.getElementById('codigos_originales').value;
+
+            if (codigosFormateados && codigosFormateados.trim()) {
+                // Contar cuántos códigos hay (contar las comillas simples y dividir por 2)
+                const numCodigos = (codigosFormateados.match(/'/g) || []).length / 2;
+
+                // Actualizar badge
+                const badge = document.getElementById('badgeTrabajadores');
+                badge.textContent = Math.floor(numCodigos);
+                badge.style.display = 'inline-block';
+
+                // Mostrar botón limpiar
+                const btnLimpiar = document.getElementById('btnLimpiarCodigos');
+                if (btnLimpiar) {
+                    btnLimpiar.style.display = 'block';
+                }
+            }
+
+            // Restaurar códigos originales en el textarea cuando se abre el modal
+            const modal = document.getElementById('modalFormateadorCodigos');
+            modal.addEventListener('show.bs.modal', function () {
+                if (codigosOriginales && codigosOriginales.trim()) {
+                    document.getElementById('codigosInput').value = codigosOriginales;
+                }
+            });
+        });
+
+        /**
+         * Aplicar códigos formateados (sin enviar el formulario)
+         */
+        function aplicarCodigos() {
+            const input = document.getElementById('codigosInput').value;
+
+            if (!input.trim()) {
+                alertify.warning('Por favor, pega códigos PERNR en el área de texto');
+                return;
+            }
+
+            // Dividir por saltos de línea y eliminar espacios
+            const lineas = input.split('\n');
+            const codigos = [];
+            let procesados = 0;
+            let modificados = 0;
+
+            lineas.forEach(linea => {
+                let codigo = linea.trim();
+
+                // Ignorar líneas vacías
+                if (!codigo) return;
+
+                // Si tiene 7 caracteres, añadir 0 a la izquierda
+                if (codigo.length === 7 && /^\d+$/.test(codigo)) {
+                    codigo = '0' + codigo;
+                    modificados++;
+                }
+
+                codigos.push(codigo);
+                procesados++;
+            });
+
+            if (procesados === 0) {
+                alertify.warning('No se encontraron códigos válidos');
+                return;
+            }
+
+            // Formatear para SQL: 'codigo1', 'codigo2', 'codigo3'
+            const resultado = "'" + codigos.join("', '") + "'";
+
+            // Guardar los códigos formateados en el campo oculto
+            document.getElementById('codigos_formateados').value = resultado;
+
+            // Guardar los códigos originales (sin formatear) para restaurarlos después
+            document.getElementById('codigos_originales').value = input;
+
+            // Mostrar badge con indicador
+            const badge = document.getElementById('badgeTrabajadores');
+            badge.textContent = procesados;
+            badge.style.display = 'inline-block';
+
+            // Mostrar botón de limpiar
+            const btnLimpiar = document.getElementById('btnLimpiarCodigos');
+            if (btnLimpiar) {
+                btnLimpiar.style.display = 'block';
+            }
+
+            // Cerrar modal
+            const modal = bootstrap.Modal.getInstance(document.getElementById('modalFormateadorCodigos'));
+            modal.hide();
+
+            // Notificar al usuario
+            let mensaje = `${procesados} trabajador(es) seleccionado(s)`;
+            if (modificados > 0) {
+                mensaje += ` (${modificados} código(s) convertido(s) de 7 a 8 dígitos)`;
+            }
+            mensaje += '. Haz clic en "Buscar" para aplicar los filtros.';
+            alertify.success(mensaje);
+        }
+
+        /**
+         * Limpiar códigos seleccionados
+         */
+        function limpiarCodigosSeleccionados() {
+            // Limpiar campos ocultos
+            document.getElementById('codigos_formateados').value = '';
+            document.getElementById('codigos_originales').value = '';
+
+            // Limpiar textarea del modal
+            document.getElementById('codigosInput').value = '';
+
+            // Ocultar badge
+            const badge = document.getElementById('badgeTrabajadores');
+            badge.style.display = 'none';
+
+            // Ocultar botón de limpiar
+            const btnLimpiar = document.getElementById('btnLimpiarCodigos');
+            if (btnLimpiar) {
+                btnLimpiar.style.display = 'none';
+            }
+
+            alertify.success('Trabajadores seleccionados eliminados');
+        }
+    </script>
+
+
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdn.datatables.net/1.11.3/js/jquery.dataTables.min.js"></script>
@@ -159,6 +385,8 @@ include_once("header.php");
 					d.ubi_trab = $('#ubi_trab').val(); // valor dinámico del filtro
 					d.fecha_ini = $('#fecha_ini').val(); // valor dinámico del filtro
 					d.fecha_fin = $('#fecha_fin').val(); // valor dinámico del filtro
+					d.codigos_formateados = $('#codigos_formateados').val(); // valor dinámico del filtro de códigos
+					d.relacion_laboral = $('#relacion_laboral').val(); // valor dinámico del filtro de relación laboral
 				},
 				'dataSrc': function(json) {
 					rowCount = json.length;
@@ -167,14 +395,15 @@ include_once("header.php");
 			},
 			// Definición de anchos de columnas
 			'columnDefs': [
-				{ 'width': '3%', 'targets': 0 },  // Checkbox column
-				{ 'width': '8%', 'targets': 1 },  // PERNR
-				{ 'width': '28%', 'targets': 2 }, // Nombre
-				{ 'width': '15%', 'targets': 3 }, // Almacen
-				{ 'width': '15%', 'targets': 4 }, // BEGDA
-				{ 'width': '12%', 'targets': 5 }, // Teléfono
-				{ 'width': '15%', 'targets': 6 }, // Correo
-				{ 'width': '6%', 'targets': 7 }   // Botón editar
+				{ 'width': '2%', 'targets': 0 },   // Checkbox column
+				{ 'width': '7%', 'targets': 1 },   // PERNR
+				{ 'width': '20%', 'targets': 2 },  // Nombre
+				{ 'width': '11%', 'targets': 3 },  // Almacen
+				{ 'width': '18%', 'targets': 4 },  // Relacion Laboral
+				{ 'width': '10%', 'targets': 5 },   // BEGDA (Fecha Baja)
+				{ 'width': '10%', 'targets': 6 },  // Teléfono
+				{ 'width': '18%', 'targets': 7 },  // Correo
+				{ 'width': '4%', 'targets': 8 }    // Botón editar
 			],
 			'columns': [
 				// Definición de columnas...
@@ -195,6 +424,15 @@ include_once("header.php");
 				{ 'data': 'PERNR' },
 				{ 'data': 'NOMBRE' },
 				{ 'data': 'ZZLGORT' },
+				{ 
+					'data': 'RELACION_LABORAL',
+					'render': function(data, type, row) {
+						if (row.DESC_RELACION_LABORAL) {
+							return data + ' - ' + row.DESC_RELACION_LABORAL;
+						}
+						return data || '';
+					}
+				},
 				{ 'data': 'BEGDA' },
 				{ 
 					'data': 'MOVIL',
@@ -213,7 +451,7 @@ include_once("header.php");
 					'render': function (data, type, row) {
 						return `
 						<li class="hvr-icon-back">
-                            <a href="admin_cont.php?controller=index&action=update_trabajador&id=${row.PERNR}&contact">
+                            <a href="admin_cont.php?controller=index&action=update_trabajador&id=${row.PERNR}&contact" target="_blank">
                                 <div class="hvr-icon" >
                                     <i class="bi bi-pencil-square fs-4" style="color: #012970;"></i>
                                 </div>
@@ -400,7 +638,7 @@ include_once("header.php");
 
 								<div class='col-md-6 mt-3'>
 									<label for="telefono_rem"><b><?php echo $lang['telefono']; ?></b></label>
-									<input type='number' id="telefono_rem" name='telefono_rem' class='form-control' value='<?php echo $_SESSION["telefono_user_surexport_appreclu"]; ?>' required>
+									<input type='text' id="telefono_rem" name='telefono_rem' class='form-control' value='<?php echo $_SESSION["telefono_user_surexport_appreclu"]; ?>' required>
 								</div>
 
 								<div class='col-md-6 mt-3'>
@@ -470,7 +708,15 @@ include_once("header.php");
                 form.append('<input type="hidden" name="add_candidato" value="1">');
                 form.append('<input type="hidden" name="id_remesa" value="' + $('input[name="id_remesa"]').val() + '">');
                 form.append('<input type="hidden" name="ano_remesa" value="' + $('input[name="ano_remesa"]').val() + '">');
-				form.append('<input type="hidden" name="telefono_rem" value="' + <?php echo $_SESSION["telefono_user_surexport_appreclu"]; ?> + '">');
+				// form.append('<input type="hidden" name="telefono_rem" value="' + <?php echo $_SESSION["telefono_user_surexport_appreclu"]; ?> + '">');
+				form.append('<input type="hidden" name="telefono_rem" value="' + <?php
+                    // Normalizar el número de teléfono eliminando caracteres especiales
+                    $telefono = $_SESSION["telefono_user_surexport_appreclu"];
+                    // Eliminar espacios, paréntesis, guiones y otros caracteres no numéricos excepto el +
+                    $telefono_limpio = preg_replace('/[^\d+]/', '', $telefono);
+                    // Escapar para JavaScript
+                    echo json_encode($telefono_limpio);
+                ?> + '">');
                 selectedUsers.forEach(function(user) {
                     form.append('<input type="hidden" name="user_remesas[]" value="' + user + '">');
                 });

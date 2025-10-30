@@ -212,41 +212,8 @@ class index{
 		if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 			if (isset($_POST['consultar'])) {
 				$params['resultado'] = $this->consultarCreditos();
-			} elseif (isset($_POST['rango_dias']) && $_POST['rango_dias'] == 1) {
-				if ($m->añadirRangoFechas($_POST)) {
-					$params['resultado'] = "Rango de fechas añadido correctamente.";
-					$m->reg_acciones('Añadir rango de fechas', '', $_SESSION["id_user_surexport_appreclu"], 'OK');
-				} else {
-					$params['resultado'] = "Error al añadir el rango de fechas.";
-					$m->reg_acciones('Añadir rango de fechas', '', $_SESSION["id_user_surexport_appreclu"], 'ERROR');
-				}
-			} elseif (isset($_POST['editar_rango']) && $_POST['editar_rango'] == 1) {
-				if ($m->editarRangoFechas($_POST)) {
-					$params['resultado'] = "Rango de fechas editado correctamente.";
-					$m->reg_acciones('Editar rango de fechas', $_POST['id_rango'], $_SESSION["id_user_surexport_appreclu"], 'OK');
-				} else {
-					$params['resultado'] = "Error al editar el rango de fechas.";
-					$m->reg_acciones('Editar rango de fechas', $_POST['id_rango'], $_SESSION["id_user_surexport_appreclu"], 'ERROR');
-				}
-			} elseif (isset($_POST['eliminar_rango']) && $_POST['eliminar_rango'] == 1) {
-				if ($m->eliminarRangoFechas($_POST['id_rango'])) {
-					$params['resultado'] = "Rango de fechas eliminado correctamente.";
-					$m->reg_acciones('Eliminar rango de fechas', '', $_SESSION["id_user_surexport_appreclu"], 'OK');
-				} else {
-					$params['resultado'] = "Error al eliminar el rango de fechas.";
-					$m->reg_acciones('Eliminar rango de fechas', '', $_SESSION["id_user_surexport_appreclu"], 'ERROR');
-				}
-			}
+			} 
 		}
-
-		if (isset($_POST['filtro']) && $_POST['filtro'] == 1) {
-			$params['rango_fechas'] = $m->obtenerRangoFechas($_POST['filtro_anio']);
-		} else {
-			$params['rango_fechas'] = $m->obtenerRangoFechas(date('Y'));
-		}
-
-		$params['años'] = $m->obtenerAñosRangoFechas();
-		$params['tipo_jornadas'] = $m->obtenerTipoJornadas();
 
         require 'views/configuracion.php';
     }
@@ -550,7 +517,7 @@ class index{
 				$motivo = $_POST['motivo']; 
 				$id_remesa = isset($_POST['id_remesa']) && $_POST['id_remesa'] !== 'undefined' && !empty($_POST['id_remesa']) ? $_POST['id_remesa'] : null;
 				$ano_remesa = isset($_POST['ano_remesa']) && $_POST['ano_remesa'] !== 'undefined' && !empty($_POST['ano_remesa']) ? $_POST['ano_remesa'] : null;
-				$descipcion = '';
+				$descipcion = isset($_POST['descripcion']) ? $_POST['descripcion'] : '';
 
 				$url_just = null;
 				$url_just_bbdd = null;
@@ -715,7 +682,8 @@ class index{
 				$pernr = $_GET['id'];
 				$fecha = date('Y-m-d H:i:s'); 
 				$id_remesa = $_POST['id_remesa'];  
-				$ano_remesa = $_POST['ano_remesa'];  
+				$ano_remesa = $_POST['ano_remesa'];
+				$descipcion = isset($_POST['descripcion']) ? $_POST['descripcion'] : '';
 
 								$url_just = null;
 				$url_just_bbdd = null;
@@ -778,7 +746,7 @@ class index{
 					}
 				}
 
-				if ($m->update_estado_llama_aceptar($id_registro, $estado, $fecha, $url_just_bbdd, $id_remesa, $ano_remesa)) {
+				if ($m->update_estado_llama_aceptar($id_registro, $estado, $fecha, $descipcion, $url_just_bbdd, $id_remesa, $ano_remesa)) {
 					$params['resultado'] = $lang['index7'];
 
 					// REGISTRAR ACCIÓN todo ok
@@ -968,7 +936,6 @@ class index{
 		$params['otras_aus'] = $m->getotrasausencias(NULL);
 		$params['tipo_ausencias'] = $m->tipos_ausencias();
 		$params['trabajadores_solicitudes'] = $m->trabajadores_solicitudes();
-		// $params['solicitudes_contestadas'] = $m->solicitudes_contestadas();
 
 		// Definir variables de filtro con valores predeterminados
 		$fecha_solic = '';
@@ -981,7 +948,7 @@ class index{
 		if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 			if (isset($_POST['firma_rrhh'])) {
 				$id_solicitud = $_POST['id_sol'];
-				$fecha_res_rrhh = $_POST['fecha_res_rrhh'];
+				$fecha_res_rrhh = date('Y-m-d H:i:s');
 				$firma_rrhh = $_POST['firma_rrhh'];
 				$id_rrhh = $_SESSION['id_user_surexport_appreclu'];
 				$pernr = $_POST['pernr_usu'];
@@ -1030,7 +997,7 @@ class index{
 
 				$id_solicitud = $_POST['id_sol'];
 				$pernr_obs = $_POST['pernr_mod'];
-				$fecha_crea = $_POST['fecha_crea'];
+				$fecha_crea = date('Y-m-d H:i:s');
 				$pernr_usu = $_POST['pernr_usu'];
 				$observacion = $_POST['comentario'];
 
@@ -1044,16 +1011,17 @@ class index{
 				}
 
 			} elseif (isset($_POST['filtros_sol'])) {
-					$fecha_solic = $_POST['fecha_inicio'] ?? '';
-					$fecha_solic2 = $_POST['fecha_fin'] ?? '';
-					$pernr = $_POST['pernr_nom_sol'] ?? '';
-					$tipo_ausencia = $_POST['tipo_ausencia'] ?? '';
-					$estado = $_POST['estado'] ?? ''; // Si no se envía, que siga filtrando por pendientes
-					$justificante = $_POST['justificante'] ?? '';
+				$fecha_solic = $_POST['fecha_inicio'] ?? '';
+				$fecha_solic2 = $_POST['fecha_fin'] ?? '';
+				$pernr = $_POST['pernr_nom_sol'] ?? '';
+				$tipo_ausencia = $_POST['tipo_ausencia'] ?? '';
+				$estado = $_POST['estado'] ?? ''; // Si no se envía, que siga filtrando por pendientes
+				$justificante = $_POST['justificante'] ?? '';
 			}
 		}
 
-		$params['solicitudes_pendientes'] = $m->solicitudes($fecha_solic, $fecha_solic2, $pernr, $tipo_ausencia, $estado, $justificante);
+		// Usar la función optimizada para la lista
+		$params['solicitudes_pendientes'] = $m->solicitudes_lista($fecha_solic, $fecha_solic2, $pernr, $tipo_ausencia, $estado, $justificante);
 
 		require 'views/solicitudes.php';
 	}
@@ -1072,15 +1040,18 @@ class index{
 		}	
 		$m = new sqlsrvModel();
 		$params['fincas_almacenes'] = $m->fincas_almacenes_sociedad();
+		$params['relaciones_laborales'] = $m->maestro_relaciones_laborales();
 
 		if (isset($_POST['buscar'])) {
 			$ubi = $_POST['ubi_trab'] ? $_POST['ubi_trab'] : '';
 			$fecha_ini = $_POST['fecha_ini'] ? $_POST['fecha_ini'] : '';
 			$fecha_fin = $_POST['fecha_fin'] ? $_POST['fecha_fin'] : '';
-			$params['datos_trab_baja'] = $m->trabajadores_baja($ubi, $fecha_ini, $fecha_fin);
+			$relacion_laboral = $_POST['relacion_laboral'] ? $_POST['relacion_laboral'] : '';
+			$codigos_formateados = isset($_POST['codigos_formateados']) && !empty($_POST['codigos_formateados']) ? $_POST['codigos_formateados'] : '';
+			$params['datos_trab_baja'] = $m->trabajadores_baja($ubi, $fecha_ini, $fecha_fin, $relacion_laboral, $codigos_formateados);
 		} else {
 			$ubi = '';
-			$params['datos_trab_baja'] = $m->trabajadores_baja($ubi, '', '');
+			$params['datos_trab_baja'] = $m->trabajadores_baja($ubi, '', '', '', '');
 		}
 		
 		require 'views/trabajadores_baja.php';
@@ -1098,6 +1069,8 @@ class index{
 		$m = new sqlsrvModel();
 		// Cargamos los datos de fincas y almacenes para la vista
 		$params['fincas_almacenes'] = $m->fincas_almacenes_sociedad();
+		// Cargamos las relaciones laborales para el filtro
+		$params['relaciones_laborales'] = $m->maestro_relaciones_laborales();
 		require 'views/llamamientos.php';
 	}
 
@@ -1282,7 +1255,6 @@ class index{
 
 
 	//Histórico de remesas con sus trabajadores
-
 	public function view_remesa_llama(){
 		include_once("idiomas/".$_SESSION['idioma_surexport_appreclu'].".php");
 		if (!in_array(6, $_SESSION["permisos_surexport_appreclu"])) {
@@ -1290,6 +1262,80 @@ class index{
 		}
 		$m = new sqlsrvModel();
 		$params['info_remesas'] = $m->InfoRemesa_llama($_GET['id'], $_GET['ano']);
+
+		// Obtener motivos para el modal
+		$params['motivos_pendiente'] = $m->motivos_pendiente();
+
+		// Obtener llamamientos contestables de la remesa
+		$params['llamamientos_contestables'] = $m->obtenerLlamamientosContestables($_GET['id'], $_GET['ano']);
+
+		// Procesar respuesta masiva
+		if (isset($_GET['respuesta_masiva']) && $_GET['respuesta_masiva'] == 1) {
+			$accion = $_POST['accion_masiva'];
+			$motivo = isset($_POST['motivo_masivo']) ? $_POST['motivo_masivo'] : null;
+			$descripcion = isset($_POST['descripcion_masiva']) ? $_POST['descripcion_masiva'] : '';
+			$trabajadores = isset($_POST['trabajadores_seleccionados']) ? $_POST['trabajadores_seleccionados'] : [];
+			$id_remesa = $_POST['id_remesa'];
+			$ano_remesa = $_POST['ano_remesa'];
+
+			if (empty($trabajadores)) {
+				$params['resultado'] = 'Debe seleccionar al menos un trabajador';
+				$m->reg_acciones('Respuesta masiva llamamientos', 'Remesa '.$id_remesa.'/'.$ano_remesa, $_SESSION["id_user_surexport_appreclu"], 'Error: Sin trabajadores seleccionados');
+			} else {
+				// Procesar justificante si existe
+				$url_just_bbdd = null;
+				if (!empty($_FILES["justificante_masivo"]["name"])) {
+					$url_base = "/var/www/files/justificantes/masivos";
+
+					if (!file_exists($url_base)) {
+						mkdir($url_base, 0777, true);
+					}
+
+					$fileName = preg_replace("/[^a-zA-Z0-9\.\-_]/", "_", basename($_FILES["justificante_masivo"]["name"]));
+					$fileType = strtolower(pathinfo($fileName, PATHINFO_EXTENSION));
+					$allowTypes = ['jpg', 'jpeg', 'png', 'pdf', 'doc', 'docx'];
+
+					if (in_array($fileType, $allowTypes) && $_FILES["justificante_masivo"]["size"] <= 5242880) {
+						if ($_FILES["justificante_masivo"]["error"] === 0) {
+							$newFileName = date("dmY") . "_" . uniqid() . "." . $fileType;
+							$url_just = $url_base . "/" . $newFileName;
+							$url_just_bbdd = "/justificantes/masivos/" . $newFileName;
+							move_uploaded_file($_FILES["justificante_masivo"]["tmp_name"], $url_just);
+						}
+					}
+				}
+
+				// Procesar cada trabajador seleccionado
+				$fecha = date('Y-m-d H:i:s');
+				$exitosos = 0;
+				$errores = 0;
+
+				foreach ($trabajadores as $id_llamamiento) {
+					$resultado = false;
+
+					if ($accion == '1') { // Aceptar
+						$resultado = $m->update_estado_llama_aceptar($id_llamamiento, '1', $fecha, $descripcion, $url_just_bbdd, $id_remesa, $ano_remesa);
+					} else { // Rechazar (2) o Pendiente (3)
+						$estado = $accion == '2' ? '2' : '3';
+						$resultado = $m->update_estado_llama($id_llamamiento, $estado, $fecha, $motivo, $descripcion, $id_remesa, $ano_remesa, $url_just_bbdd);
+					}
+
+					if ($resultado) {
+						$exitosos++;
+					} else {
+						$errores++;
+					}
+				}
+
+				$accion_texto = $accion == '1' ? 'Aceptar' : ($accion == '2' ? 'Rechazar' : 'Pendiente');
+				$params['resultado'] = "Respuesta masiva completada: $exitosos exitosos, $errores errores";
+				$m->reg_acciones('Respuesta masiva llamamientos - '.$accion_texto, 'Remesa '.$id_remesa.'/'.$ano_remesa.' - '.$exitosos.' trabajadores', $_SESSION["id_user_surexport_appreclu"], $errores > 0 ? 'Parcial' : 'OK');
+				
+				// Recargar datos actualizados
+				$params['info_remesas'] = $m->InfoRemesa_llama($_GET['id'], $_GET['ano']);
+				$params['llamamientos_contestables'] = $m->obtenerLlamamientosContestables($_GET['id'], $_GET['ano']);
+			}
+		}
 
 		if (isset($_GET['delete_trab_rem']) && $_GET['delete_trab_rem'] == 1) {
 			$pernr = $_POST['pernr'];
@@ -1312,7 +1358,6 @@ class index{
 
 
 	// AUDITOR
-
 	public function auditor(){
 		include_once("idiomas/".$_SESSION['idioma_surexport_appreclu'].".php");
 		if (!in_array(25, $_SESSION["permisos_surexport_appreclu"])) {
@@ -1427,7 +1472,6 @@ class index{
 	// RECLUTAMIENTO
 
 	//Mostramos todos los candidatos
-
 	public function candidatos(){
 		include_once("idiomas/".$_SESSION['idioma_surexport_appreclu'].".php");
 		if (!in_array(9, $_SESSION["permisos_surexport_appreclu"])) {
@@ -1447,7 +1491,6 @@ class index{
 
 
 	//Actualizamos un candidato
-
 	public function update_candidato(){
 		include_once("idiomas/".$_SESSION['idioma_surexport_appreclu'].".php");
 		if (!in_array(9, $_SESSION["permisos_surexport_appreclu"])) {
@@ -1472,7 +1515,6 @@ class index{
 
 
 	//Insertamos un candidato
-
 	public function new_candidato(){
 		include_once("idiomas/".$_SESSION['idioma_surexport_appreclu'].".php");
 		if (!in_array(10, $_SESSION["permisos_surexport_appreclu"])) {
@@ -1494,7 +1536,7 @@ class index{
 		require 'views/nuevo_candidato.php';
 	}
 
-
+	
 
 	//Mostramos todos los grupos
 	public function grupos(){
@@ -1745,9 +1787,6 @@ class index{
 	// Nueva ubicación
 	public function new_ubicacion(){
 		include_once("idiomas/".$_SESSION['idioma_surexport_appreclu'].".php");
-			if (!in_array(19, $_SESSION["permisos_surexport_appreclu"])) {
-				header("Location: admin_cont.php?controller=index&action=error404");
-			}	
 		$m = new sqlsrvModel();
 
 		$params['ubicaciones'] = $m->ubicaciones();
@@ -1756,13 +1795,8 @@ class index{
 		if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 			if (isset($_POST['nueva_ubicacion'])) {
 
-				// echo "<pre>";
-				// print_r($_POST);
-				// echo "</pre>";
-
 				$nombre = $_POST['sede'];
 				$ubicacion = $_POST['ubicacion'];
-			
 
 				if ($m->añadir_ubicacion($nombre, $ubicacion)) {
 					$params['resultado'] = $lang['index33'];
@@ -1782,7 +1816,7 @@ class index{
 	// Mostrar Usuarios de TESA
 	public function tesa_usuarios(){
 		include_once("idiomas/".$_SESSION['idioma_surexport_appreclu'].".php");
-			if (!in_array(21, $_SESSION["permisos_surexport_appreclu"])) {
+			if (!in_array(29, $_SESSION["permisos_surexport_appreclu"])) {
 				header("Location: admin_cont.php?controller=index&action=error404");
 			}	
 		
@@ -1809,7 +1843,7 @@ class index{
 	// Estado puertas
 	public function tesa_update_usu(){
 		include_once("idiomas/".$_SESSION['idioma_surexport_appreclu'].".php");
-			if (!in_array(21, $_SESSION["permisos_surexport_appreclu"])) {
+			if (!in_array(29, $_SESSION["permisos_surexport_appreclu"])) {
 				header("Location: admin_cont.php?controller=index&action=error404");
 			}	
 			
@@ -1944,5 +1978,100 @@ class index{
 		require 'views/miperfil.php';
 	}
 
+
+
+	// Gestion del Horario laboral
+	public function horario(){
+		include_once("idiomas/".$_SESSION['idioma_surexport_appreclu'].".php");
+		if (!in_array(30, $_SESSION["permisos_surexport_appreclu"])) {
+			header("Location: admin_cont.php?controller=index&action=error404");
+		}	
+		$m = new sqlsrvModel();
+
+		$params['grupos_horario'] = $m->grupos_horario();
+
+		if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+		if (isset($_POST['nuevo_grupo']) && $_POST['nuevo_grupo'] == '1') {
+			$nombre_grupo = trim($_POST['nombre_grupo']);
+			$descripcion = trim($_POST['descripcion_grupo']);
+			$franjas_json = isset($_POST['franjas_json']) ? $_POST['franjas_json'] : '[]';
+			$grupo_predeterminado = (isset($_POST['grupo_predeterminado']) && $_POST['grupo_predeterminado'] == '1') ? 1 : 0;
+			$anio_configuracion = isset($_POST['anio_configuracion']) ? intval($_POST['anio_configuracion']) : date('Y');
+			$fecha_hoy = date('Y-m-d\TH:i:s');
+
+			// Validar datos básicos
+			if (empty($nombre_grupo)) {
+				$params['resultado'] = 'El nombre del grupo es obligatorio';
+			} else {
+				if ($m->nuevo_grupo_horario($nombre_grupo, $descripcion, $franjas_json, $grupo_predeterminado, $anio_configuracion, $fecha_hoy)) {
+					$params['resultado'] = 'Grupo de horario creado correctamente';
+					// Recargar la lista de grupos
+					$params['grupos_horario'] = $m->grupos_horario();
+				} else {
+					$params['resultado'] = 'Error al crear el grupo de horario';
+				}
+			}
+		}			if (isset($_POST['editar_grupo']) && $_POST['editar_grupo'] == '1') {
+				$grupo_id = intval($_POST['grupo_id']);
+				$nombre_grupo = trim($_POST['nombre_grupo']);
+				$descripcion = trim($_POST['descripcion_grupo']);
+				$franjas_json = isset($_POST['franjas_json']) ? $_POST['franjas_json'] : '[]';
+				$grupo_predeterminado = (isset($_POST['grupo_predeterminado']) && $_POST['grupo_predeterminado'] == '1') ? 1 : 0;
+
+				// Validar datos básicos
+				if (empty($nombre_grupo)) {
+					$params['resultado'] = 'El nombre del grupo es obligatorio';
+				} elseif ($grupo_id <= 0) {
+					$params['resultado'] = 'ID de grupo inválido';
+				} else {
+					if ($m->editar_grupo_horario($grupo_id, $nombre_grupo, $descripcion, $franjas_json, $grupo_predeterminado)) {
+						$params['resultado'] = 'Grupo de horario actualizado correctamente';
+						// Recargar la lista de grupos
+						$params['grupos_horario'] = $m->grupos_horario();
+					} else {
+						$params['resultado'] = 'Error al actualizar el grupo de horario';
+					}
+				}
+		}
+	}
+	
+	// Procesar eliminación de grupo
+	if (isset($_GET['eliminar']) && is_numeric($_GET['eliminar'])) {
+		$grupo_id = intval($_GET['eliminar']);
+		
+		// Verificar si es el grupo predeterminado
+		$grupo_info = $m->obtenerGrupoHorarioPorId($grupo_id);
+		if ($grupo_info && $grupo_info['grupo_predeterminado'] == 1) {
+			// Usar sesión para el mensaje y redirigir
+			$_SESSION['mensaje_horario'] = 'No se puede eliminar el grupo predeterminado';
+			$_SESSION['tipo_mensaje_horario'] = 'error';
+		} else {
+			if ($m->eliminar_grupo_horario($grupo_id)) {
+				$_SESSION['mensaje_horario'] = 'Grupo de horario eliminado correctamente';
+				$_SESSION['tipo_mensaje_horario'] = 'success';
+			} else {
+				$_SESSION['mensaje_horario'] = 'Error al eliminar el grupo de horario. Puede que sea el grupo predeterminado o esté siendo utilizado.';
+				$_SESSION['tipo_mensaje_horario'] = 'error';
+			}
+		}
+		
+		// Redirigir para limpiar la URL
+		header('Location: admin_cont.php?controller=horarios&action=horario');
+		exit();
+	}
+	
+	// Mostrar mensaje de sesión si existe
+	if (isset($_SESSION['mensaje_horario'])) {
+		$params['resultado'] = $_SESSION['mensaje_horario'];
+		$params['tipo_resultado'] = $_SESSION['tipo_mensaje_horario'];
+		unset($_SESSION['mensaje_horario']);
+		unset($_SESSION['tipo_mensaje_horario']);
+	}
+
+	require 'views/horario.php';
+}
+
 }
 ?>
+
+

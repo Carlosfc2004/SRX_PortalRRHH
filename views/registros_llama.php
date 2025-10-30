@@ -33,21 +33,11 @@ include_once("header.php");
                         </div>
                         <div class="col-md-2">
                             <select name="estado" class="form-select">
-                                <option value="" <?php if (isset($_POST['estado']) && $_POST['estado'] === "") {
-                                    echo "selected";
-                                } ?>><?php echo $lang['estado']; ?></option>
-                                <option value="0" <?php if (isset($_POST['estado']) && $_POST['estado'] === "0") {
-                                    echo "selected";
-                                } ?>><?php echo $lang['enviado']; ?></option>
-                                <option value="1" <?php if (isset($_POST['estado']) && $_POST['estado'] === "1") {
-                                    echo "selected";
-                                } ?>><?php echo $lang['aceptado']; ?></option>
-                                <option value="2" <?php if (isset($_POST['estado']) && $_POST['estado'] === "2") {
-                                    echo "selected";
-                                } ?>><?php echo $lang['rechazado']; ?></option>
-                                <option value="3" <?php if (isset($_POST['estado']) && $_POST['estado'] === "3") {
-                                    echo "selected";
-                                } ?>><?php echo $lang['pendiente']; ?></option>
+                                <option value="" <?php if (isset($_POST['estado']) && $_POST['estado'] === "") {echo "selected";} ?>><?php echo $lang['estado']; ?></option>
+                                <option value="0" <?php if (isset($_POST['estado']) && $_POST['estado'] === "0") {echo "selected";} ?>><?php echo $lang['enviado']; ?></option>
+                                <option value="1" <?php if (isset($_POST['estado']) && $_POST['estado'] === "1") {echo "selected";} ?>><?php echo $lang['aceptado']; ?></option>
+                                <option value="2" <?php if (isset($_POST['estado']) && $_POST['estado'] === "2") {echo "selected";} ?>><?php echo $lang['rechazado']; ?></option>
+                                <option value="3" <?php if (isset($_POST['estado']) && $_POST['estado'] === "3") {echo "selected";} ?>><?php echo $lang['pendiente']; ?></option>
                             </select>
                         </div>
                         <div class="col-md-2">
