@@ -1607,7 +1607,7 @@ try {
 	$estado = $_POST['estado'] ?? '1';
 	$justificante = $_POST['justificante'] ?? '';
 
-	$datosSolicitudes = $con_bdsrx->solicitudes($fecha_inicio, $fecha_fin,  $pernr_nom_sol, $tipo_ausencia, $estado, $justificante);
+	$datosSolicitudes = $con_bdsrx->solicitudes_lista($fecha_inicio, $fecha_fin,  $pernr_nom_sol, $tipo_ausencia, $estado, $justificante);
 
 	if (!empty($datosSolicitudes)) {
 
@@ -1618,7 +1618,7 @@ try {
 
 			// Datos trabajador
 			$pdf->Cell(20, 6, $resultado['pernr'], 1, 0, 'C');
-			$pdf->Cell(55, 6, $resultado['nombre'], 1, 0);
+			$pdf->Cell(55, 6, $resultado['NOMBREYAPELLIDOS'], 1, 0);
 
 			// Fechas
 			$pdf->Cell(35, 6, date_format($resultado['fecha_solicitud'], 'Y/m/d'), 1, 0, 'C');
@@ -1737,7 +1737,7 @@ try {
 		$estado = $_POST['estado'] ?? '1';
 		$justificante = $_POST['justificante'] ?? '';
 
-		$datosSolicitudes = $con_bdsrx->solicitudes($fecha_inicio, $fecha_fin,  $pernr_nom_sol, $tipo_ausencia, $estado, $justificante);
+		$datosSolicitudes = $con_bdsrx->solicitudes_lista($fecha_inicio, $fecha_fin,  $pernr_nom_sol, $tipo_ausencia, $estado, $justificante);
 		if(!empty($datosSolicitudes)){ 
 			$i=2;
 			foreach($datosSolicitudes as $resultado) { 
@@ -1746,7 +1746,7 @@ try {
 				$sheet->setCellValue('A'.$i, $resultado['pernr']);
 
 				// Nombre y apellidos
-				$sheet->setCellValue('B'.$i, $resultado['nombre']);
+				$sheet->setCellValue('B'.$i, $resultado['NOMBREYAPELLIDOS']);
 
 				// Fechas
 				$sheet->setCellValue('C'.$i, date_format($resultado['fecha_solicitud'], 'Y/m/d'));

@@ -200,21 +200,9 @@
                         echo "<td>" . $solicitud['NOMBREYAPELLIDOS'] . "<br>".$solicitud['pernr']."</td>";
                         echo "<td>" . date_format($solicitud['fecha_desde'], 'd-m-Y') . "</td>";
                         echo "<td>" . date_format($solicitud['fecha_hasta'], 'd-m-Y') . "</td>";
-                        $fecha_desde_t = clone($solicitud['fecha_desde']);
-                        $fecha_hasta_t = clone($solicitud['fecha_hasta']);
-                        $total_dias = 0;
-                        // Iterar a través de las fechas
-                        while ($fecha_desde_t <= $fecha_hasta_t) {
-                            // Si el día no es sábado (6) ni domingo (7), contar como día laboral
-                            // if ($fecha_desde_t->format('N') < 6) { // 'N' devuelve el número del día de la semana (1 = lunes, ..., 7 = domingo)
-                                $total_dias++;
-                            // }
 
-                            // Avanzar al siguiente día
-                            $fecha_desde_t->modify('+1 day');
-                        }
-
-                        echo "<td>" . $total_dias . "</td>";
+                        // El total de días ya viene calculado desde el modelo
+                        echo "<td>" . ($solicitud['total_dias'] ?? 0) . "</td>";
                         switch ($solicitud['tipo']) {
                             case '1':
                                 echo "<td>Vacaciones</td>";
@@ -347,14 +335,16 @@
 <script>
     // AJAX para cargar detalles de solicitud
     document.addEventListener('DOMContentLoaded', function() {
-        const botonesVerDetalle = document.querySelectorAll('.btn-ver-detalle');
         const modalContent = document.getElementById('modalDetallesContent');
         const otrasAusencias = <?php echo json_encode($params['otras_aus']); ?>;
-        
-        botonesVerDetalle.forEach(function(boton) {
-            boton.addEventListener('click', function() {
-                const idSolicitud = this.getAttribute('data-id-solicitud');
-                const pernr = this.getAttribute('data-pernr');
+
+        // Usar delegación de eventos en el documento para que funcione con DataTables
+        document.addEventListener('click', function(e) {
+            // Verificar si el click fue en un botón con la clase .btn-ver-detalle
+            if (e.target.closest('.btn-ver-detalle')) {
+                const boton = e.target.closest('.btn-ver-detalle');
+                const idSolicitud = boton.getAttribute('data-id-solicitud');
+                const pernr = boton.getAttribute('data-pernr');
                 
                 // Mostrar spinner
                 modalContent.innerHTML = `
@@ -609,7 +599,7 @@
                                 <strong>Error:</strong> Error al cargar los detalles de la solicitud
                             </div>`;
                     });
-            });
+            }
         });
     });
     
