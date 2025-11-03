@@ -1311,13 +1311,20 @@ class sqlsrvModel
         // Enviar correo
         $mail = new PHPMailer();
         $mail->CharSet = 'UTF-8';
+        // $mail->SMTPDebug = 2;
         $mail->isSMTP();
         $mail->Host = 'smtp.office365.com';
         $mail->Port = 587;
         $mail->SMTPAuth = true;
-        $mail->Username = 'itcomunication@surexport.es';
-        $mail->Password = 'Surxp2021+';
-        $mail->setFrom('itcomunication@surexport.es', 'Surexport');
+        // $mail->Username = 'itcomunication@surexport.es';
+        // $mail->Password = 'Surxp2021+';
+        // $mail->setFrom('itcomunication@surexport.es', 'Surexport');
+
+        $mail->Username = 'llamamientorrhh@surexport.es';
+        $mail->Password = 'Ducu545130';
+        // Correo de envio a correo de trabajador
+        $mail->setFrom('comunicadorrhh@surexport.com', 'Surexport');
+
         $mail->addAddress($mail_emp, $nombre);
         $mail->addReplyTo($mail_s, $nombre_s);
         $mail->addCC($mail_s, $nombre_s);
@@ -3292,9 +3299,8 @@ class sqlsrvModel
             $mail->Password = 'Ducu545130';
 
             // Correo de envio a correo de trabajador
-            $mail->setFrom('llamamientorrhh@surexport.es', 'Surexport');
+            $mail->setFrom('comunicadorrhh@surexport.com', 'Surexport');
             $mail->addAddress($info_contacto, $nombre);
-            // $mail->addAddress($mail_usu_web, 'Prueba Correo'); // Para realizar pruebas (Email Raúl)
             $mail->addCC($mail_usu_web);
 
             // Contenido mensaje

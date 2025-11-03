@@ -1221,7 +1221,7 @@ include_once("header.php");
                         }
 
                         function iconoDispositivo(dispositivo) {
-                            if (!dispositivo) return "<i class='bi bi-globe'></i>";
+                            if (!dispositivo) return "<i class='bi bi-tablet-landscape'></i>";
                             dispositivo = dispositivo.toLowerCase();
                             if (dispositivo.includes('android')) {
                                 return "<i class='bx bxl-android'></i>";
@@ -1362,7 +1362,7 @@ include_once("header.php");
                                 tabla += "<th class='col-md-2'>Motivo</th>";
                             }
 
-                            
+
                             //! comentado a falta de confirmacion de RRHH
                             // tabla += "<th class='col-md-1'>Editar</th>";
 
