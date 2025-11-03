@@ -595,9 +595,9 @@ include_once("header.php");
                         <div class="col-md-12">
                             <input type="submit" name="enviar_cont" id="submit_export"
                                 value="<?php echo $lang['exportar']; ?>" class="btn btn-primary">
-                            <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#modalNuevoRegistro">
+                            <!-- <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#modalNuevoRegistro">
                                 Nuevo registro
-                            </button>
+                            </button> -->
                         </div>
 
                     </form>
@@ -1362,7 +1362,9 @@ include_once("header.php");
                                 tabla += "<th class='col-md-2'>Motivo</th>";
                             }
 
-                            tabla += "<th class='col-md-1'>Editar</th>";
+                            
+                            //! comentado a falta de confirmacion de RRHH
+                            // tabla += "<th class='col-md-1'>Editar</th>";
 
                             tabla += "</tr></thead><tbody>";
 
@@ -1420,7 +1422,9 @@ include_once("header.php");
                                     tabla += `<td>${escapeHTML(reg.motivo || '-')}</td>`;
                                 }
 
-                                tabla += `<td>${construirBotonModificacion(reg)}</td>`;
+
+                                //! comentado a falta de confirmacion de RRHH
+                                // tabla += `<td>${construirBotonModificacion(reg)}</td>`;
 
                                 tabla += "</tr>";
                             });
