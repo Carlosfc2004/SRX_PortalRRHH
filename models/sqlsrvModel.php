@@ -1279,20 +1279,27 @@ class sqlsrvModel
             $respuesta = 'pendiente de recursos humanos';
         }
 
+
+
+        $datos_sql = "SELECT * FROM webphp_ausencias WHERE id_solicitud = '$id_solicitud';";
+        $datos_consulta = sqlsrv_query($conn, $datos_sql);
+        $datos = sqlsrv_fetch_array($datos_consulta, SQLSRV_FETCH_ASSOC);
+
+
         // Construir el mensaje
         $mensaje = '
         <html>
             <head><title>Actualizacion de solicitud de ausencia</title></head>
             <body>
                 <p>Estimado/a ' . $nombre . '</p>
-                <p>La solicitud realizada el dia ' . date_format(new DateTime($fecha_sol), "d-m-Y") . ' ha sido ' . $respuesta . '</p>';
+                <p>La solicitud realizada el dia ' . date_format(new DateTime($fecha_sol), "d-m-Y") . ' ha sido ' . $respuesta . ' para los dias ' . $datos['fecha_desde']->format("d-m-Y") . ' a ' . $datos['fecha_hasta']->format("d-m-Y") . '.</p>';
 
         $mensaje .= '
                 <ul>
                     <li>Fecha de respuesta: ' . date_format(new DateTime($fecha_res_rrhh), "d-m-Y") . '</li>
                 </ul>
                 <p>Por favor, accede al portal del empleado para revisarlas con el siguiente enlace.</p>
-                <p><a href="https://portalempleado.surexport.es">Acceder al portal del empleado</a></p>
+                <p><a href="https://webcorporativa.surexport.es">Acceder al portal del empleado</a></p>
                 <p>Recuerda que puedes acceder a la aplicación desde cualquier dispositivo.</p>
                 <p>Si tienes alguna duda, no dudes en ponerte en contacto con el departamento de Recursos Humanos.</p>
                 <br>
@@ -6701,7 +6708,7 @@ class sqlsrvModel
                         tgh.fecha_inicio,
                         tgh.fecha_fin
                     FROM [PA_ACTIVOS] pa 
-                    INNER JOIN [AppReclutamiento_test].[dbo].[webphp_trabajadores_grupos_horario] tgh ON pa.PERNR = tgh.pernr
+                    INNER JOIN [webphp_trabajadores_grupos_horario] tgh ON pa.PERNR = tgh.pernr
                     WHERE tgh.grupo_horario_id = ?
                     ORDER BY pa.PERNR";
 

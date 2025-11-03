@@ -477,10 +477,13 @@
                                     if (obs.tipo_coment == 'RRHH') {
                                         tipoRrhh = true;
                                     }
+                                    // tipo_coment Todo en minúsculas menos la primera que debe ser mayúscula si es EMPLEADO O SUPERIOR, no mostrar si es RRHH
+                                    const tipoObs = obs.tipo_coment === 'RRHH' ? '' : ' (' + obs.tipo_coment.charAt(0).toUpperCase() + obs.tipo_coment.slice(1).toLowerCase() + ')';
+
                                     html += `
                                         <li class="timeline-item mb-4 mt-2">
                                             <span class="fw-bold">
-                                                ${obs.tipo_coment == 'RRHH' ? 'RRHH' : (obs.nombre || '')}
+                                                ${obs.tipo_coment == 'RRHH' ? 'RRHH' : (obs.nombre || '')}${tipoObs}
                                             </span>
                                             <p class="text-muted mb-0 fw-bold">
                                                 ${obs.fecha_modificacion_formatted || ''}
