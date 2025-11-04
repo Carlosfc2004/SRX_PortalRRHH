@@ -1320,7 +1320,8 @@ class sqlsrvModel
         // $mail->Password = 'Surxp2021+';
         // $mail->setFrom('itcomunication@surexport.es', 'Surexport');
 
-        $mail->Username = 'llamamientorrhh@surexport.es';
+        // $mail->Username = 'llamamientorrhh@surexport.es';
+        $mail->Username = 'comunicadorrhh@surexport.com';
         $mail->Password = 'Ducu545130';
         // Correo de envio a correo de trabajador
         $mail->setFrom('comunicadorrhh@surexport.com', 'Surexport');
@@ -3295,7 +3296,9 @@ class sqlsrvModel
             $mail->Port = 587;
             $mail->SMTPAuth = true;
             $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
-            $mail->Username = 'llamamientorrhh@surexport.es';
+            
+            // Credenciales de la cuenta de correo
+            $mail->Username = 'comunicadorrhh@surexport.es';
             $mail->Password = 'Ducu545130';
 
             // Correo de envio a correo de trabajador
