@@ -1376,8 +1376,11 @@ include_once("header.php");
 
                                 tabla += `<tr class="${claseFilaRRHH} ${claseFilaUsuario}">`;
                                 tabla += `<td>${iconoDispositivo(reg.dispositivo)}`;
-                                if (esModificadoRRHH || esModificadoUsuario) {
-                                    let editado = ' <small class="text-info"><i class="bi bi-pencil-square"></i></small>';
+                                if (esModificadoRRHH) {
+                                    let editado = ' <small class="text-info"><i class="bi bi-pencil-square"></i><span class="badge bg-info text-dark ms-2">CREADO/EDITADO POR RRHH</span></small>';
+                                    tabla += `${editado}</td>`;
+                                }else if(esModificadoUsuario){
+                                    let editado = ' <small class="text-info"><i class="bi bi-pencil-square"></i><span class="badge bg-info text-dark ms-2">CREADO/EDITADO POR USUARIO</span></small>';
                                     tabla += `${editado}</td>`;
                                 }else if(esValidado){
                                     let editado = ' <small class="text-info">Validado por responsable</small>';
