@@ -3298,7 +3298,7 @@ class sqlsrvModel
             $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
             
             // Credenciales de la cuenta de correo
-            $mail->Username = 'comunicadorrhh@surexport.es';
+            $mail->Username = 'comunicadorrhh@surexport.com';
             $mail->Password = 'Ducu545130';
 
             // Correo de envio a correo de trabajador
