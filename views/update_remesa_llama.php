@@ -32,7 +32,7 @@ include_once("header.php");
             }
         }
 
-        echo '<h1 style="font-size: 24px; margin-bottom: 0; font-weight: 600; color: #012970;">'.$nombre_remesa.' ('.count($info_remesas).' candidatos)</h1>';
+        echo '<h1 style="font-size: 24px; margin-bottom: 0; font-weight: 600; color: #012970;">'.$nombre_remesa.' (Trabajadores: '.count($info_remesas).')</h1>';
     ?>
     
     <?php
