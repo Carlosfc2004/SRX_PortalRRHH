@@ -2038,19 +2038,20 @@ class index{
 	// Procesar eliminación de grupo
 	if (isset($_GET['eliminar']) && is_numeric($_GET['eliminar'])) {
 		$grupo_id = intval($_GET['eliminar']);
-		
+
 		// Verificar si es el grupo predeterminado
 		$grupo_info = $m->obtenerGrupoHorarioPorId($grupo_id);
 		if ($grupo_info && $grupo_info['grupo_predeterminado'] == 1) {
 			// Usar sesión para el mensaje y redirigir
-			$_SESSION['mensaje_horario'] = 'No se puede eliminar el grupo predeterminado';
+			$anio = $grupo_info['anio_configuracion'];
+			$_SESSION['mensaje_horario'] = 'No se puede eliminar el grupo predeterminado del año ' . $anio;
 			$_SESSION['tipo_mensaje_horario'] = 'error';
 		} else {
 			if ($m->eliminar_grupo_horario($grupo_id)) {
 				$_SESSION['mensaje_horario'] = 'Grupo de horario eliminado correctamente';
 				$_SESSION['tipo_mensaje_horario'] = 'success';
 			} else {
-				$_SESSION['mensaje_horario'] = 'Error al eliminar el grupo de horario. Puede que sea el grupo predeterminado o esté siendo utilizado.';
+				$_SESSION['mensaje_horario'] = 'Error al eliminar el grupo de horario. Puede que esté siendo utilizado.';
 				$_SESSION['tipo_mensaje_horario'] = 'error';
 			}
 		}
