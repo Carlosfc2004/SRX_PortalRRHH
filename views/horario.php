@@ -228,7 +228,9 @@ include_once("header.php");
                                     </td>
                                     <td>
                                         <?php if ($grupo['grupo_predeterminado'] == 1) { ?>
-                                            <span class="badge bg-success">Sí</span>
+                                            <span class="badge bg-success" title="Grupo predeterminado para el año <?= $grupo['anio_configuracion'] ?>">
+                                                Sí (<?= $grupo['anio_configuracion'] ?>)
+                                            </span>
                                         <?php } else { ?>
                                             <span class="badge bg-secondary">No</span>
                                         <?php } ?>

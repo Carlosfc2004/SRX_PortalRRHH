@@ -873,14 +873,15 @@ class sqlsrvModel
     // Solicitudes de ausencias - Solo datos básicos para la lista (optimizado)
     public function solicitudes_lista($fecha_solic, $fecha_solic2, $pernr, $tipo_ausencia, $estado, $justificante)
     {
-
         $conn = $this->conectarMuleSoft();
 
         // Consulta optimizada: Solo campos necesarios para la tabla principal
         $sql = "OPEN SYMMETRIC KEY ClaveSimétricaPA_REG
                 DECRYPTION BY CERTIFICATE CertificadoPA_REG;
-                SELECT 
+                SELECT TOP(200)
                     pe.id_solicitud,
+                    pe.mail,
+                    pe.mail_s,
                     pe.pernr,
                     pe.fecha_desde,
                     pe.fecha_hasta,
@@ -889,10 +890,13 @@ class sqlsrvModel
                     pe.estado,
                     pe.motivo,
                     pe.justificante,   
-                    wu.NOMBREYAPELLIDOS
+                    wu.NOMBREYAPELLIDOS AS nombre_trabajador,
+                    wu_s.NOMBREYAPELLIDOS AS nombre_superior
                 FROM [" . ConfigPortalEmpleado::$bdsrx_nombre . "].[dbo].[webphp_ausencias] pe
                 LEFT JOIN [PA_ACTIVOS] wu 
                     ON pe.pernr = wu.pernr COLLATE Modern_Spanish_CI_AS
+                LEFT JOIN [PA_ACTIVOS] wu_s
+                    ON pe.pernr_s = wu_s.pernr COLLATE Modern_Spanish_CI_AS
                 WHERE 1 = 1";
         if ($fecha_solic != '' && $fecha_solic2 != '') {
             $sql .= " AND pe.fecha_solicitud BETWEEN '$fecha_solic' AND '$fecha_solic2'";
@@ -926,7 +930,7 @@ class sqlsrvModel
             $sql .= " AND pe.justificante != ''";
         }
 
-        $sql .= " ORDER BY pe.fecha_solicitud DESC;
+        $sql .= " ORDER BY pe.id_solicitud ASC;
                 CLOSE SYMMETRIC KEY ClaveSimétricaPA_REG;";
 
         $consulta = sqlsrv_query($conn, $sql);
@@ -936,7 +940,7 @@ class sqlsrvModel
 
         $resultado = array();
         while ($row = sqlsrv_fetch_array($consulta, SQLSRV_FETCH_ASSOC)) {
-            $row['NOMBREYAPELLIDOS'] = ucwords(strtolower($row['NOMBREYAPELLIDOS']));
+            $row['nombre_trabajador'] = ucwords(strtolower($row['nombre_trabajador']));
 
             // Calcular días laborables según grupo horario del trabajador
             if (isset($row['fecha_desde']) && isset($row['fecha_hasta']) && isset($row['pernr'])) {
@@ -1016,7 +1020,7 @@ class sqlsrvModel
             $grupo_horario_id = $grupo_asignado['grupo_horario_id'];
         } else {
             // Buscar grupo predeterminado
-            $sql_predeterminado = "SELECT TOP 1 id FROM webphp_grupos_horarios WHERE grupo_predeterminado = 1";
+            $sql_predeterminado = "SELECT TOP 1 id FROM webphp_grupos_horarios WHERE grupo_predeterminado = 1 AND anio_configuracion = YEAR('" . $fecha_desde->format('Y-m-d') . "')";
             $consulta_predeterminado = sqlsrv_query($conn, $sql_predeterminado);
 
             if ($consulta_predeterminado === false) {
@@ -5699,13 +5703,14 @@ class sqlsrvModel
     {
         $conn = $this->ConectarAppReclutamiento();
 
-        // Si se marca como predeterminado, primero quitamos el predeterminado a todos los demás
+        // Si se marca como predeterminado, quitamos el predeterminado solo a los grupos del mismo año
         if ($grupo_predeterminado == 1) {
-            $tsql_reset = "UPDATE webphp_grupos_horarios SET grupo_predeterminado = 0";
-            sqlsrv_query($conn, $tsql_reset);
+            $tsql_reset = "UPDATE webphp_grupos_horarios SET grupo_predeterminado = 0 WHERE anio_configuracion = ?";
+            $params_reset = array($anio_configuracion);
+            sqlsrv_query($conn, $tsql_reset, $params_reset);
         }
 
-        $tsql = "INSERT INTO webphp_grupos_horarios (nombre_grupo, descripcion_grupo, franjas_json, grupo_predeterminado, anio_configuracion, fecha_creacion) 
+        $tsql = "INSERT INTO webphp_grupos_horarios (nombre_grupo, descripcion_grupo, franjas_json, grupo_predeterminado, anio_configuracion, fecha_creacion)
                  VALUES ('$nombre_grupo', '$descripcion', '$franjas_json', $grupo_predeterminado, $anio_configuracion, '$fecha_creacion')";
 
 
@@ -5742,17 +5747,27 @@ class sqlsrvModel
     {
         $conn = $this->ConectarAppReclutamiento();
 
-        // Si se marca como predeterminado, primero quitamos el predeterminado a todos los demás
+        // Si se marca como predeterminado, quitamos el predeterminado solo a los grupos del mismo año
         if ($grupo_predeterminado == 1) {
-            $tsql_reset = "UPDATE webphp_grupos_horarios SET grupo_predeterminado = 0 WHERE id != ?";
-            $params_reset = array($id);
-            sqlsrv_query($conn, $tsql_reset, $params_reset);
+            // Primero obtenemos el año de configuración del grupo que se está editando
+            $tsql_anio = "SELECT anio_configuracion FROM webphp_grupos_horarios WHERE id = ?";
+            $params_anio = array($id);
+            $stmt_anio = sqlsrv_query($conn, $tsql_anio, $params_anio);
+
+            if ($stmt_anio && $row = sqlsrv_fetch_array($stmt_anio, SQLSRV_FETCH_ASSOC)) {
+                $anio_configuracion = $row['anio_configuracion'];
+
+                // Quitamos el predeterminado solo a los grupos del mismo año (excluyendo el actual)
+                $tsql_reset = "UPDATE webphp_grupos_horarios SET grupo_predeterminado = 0 WHERE anio_configuracion = ? AND id != ?";
+                $params_reset = array($anio_configuracion, $id);
+                sqlsrv_query($conn, $tsql_reset, $params_reset);
+            }
         }
 
-        $tsql = "UPDATE webphp_grupos_horarios 
-                 SET nombre_grupo = ?, 
-                     descripcion_grupo = ?, 
-                     franjas_json = ?, 
+        $tsql = "UPDATE webphp_grupos_horarios
+                 SET nombre_grupo = ?,
+                     descripcion_grupo = ?,
+                     franjas_json = ?,
                      grupo_predeterminado = ?
                  WHERE id = ?";
 
@@ -6717,7 +6732,7 @@ class sqlsrvModel
                         tgh.fecha_inicio,
                         tgh.fecha_fin
                     FROM [PA_ACTIVOS] pa 
-                    INNER JOIN [webphp_trabajadores_grupos_horario] tgh ON pa.PERNR = tgh.pernr
+                    INNER JOIN [".ConfigAppReclutamiento::$bdsrx_nombre."].[dbo].[webphp_trabajadores_grupos_horario] tgh ON pa.PERNR = tgh.pernr
                     WHERE tgh.grupo_horario_id = ?
                     ORDER BY pa.PERNR";
 

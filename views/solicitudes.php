@@ -197,7 +197,7 @@
                     $obs = 0;
                     foreach ($params['solicitudes_pendientes'] as $solicitud) {
                         echo "<tr>";
-                        echo "<td>" . $solicitud['NOMBREYAPELLIDOS'] . "<br>".$solicitud['pernr']."</td>";
+                        echo "<td>" . $solicitud['nombre_trabajador'] . "<br>".$solicitud['pernr']."</td>";
                         echo "<td>" . date_format($solicitud['fecha_desde'], 'd-m-Y') . "</td>";
                         echo "<td>" . date_format($solicitud['fecha_hasta'], 'd-m-Y') . "</td>";
 
@@ -276,13 +276,33 @@
                             ?>
                         </td>
                         <td>
+                            <?php
+                                // Botones de acción (si el estado lo permite)
+                                if ($solicitud['estado'] != '3' && $solicitud['estado'] != '4' && $solicitud['estado'] != '5' && $solicitud['estado'] != '8') {
+                                        echo "<form action='admin_cont.php?controller=index&action=solicitudes&comunicado_rrhh' method='post' id='formAcciones_".$solicitud['id_solicitud']."' style='display: inline-block; margin-right: 5px;'>
+                                                <input type='hidden' name='pernr_usu' value='".$solicitud['pernr']."'>
+                                                <input type='hidden' name='fecha_res_rrhh' value='".date('Y-m-d')."'>
+                                                <input type='hidden' name='firma_rrhh' value='1'>
+                                                <input type='hidden' name='id_sol' value='".$solicitud['id_solicitud']."'>
+                                                <input type='hidden' name='mail_s' value='".$solicitud['mail_s']."'>
+                                                <input type='hidden' name='mail' value='".$solicitud['mail']."'>
+                                                <input type='hidden' name='estado' value='".$solicitud['estado']."'>
+                                                <input type='hidden' name='fecha_sol' value='".$solicitud['fecha_solicitud']->format("Y-m-d")."'>
+                                                <input type='hidden' name='nombre' value='".$solicitud['nombre_trabajador']."'>
+                                                <input type='hidden' name='nombre_s' value='".$solicitud['nombre_superior']."'>
+
+                                                <button type='button' class='btn btn-sm btn-success btn-aceptar-solicitud' data-form-id='formAcciones_".$solicitud['id_solicitud']."'><i class='bi bi-check-circle'></i></button>
+                                                <button type='button' class='btn btn-sm btn-danger btn-rechazar-solicitud' data-form-id='formAcciones_".$solicitud['id_solicitud']."'><i class='bi bi-x-circle'></i></button>
+                                            </form>";
+                                }
+                            ?>
                             <button type="button" class="btn btn-primary btn-sm btn-ver-detalle"
                                     data-id-solicitud="<?php echo $solicitud['id_solicitud']; ?>"
                                     data-pernr="<?php echo $solicitud['pernr']; ?>"
                                     data-bs-toggle="modal"
-                                    data-bs-target="#modalDetallesSolicitud">
+                                    data-bs-target="#modalDetallesSolicitud"
+                                    style="display: inline-block;">
                                 <i class="bi bi-eye"></i>
-                                <span class="d-none d-sm-inline">Ver detalles</span>
                             </button>
                         </td>
                         <?php
@@ -544,50 +564,6 @@
                             
                             modalContent.innerHTML = html;
                             
-                            // Agregar listeners para botones de acción
-                            const btnAceptar = document.querySelector('.btn-aceptar-solicitud');
-                            const btnRechazar = document.querySelector('.btn-rechazar-solicitud');
-                            
-                            if (btnAceptar) {
-                                btnAceptar.addEventListener('click', function() {
-                                    const formId = this.getAttribute('data-form-id');
-                                    const form = document.getElementById(formId);
-                                    
-                                    alertify.confirm('Confirmar acción', '¿Estás seguro de que deseas aprobar esta solicitud?',
-                                        function() {
-                                            const inputAccion = document.createElement('input');
-                                            inputAccion.type = 'hidden';
-                                            inputAccion.name = 'aceptar';
-                                            form.appendChild(inputAccion);
-                                            form.submit();
-                                        },
-                                        function() {
-                                            alertify.error('Acción cancelada');
-                                        }
-                                    );
-                                });
-                            }
-                            
-                            if (btnRechazar) {
-                                btnRechazar.addEventListener('click', function() {
-                                    const formId = this.getAttribute('data-form-id');
-                                    const form = document.getElementById(formId);
-                                    
-                                    alertify.confirm('Confirmar acción', '¿Estás seguro de que deseas rechazar esta solicitud?',
-                                        function() {
-                                            const inputAccion = document.createElement('input');
-                                            inputAccion.type = 'hidden';
-                                            inputAccion.name = 'rechazar';
-                                            form.appendChild(inputAccion);
-                                            form.submit();
-                                        },
-                                        function() {
-                                            alertify.error('Acción cancelada');
-                                        }
-                                    );
-                                });
-                            }
-                            
                         } else {
                             modalContent.innerHTML = `
                                 <div class="alert alert-danger" role="alert">
@@ -602,6 +578,55 @@
                                 <strong>Error:</strong> Error al cargar los detalles de la solicitud
                             </div>`;
                     });
+            }
+        });
+        
+        // Event listeners globales para botones de aceptar/rechazar (funcionan en tabla y modal)
+        document.addEventListener('click', function(e) {
+            // Botón Aceptar
+            if (e.target.closest('.btn-aceptar-solicitud')) {
+                e.preventDefault();
+                const boton = e.target.closest('.btn-aceptar-solicitud');
+                const formId = boton.getAttribute('data-form-id');
+                const form = document.getElementById(formId);
+                
+                if (form) {
+                    alertify.confirm('Confirmar acción', '¿Estás seguro de que deseas aprobar esta solicitud?',
+                        function() {
+                            const inputAccion = document.createElement('input');
+                            inputAccion.type = 'hidden';
+                            inputAccion.name = 'aceptar';
+                            form.appendChild(inputAccion);
+                            form.submit();
+                        },
+                        function() {
+                            alertify.error('Acción cancelada');
+                        }
+                    );
+                }
+            }
+            
+            // Botón Rechazar
+            if (e.target.closest('.btn-rechazar-solicitud')) {
+                e.preventDefault();
+                const boton = e.target.closest('.btn-rechazar-solicitud');
+                const formId = boton.getAttribute('data-form-id');
+                const form = document.getElementById(formId);
+                
+                if (form) {
+                    alertify.confirm('Confirmar acción', '¿Estás seguro de que deseas rechazar esta solicitud?',
+                        function() {
+                            const inputAccion = document.createElement('input');
+                            inputAccion.type = 'hidden';
+                            inputAccion.name = 'rechazar';
+                            form.appendChild(inputAccion);
+                            form.submit();
+                        },
+                        function() {
+                            alertify.error('Acción cancelada');
+                        }
+                    );
+                }
             }
         });
     });
@@ -629,7 +654,7 @@
     }
 
     // Llama a la función con un retraso de 2 segundos
-    setTimeout(redirigir, 2000);
+    // setTimeout(redirigir, 2000);
 </script>
 
 
