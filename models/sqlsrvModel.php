@@ -88,6 +88,42 @@ class sqlsrvModel
 
 
 
+    // Función para conectar con la base de datos de DATASPHERE
+    public function conectarDatasphere()
+    {
+        try {
+            $connectionInfo = array("Database" => ConfigDatasphere::$bdsrx_nombre, "UID" => ConfigDatasphere::$bdsrx_usuario, "PWD" => ConfigDatasphere::$bdsrx_clave, "CharacterSet" => "UTF-8", "Encrypt" => "no");
+            $conn = sqlsrv_connect(ConfigDatasphere::$bdsrx_hostname, $connectionInfo);
+            if ($conn === false) {
+                die(print_r(sqlsrv_errors(), true));
+            } else {
+                return $conn;
+            }
+        } catch (Exception $e) {
+            echo ("Error: " . $e->getMessage());
+        }
+    }
+
+
+
+    // Función para conectar con la base de datos de SistemaProduccion
+    public function conectarProduccion()
+    {
+        try {
+            $connectionInfo = array("Database" => ConfigProduccion::$bdsrx_nombre, "UID" => ConfigProduccion::$bdsrx_usuario, "PWD" => ConfigProduccion::$bdsrx_clave, "CharacterSet" => "UTF-8", "Encrypt" => "no");
+            $conn = sqlsrv_connect(ConfigProduccion::$bdsrx_hostname, $connectionInfo);
+            if ($conn === false) {
+                die(print_r(sqlsrv_errors(), true));
+            } else {
+                return $conn;
+            }
+        } catch (Exception $e) {
+            echo ("Error: " . $e->getMessage());
+        }
+    }
+
+
+
     //Función para conectar con la base de datos de 192.168.200.202
     public function conectarWebApp()
     {
@@ -610,53 +646,82 @@ class sqlsrvModel
 
 
     //Mostramos el listado de Trabajadores de SAP
+    // public function buscarTrabajadoresSap($txt_pernr, $txt_nombre, $sociedad, $baja)
+    // {
+    //     $conn = $this->conectarDatasphere();
+
+    //     // Verificar si se busca por trabajadores no activos.
+    //     $sql = "SELECT TOP (1000) 
+    //                 PERNR,
+    //                 SNAME_CALC,
+    //                 ZZWERKS,
+    //                 STAT2,
+    //                 BEGDA_MEDIDA,
+    //                 ENDDA_MEDIDA,
+    //                 VORNA,
+    //                 NACHN,
+    //                 NACH2,
+    //                 PERID
+    //             FROM [RRHH_SP_personas_activas] WHERE 1=1 ";
+
+    //     // Aplicar los filtros solo si hay valores no vacíos
+    //     if ($txt_pernr != '') {
+    //         $sql .= "AND PERNR LIKE '%" . $txt_pernr . "%' ";
+    //     }
+    //     if ($txt_nombre != '') {
+    //         $sql .= "AND SNAME_CALC LIKE '%" . $txt_nombre . "%' ";
+    //     }
+    //     if ($sociedad != '') {
+    //         $sql .= "AND ZZWERKS = '" . $sociedad . "' ";
+    //     }
+    //     if ($baja != '') {
+    //         $sql .= "AND STAT2 = '" . $baja . "' ";
+    //     }
+    //     if ($baja == '') {
+    //         $sql .= "ORDER BY ZZWERKS ";
+    //     }
+
+    //     // echo $sql;
+    //     // die;
+
+    //     // Ejecutar la consulta SQL
+    //     $consulta = sqlsrv_query($conn, $sql);
+    //     if ($consulta === false) {
+    //         die("SQL Error: " . print_r(sqlsrv_errors(), true));
+    //     }
+
+    //     // Recoger los resultados
+    //     $resultado = array();
+    //     while ($row = sqlsrv_fetch_array($consulta, SQLSRV_FETCH_ASSOC)) {
+    //         $resultado[] = $row;
+    //     }
+
+    //     return $resultado;
+    // }
+
     public function buscarTrabajadoresSap($txt_pernr, $txt_nombre, $sociedad, $baja)
     {
-        $conn = $this->conectarMuleSoft();
-
-        // Verificar si se busca por trabajadores no activos.
-        $sql = "
-        OPEN SYMMETRIC KEY ClaveSimétricaPA_REG 
-        DECRYPTION BY CERTIFICATE CertificadoPA_REG;
-        SELECT TOP (1000) 
-            *
-        FROM PA_ACTIVOS WHERE 1=1 ";
-
-        // Aplicar los filtros solo si hay valores no vacíos
-        if ($txt_pernr != '') {
-            $sql .= "AND PERNR LIKE '%" . $txt_pernr . "%' ";
-        }
+        $conn = $this->conectarDatasphere();
+        $sql = "EXEC [dbo].[RRHH_SP_personas_activas]
+		        @txt_pernr = N'$txt_pernr'";
         if ($txt_nombre != '') {
-            $sql .= "AND NOMBREYAPELLIDOS LIKE '%" . $txt_nombre . "%' ";
+            $sql .= ", @txt_nombre = N'$txt_nombre'";
         }
         if ($sociedad != '') {
-            $sql .= "AND ZZWERKS = '" . $sociedad . "' ";
+            $sql .= ", @sociedad = N'$sociedad'";
         }
         if ($baja != '') {
-            $sql .= "AND STAT2 = '" . $baja . "' ";
+            $sql .= ", @baja = N'$baja'";
         }
-        if ($baja == '') {
-            $sql .= "ORDER BY ZZWERKS ";
-        }
+        $sql .= ";";
 
-        // Ordenar los resultados
-        $sql .= " CLOSE SYMMETRIC KEY ClaveSimétricaPA_REG;";
-
-        // echo $sql;
-        // die;
-
-        // Ejecutar la consulta SQL
         $consulta = sqlsrv_query($conn, $sql);
-        if ($consulta === false) {
-            die("SQL Error: " . print_r(sqlsrv_errors(), true));
-        }
-
-        // Recoger los resultados
         $resultado = array();
+        if ($consulta == FALSE)
+            die($this->FormatErrors(sqlsrv_errors()));
         while ($row = sqlsrv_fetch_array($consulta, SQLSRV_FETCH_ASSOC)) {
             $resultado[] = $row;
         }
-
         return $resultado;
     }
 
@@ -685,35 +750,11 @@ class sqlsrvModel
     //Obtenemos todos los datos de un trabajador SAP
     public function info_trabajador($PERNR)
     {
-        $conn = $this->conectarMuleSoft();
+        $conn = $this->conectarDatasphere();
 
         // Consulta SQL con parámetros
-        $sql = "OPEN SYMMETRIC KEY ClaveSimétricaPA_REG
-                DECRYPTION BY CERTIFICATE CertificadoPA_REG;
-                SELECT 
-                    BEGDA AS BEGDA_ORIGIN,
-                    [ID],
-                    [PERNR],
-                    [FECHA_IN],
-                    CONVERT(varchar, [BEGDA], 103) AS BEGDA,
-                    CONVERT(varchar, [ENDDA], 103) AS ENDDA,
-                    CONVERT(VARCHAR(MAX), DECOMPRESS(DecryptByKey(DNI))) AS DNI,
-                    [TIPODOCUMENTO],
-                    CONVERT(VARCHAR(MAX), DECOMPRESS(DecryptByKey(NOMBREYAPELLIDOS))) AS NOMBREYAPELLIDOS,
-                    CONVERT(VARCHAR(MAX), DECOMPRESS(DecryptByKey(FECHANACIMIENTO))) AS FECHANACIMIENTO,
-                    [SEXO],
-                    [LUGAR_NACIMIENTO],
-                    [PAIS_NACIMIENTO],
-                    [DESC_PAIS_NACIMIENTO],
-                    [NACIONALIDAD],
-                    UPPER(LEFT([DESC_NACIONALIDAD], 1)) + LOWER(SUBSTRING([DESC_NACIONALIDAD], 2, LEN([DESC_NACIONALIDAD]))) AS DESC_NACIONALIDAD,
-                    CONVERT(VARCHAR(MAX), DECOMPRESS(DecryptByKey(NOMBRE))) AS NOMBRE,
-                    CONVERT(VARCHAR(MAX), DECOMPRESS(DecryptByKey(APELLIDO1))) AS APELLIDO1,
-                    CONVERT(VARCHAR(MAX), DECOMPRESS(DecryptByKey(APELLIDO2))) AS APELLIDO2
-                FROM [PA0002]
-                WHERE PERNR = $PERNR
-                ORDER BY BEGDA_ORIGIN DESC;
-                CLOSE SYMMETRIC KEY ClaveSimétricaPA_REG;";
+        $sql = "EXEC [dbo].[RRHH_SP_PA0002]
+                @PERNR = N'$PERNR';";
 
         // Usar parámetros para prevenir inyección de SQL
         $consulta = sqlsrv_query($conn, $sql);
@@ -889,7 +930,8 @@ class sqlsrvModel
                     pe.tipo,
                     pe.estado,
                     pe.motivo,
-                    pe.justificante,   
+                    pe.justificante,  
+                    pe.anio_origen, 
                     wu.NOMBREYAPELLIDOS AS nombre_trabajador,
                     wu_s.NOMBREYAPELLIDOS AS nombre_superior
                 FROM [" . ConfigPortalEmpleado::$bdsrx_nombre . "].[dbo].[webphp_ausencias] pe
@@ -1372,18 +1414,9 @@ class sqlsrvModel
     //Datos medidas
     public function datos_medidas($PERNR)
     {
-        $conn = $this->conectarMuleSoft();
-        $sql = "SELECT BEGDA AS BEGDA_ORING
-                    ,CONVERT(varchar, [BEGDA], 103) as BEGDA
-                    ,CONVERT(varchar, [ENDDA], 103) as ENDDA
-                    ,[STAT2]
-                    ,[MASSN]
-                    ,[MNTXT]
-                    ,[MASSG]
-                    ,[MGTXT] 
-                FROM [PA0000]
-                WHERE PERNR = $PERNR 
-                order by BEGDA_ORING desc";
+        $conn = $this->conectarDatasphere();
+        $sql = "EXEC	[dbo].[RRHH_SP_PA0000]
+		        @PERNR = N'$PERNR'";
         $consulta = sqlsrv_query($conn, $sql);
         $resultado = array();
         if ($consulta == FALSE)
@@ -1399,41 +1432,13 @@ class sqlsrvModel
     //Datos direccion trabajador
     public function datos_direccion_trabajador($PERNR)
     {
-        $conn = $this->conectarMuleSoft();
-        $sql = "SELECT BEGDA AS BEGDA_ORIGIN
-                      ,[ID]
-                      ,[FECHA_IN]
-                      ,[PERNR]
-                      ,[BEGDA]
-                      ,[ENDDA]
-                      ,[CLASE_DIRECCION]
-                      ,[DESC_CLASE_DIRECCION]
-                      ,[CALLE_NUMERO]
-                      ,[POBLACION]
-                      ,[COD_POSTAL]
-                      ,[PAIS]
-                      ,[DESC_PAIS]
-                      ,[DISTANCIA1_KM]
-                      ,[DISTANCIA2_KM]
-                      ,[REGION]
-                      ,[DESC_REGION]
-                      ,[N_EDIFICIO]
-                      ,[SIGLAS_VP]
-                      ,[DESC_SIGLAS_VP]
-                      ,[N_TELEFONO]
-                      ,[COMUNICACION1]
-                      ,[NUMERO1]
-                      ,[COMUNICACION2]
-                      ,[NUMERO2]
-                      ,[COMUNICACION3]
-                      ,[NUMERO3]
-                      ,[COMUNICACION4]
-                      ,[NUMERO4]
-                FROM [PA0006]
-                WHERE PERNR = $PERNR
-                ORDER BY BEGDA_ORIGIN DESC";
+        $conn = $this->conectarDatasphere();
+        $sql = "EXEC    [dbo].[RRHH_SP_PA0006]
+                @PERNR = N'$PERNR'";
         $consulta = sqlsrv_query($conn, $sql);
         $resultado = array();
+
+        // nos quedmaos con la primera fila
         if ($consulta == FALSE)
             die($this->FormatErrors(sqlsrv_errors()));
         while ($row = sqlsrv_fetch_array($consulta, SQLSRV_FETCH_ASSOC)) {
@@ -1447,20 +1452,9 @@ class sqlsrvModel
     //Datos contratos empresa trabajador
     public function datos_contrato_trabajador($PERNR)
     {
-        $conn = $this->conectarMuleSoft();
-        $sql = "SELECT BEGDA AS BEGDA_ORIGIN
-                      ,[ID]
-                      ,[PERNR]
-                      ,[FECHA_IN]
-                      ,CONVERT(varchar, [BEGDA], 103) as BEGDA
-                      ,CONVERT(varchar, [ENDDA], 103) as ENDDA
-                      ,[TIPO_CONTRATO]
-                      ,[DESC_TIPO_CONTRATO]
-                      ,[CLAVE_CONTRATO]
-                      ,[DESC_CLAVE_CONTRATO]
-                FROM [PA0480]
-                WHERE PERNR = $PERNR
-                ORDER BY BEGDA_ORIGIN DESC";
+        $conn = $this->conectarDatasphere();
+        $sql = "EXEC	[dbo].[RRHH_SP_PA0480]
+                @PERNR = N'$PERNR'";
         $consulta = sqlsrv_query($conn, $sql);
         $resultado = array();
         if ($consulta == FALSE)
@@ -1476,18 +1470,9 @@ class sqlsrvModel
     //Datos contrato seguridad social trabajador
     public function datos_contrato2_trabajador($PERNR)
     {
-        $conn = $this->conectarMuleSoft();
-        $sql = "SELECT BEGDA AS BEGDA_ORIGIN
-                      ,[ID]
-                      ,[PERNR]
-                      ,[FECHA_IN]
-                      ,CONVERT(varchar, [BEGDA], 103) as BEGDA
-                      ,CONVERT(varchar, [ENDDA], 103) as ENDDA
-                      ,[RELACION_LABORAL]
-                      ,[DESC_RELACION_LABORAL]
-                FROM [PA0061]
-                WHERE PERNR = $PERNR
-                ORDER BY BEGDA_ORIGIN DESC";
+        $conn = $this->conectarDatasphere();
+        $sql = "EXEC	[dbo].[RRHH_SP_PA0061]
+                @PERNR = N'$PERNR'";
         $consulta = sqlsrv_query($conn, $sql);
         $resultado = array();
         if ($consulta == FALSE)
@@ -1503,18 +1488,9 @@ class sqlsrvModel
     // Datos carnet manipulador
     public function datos_ropo_trabajador($PERNR)
     {
-        $conn = $this->conectarMuleSoft();
-        $sql = "SELECT TOP (1) 
-                       PERNR
-                      ,BEGDA AS BEGDA_ORING
-                      ,CONVERT(varchar, [BEGDA], 103) as BEGDA
-                      ,CONVERT(varchar, [ENDDA], 103) as ENDDA
-                      ,ZZROPO
-                      ,ZZCARNET
-                      ,CONVERT(varchar, ZZFECHA, 103) as ZZFECHA
-                FROM [PA0032] 
-                WHERE PERNR = $PERNR 
-                ORDER BY BEGDA_ORING DESC";
+        $conn = $this->conectarDatasphere();
+        $sql = "EXEC	[dbo].[RRHH_SP_PA0032]
+                @PERNR = N'$PERNR'";
         $consulta = sqlsrv_query($conn, $sql);
         $resultado = array();
         if ($consulta == FALSE)
@@ -1527,19 +1503,11 @@ class sqlsrvModel
 
 
 
-    //Datos para tabla asusencia trabajador
     public function datos_ausencia_trabajador($PERNR)
     {
-        $conn = $this->conectarMuleSoft();
-        $sql = "SELECT PERNR
-                      ,BEGDA AS BEGDA_ORING
-                      ,CONVERT(varchar, BEGDA, 103) as BEGDA
-                      ,CONVERT(varchar, ENDDA, 103) as ENDDA
-                      ,SUBTY
-                      ,ATEXT
-                FROM [PA2001]
-                WHERE PERNR = $PERNR
-                ORDER BY BEGDA_ORING DESC";
+        $conn = $this->conectarDatasphere();
+        $sql = "EXEC	[dbo].[RRHH_SP_PA2001]
+		        @PERNR = N'$PERNR'";
         $consulta = sqlsrv_query($conn, $sql);
         $resultado = array();
         if ($consulta == FALSE)
@@ -1555,28 +1523,9 @@ class sqlsrvModel
     // Datos asignación trabajador
     public function datos_asignacion_trabajador($PERNR)
     {
-        $conn = $this->conectarMuleSoft();
-        $sql = "SELECT [PERNR]
-                       ,BEGDA AS BEGDA_ORING
-                       ,[PLANS]
-                       ,[STEXT_PLANS]
-                       ,[ZZLGORT]
-                       ,[DESC_ALMACEN]
-                       ,[FINCA]
-                       ,[DESC_FINCA]
-                       ,[ZZWERKS]
-                       ,[DESC_CENTRO]
-                       ,CONVERT(varchar, [BEGDA], 103) as BEGDA
-                       ,CONVERT(varchar, [ENDDA], 103) as ENDDA
-                       ,[WERKS]
-                       ,[DESC_DIVISION]
-                       ,[ORGEH]
-                       ,[STEXT]
-                       ,[ZZROLAGR]
-                       ,[ZZNFC]
-                FROM [PA0001]
-                WHERE PERNR = $PERNR
-                ORDER BY BEGDA_ORING DESC, ID DESC";
+        $conn = $this->conectarDatasphere();
+        $sql = "EXEC	[dbo].[RRHH_SP_PA0001]
+                @PERNR = N'$PERNR'";
         $consulta = sqlsrv_query($conn, $sql);
         $resultado = array();
         if ($consulta == FALSE)
@@ -2287,7 +2236,8 @@ class sqlsrvModel
 
         // Ejecutar procedimiento almacenado
         $conn = $this->ConectarAppReclutamiento();
-        $sql = "EXEC [dbo].[sp_CalcularResumenJornada_pernr] ?, ?, ?, ?";
+        $sql = "EXEC [dbo].[sp_CalcularResumenJornada_pernr_new] ?, ?, ?, ?";
+
         $params = [
             [$fecha_ini, SQLSRV_PARAM_IN],
             [$fecha_fin, SQLSRV_PARAM_IN],
@@ -2325,7 +2275,7 @@ class sqlsrvModel
             $inClause = "'" . implode("','", array_unique($pernrs)) . "'";
             $sql_nombres = "
                 SELECT PERNR, CONVERT(VARCHAR(MAX), DECOMPRESS(DecryptByKey(NOMBREYAPELLIDOS))) AS NOMBREYAPELLIDOS
-                FROM [Mulesoft].[dbo].[PA0002]
+                FROM [" . ConfigMuleSoft::$bdsrx_nombre . "].[dbo].[PA0002]
                 WHERE PERNR IN ($inClause)
             ";
 
@@ -2437,79 +2387,83 @@ class sqlsrvModel
         // Limpio y aseguro el pernr para la consulta
         $pernr = trim($pernr);
 
-        $sql = "
-        WITH registros AS (
-            SELECT 
-                reg.id,
-                reg.pernr,
-                reg.tipo_reg,
-                CAST(reg.fecha_reg AS DATETIME) AS fecha_reg,
-                reg.id_dispo,
-                reg.fecha,
-                reg.manual,
-                ubi.sede,
-                ubi.nombre AS nombre_ubi,
-                reg.motivo,
-                reg.comentario,
-                reg.localizacion,
-                reg.dispositivo
-            FROM webphp_registro_horario reg
-            LEFT JOIN webphp_dispositivos dispo ON reg.id_dispo = dispo.id_dispositivo
-            LEFT JOIN webphp_ubicaciones_dispo ubi ON dispo.ubicacion = ubi.id
-            WHERE reg.pernr LIKE ?
-        ),
-        primeras_entradas AS (
-            SELECT
-                r.id,
-                r.pernr,
-                r.tipo_reg,
-                r.fecha_reg,
-                r.id_dispo,
-                r.fecha,
-                r.manual,
-                r.sede,
-                r.nombre_ubi,
-                r.motivo,
-                r.comentario,
-                r.localizacion,
-                r.dispositivo,
-                (
-                    SELECT MAX(e.fecha_reg)
-                    FROM registros e
-                    WHERE e.pernr = r.pernr
-                    AND e.tipo_reg = 'entrada'
-                    AND e.fecha_reg <= r.fecha_reg
-                ) AS fecha_inicio_jornada
-            FROM registros r
-        )
-        SELECT
-            p.id,
-            p.pernr,
-            p.tipo_reg,
-            p.fecha_reg,
-            p.id_dispo,
-            p.fecha,
-            p.manual,
-            p.sede,
-            p.nombre_ubi,
-            p.motivo,
-            p.comentario,
-            p.localizacion,
-            p.dispositivo,
-            CAST(p.fecha_inicio_jornada AS DATE) AS fecha_jornada
-        FROM primeras_entradas p
-        WHERE (
-            -- Registros con entrada previa (lógica original)
-            CAST(p.fecha_inicio_jornada AS DATE) = ?
-            OR 
-            -- Registros manuales (manual = 3) de la fecha seleccionada sin entrada previa
-            (p.manual = 3 AND CAST(p.fecha_reg AS DATE) = ?)
-        )
-        ORDER BY p.fecha_reg ASC;
-        ";
+        $sql = "WITH registros AS (
+                    SELECT 
+                        reg.id,
+                        reg.pernr,
+                        reg.tipo_reg,
+                        -- Si fecha_utc y utc_api están presentes, calcular fecha ajustada, sino usar fecha_reg
+                        CASE 
+                            WHEN (reg.fecha_utc IS NOT NULL AND reg.fecha_utc != '') AND (reg.utc_api IS NOT NULL AND reg.utc_api != '') 
+                            THEN DATEADD(HOUR, CAST(reg.utc_api AS INT), CAST(reg.fecha_utc AS DATETIME))
+                            ELSE CAST(reg.fecha_reg AS DATETIME)
+                        END AS fecha_reg,
+                        reg.id_dispo,
+                        reg.fecha,
+                        reg.manual,
+                        ubi.sede,
+                        ubi.nombre AS nombre_ubi,
+                        reg.motivo,
+                        reg.comentario,
+                        reg.localizacion,
+                        reg.dispositivo
+                    FROM webphp_registro_horario reg
+                    LEFT JOIN webphp_dispositivos dispo ON reg.id_dispo = dispo.id_dispositivo
+                    LEFT JOIN webphp_ubicaciones_dispo ubi ON dispo.ubicacion = ubi.id
+                    WHERE reg.pernr LIKE ?
+                ),
+                primeras_entradas AS (
+                    SELECT
+                        r.id,
+                        r.pernr,
+                        r.tipo_reg,
+                        r.fecha_reg,
+                        r.id_dispo,
+                        r.fecha,
+                        r.manual,
+                        r.sede,
+                        r.nombre_ubi,
+                        r.motivo,
+                        r.comentario,
+                        r.localizacion,
+                        r.dispositivo,
+                        (
+                            SELECT MAX(e.fecha_reg)
+                            FROM registros e
+                            WHERE e.pernr = r.pernr
+                            AND e.tipo_reg = 'entrada'
+                            AND e.fecha_reg <= r.fecha_reg
+                        ) AS fecha_inicio_jornada
+                    FROM registros r
+                )
+                SELECT
+                    p.id,
+                    p.pernr,
+                    p.tipo_reg,
+                    p.fecha_reg,
+                    p.id_dispo,
+                    p.fecha,
+                    p.manual,
+                    p.sede,
+                    p.nombre_ubi,
+                    p.motivo,
+                    p.comentario,
+                    p.localizacion,
+                    p.dispositivo,
+                    CAST(p.fecha_inicio_jornada AS DATE) AS fecha_jornada
+                FROM primeras_entradas p
+                WHERE (
+                    -- Registros con entrada previa (lógica original)
+                    CAST(p.fecha_inicio_jornada AS DATE) = '$fecha_ini'
+                    OR 
+                    -- Registros manuales (manual = 3) de la fecha seleccionada sin entrada previa
+                    (p.manual = 3 AND CAST(p.fecha_reg AS DATE) = '$fecha_ini')
+                )
+                ORDER BY p.fecha_reg ASC;
+            ";
 
         // Preparar los parámetros para la consulta
-        $params = ["%$pernr%", $fecha_ini, $fecha_ini];
+        $params = ["%$pernr%"];
 
         $consulta = sqlsrv_query($conn, $sql, $params);
         $resultado = [];
@@ -2536,7 +2490,7 @@ class sqlsrvModel
             $reg_antiguo = $this->obtenerRegistroPorId($id);
         }
 
-        $sql = "UPDATE webphp_registro_horario SET fecha_reg = '" . $fecha . "', manual = '" . $estado . "', motivo = '" . $motivo . "' WHERE id=" . $id;
+        $sql = "UPDATE webphp_registro_horario SET fecha_reg = '" . $fecha . "', manual = '" . $estado . "', motivo = '" . $motivo . "', fecha_utc = NULL, utc_api = NULL, zona_api = NULL WHERE id=" . $id;
 
         $consulta = sqlsrv_query($conn, $sql);
 
@@ -2585,8 +2539,12 @@ class sqlsrvModel
     // Trabajadores Almacen
     public function trabajadoresAlmacen()
     {
-        $conn = $this->conectarMuleSoft();
-        $sql = "SELECT DISTINCT EXTERNALID, USERNAME FROM [SistemaProduccion].[dbo].[Aperturas] ORDER BY USERNAME ASC;";
+        $conn = $this->conectarProduccion();
+        $sql = "SELECT 
+                    DISTINCT EXTERNALID, 
+                    USERNAME 
+                FROM [dbo].[Aperturas] 
+                ORDER BY USERNAME ASC;";
 
         $consulta = sqlsrv_query($conn, $sql);
         $resultado = array();
@@ -2603,7 +2561,7 @@ class sqlsrvModel
     // Informe presencia almacen
     public function informePresenciaAlmacen($fecha_ini, $fecha_fin, $pernr, $puerta)
     {
-        $conn = $this->conectarMuleSoft();
+        $conn = $this->conectarProduccion();
         $sql = "SELECT [ID]
                       ,[USERID]
                       ,[EXTERNALID]
@@ -2612,7 +2570,7 @@ class sqlsrvModel
                       ,[DOORNAME]
                       ,[EVENTTYPE]
                       ,[OPENINGDATE]
-                FROM [SistemaProduccion].[dbo].[Aperturas] WHERE 1=1 ";
+                FROM [dbo].[Aperturas] WHERE 1=1 ";
 
 
         if ($fecha_ini != '' && $fecha_fin != '') {
@@ -2665,9 +2623,9 @@ class sqlsrvModel
     //Puertas para informe
     public function puertas_tesa()
     {
-        $conn = $this->ConectarAppReclutamiento();
+        $conn = $this->conectarProduccion();
         $sql = "SELECT [DOORID], [DOORNAME]
-                FROM [SistemaProduccion].[dbo].[Aperturas]
+                FROM [dbo].[Aperturas]
                 GROUP BY [DOORID], [DOORNAME]
                 ORDER BY DOORID ASC";
         $consulta = sqlsrv_query($conn, $sql);
@@ -2903,129 +2861,74 @@ class sqlsrvModel
 
 
     //Trabajadores de baja para llamamientos con fecha de bajas desde fecha actual hasta 18 meses atrás
-    public function trabajadores_baja($ubi_trab, $fecha_ini, $fecha_fin, $relacion_laboral = '', $codigos_formateados = '')
+    public function trabajadores_baja($ubi_trab, $fecha_ini, $fecha_fin, $relacion_laboral = '', $codigos_formateados = '', $grupo_trabajador = '')
     {
         try {
-            $conn = $this->conectarMuleSoft();
+            $conn = $this->conectarDatasphere();
 
-            $sql = "OPEN SYMMETRIC KEY ClaveSimétricaPA_REG 
-                DECRYPTION BY CERTIFICATE CertificadoPA_REG;    
-                with LatestRemesa AS (
-                        SELECT PERNR, id_remesa, fecha_remesa, nombre_remesa, ROW_NUMBER() OVER (PARTITION BY PERNR ORDER BY id_remesa DESC) as id_1
-                        FROM [" . ConfigAppReclutamiento::$bdsrx_nombre . "].[dbo].[webphp_remesas_llamamientos]
-                        WHERE (elim IS NULL OR elim <> '1')
-                    ),
-                    LatestRegistro AS (
-                        SELECT PERNR, MAX(FECHA_REGISTRO) as FECHA_REGISTRO
-                        FROM [" . ConfigAppReclutamiento::$bdsrx_nombre . "].[dbo].[webphp_registros_llamamientos]
-                        WHERE (elim IS NULL OR elim <> '1')
-                        GROUP BY PERNR
-                    )
-                    SELECT a.*,
-                        CONVERT(VARCHAR(MAX), DECOMPRESS(DecryptByKey(c.NOMBREYAPELLIDOS))) AS NOMBREYAPELLIDOS, 
-                        CONVERT(VARCHAR(MAX), DECOMPRESS(DecryptByKey(c.NOMBRE))) AS NOMBRE,
-                        CONVERT(VARCHAR(MAX), DECOMPRESS(DecryptByKey(c.APELLIDO1))) AS APELLIDO1,
-                        CONVERT(VARCHAR(MAX), DECOMPRESS(DecryptByKey(c.APELLIDO2))) AS APELLIDO2,
-                        c.SEXO, d.MOVIL, d.PRE_TELF, LOWER(d.[CORREO]) as CORREO, b.ZZLGORT,
-                        r.id_remesa, YEAR(r.fecha_remesa) as ano_remesa, r.nombre_remesa,
-                        lr.FECHA_REGISTRO, b.ZZLGORT, b.FINCA, b.DESC_FINCA, b.DESC_ALMACEN,
-                        pa61.RELACION_LABORAL, pa61.DESC_RELACION_LABORAL
-                    FROM (
-                        SELECT pa0.PERNR, pa0.MASSN, pa0.BEGDA, pa0.ENDDA
-                        FROM [" . ConfigMuleSoft::$bdsrx_nombre . "].[dbo].[PA0000] pa0
-                        JOIN (
-                            SELECT pernr, MAX(begda) AS begda
-                            FROM [" . ConfigMuleSoft::$bdsrx_nombre . "].[dbo].[PA0000]
-                            GROUP BY PERNR
-                        ) AS pa00 ON pa0.PERNR = pa00.PERNR AND pa0.BEGDA = pa00.begda
-                        WHERE pa0.MASSN = 'E2' AND pa0.STAT2 = 0 AND pa0.MASSG = '20'
-                    ) a
-                    LEFT JOIN
-                        (SELECT pa61.PERNR,
-                                pa61.RELACION_LABORAL,
-                                pa61.DESC_RELACION_LABORAL
-                        FROM [" . ConfigMuleSoft::$bdsrx_nombre . "].[dbo].[PA0061] pa61
-                        JOIN
-                            (SELECT pernr,
-                                    MAX(begda) AS begda
-                            FROM [" . ConfigMuleSoft::$bdsrx_nombre . "].[dbo].[PA0061]
-                            GROUP BY PERNR) AS pa061 ON pa61.PERNR = pa061.PERNR
-                        AND pa61.BEGDA = pa061.begda) AS pa61 ON a.PERNR = pa61.PERNR
-                    LEFT JOIN (
-                        SELECT pa1.PERNR, pa1.PLANS, pa1.STEXT_PLANS, pa1.ZZLGORT, pa1.ZZWERKS, pa1.FINCA, pa1.DESC_FINCA, pa1.DESC_ALMACEN
-                        FROM [" . ConfigMuleSoft::$bdsrx_nombre . "].[dbo].[PA0001] pa1
-                        JOIN (
-                            SELECT pernr, MAX(begda) AS begda
-                            FROM [" . ConfigMuleSoft::$bdsrx_nombre . "].[dbo].[PA0001]
-                            GROUP BY PERNR
-                        ) AS pa01 ON pa1.PERNR = pa01.PERNR AND pa1.BEGDA = pa01.begda
-                    ) b ON a.PERNR = b.PERNR
-                    LEFT JOIN [" . ConfigMuleSoft::$bdsrx_nombre . "].[dbo].[PA0002] c ON a.PERNR = c.PERNR
-                    LEFT JOIN (
-                        SELECT PERNR, MAX(MOVIL) AS MOVIL, MAX(PRE_TELF) AS PRE_TELF, MAX(CORREO) AS CORREO
-                        FROM [" . ConfigMuleSoft::$bdsrx_nombre . "].[dbo].[PA0105]
-                        GROUP BY PERNR
-                    ) d ON a.PERNR = d.PERNR
-                    LEFT JOIN LatestRemesa r
-                        ON a.PERNR = r.PERNR AND r.id_1 = 1
-                    LEFT JOIN LatestRegistro lr
-                        ON a.PERNR = lr.PERNR ";
+            $sql = "EXEC [dbo].[RRHH_SP_personas_fijo_dis] ";
 
-            // Construir condiciones WHERE
-            $condiciones = array();
+            // Flag para saber si ya agregamos algún parámetro
+            $first_param = true;
 
-            // Filtro por ubicación
-            if ($ubi_trab != '') {
-                $condiciones[] = "b.ZZLGORT = '$ubi_trab'";
+            if (isset($codigos_formateados) && $codigos_formateados != '') {
+                // $codigos_formateados viene como: '03006061', '04006006', '03000517', etc.
+                // Necesitamos duplicar las comillas simples para SQL Server
+                $codigos_escaped = str_replace("'", "", $codigos_formateados);
+                $sql .= "@PERNR_LIST = '$codigos_escaped'";
+                $first_param = false;
             }
 
-            // Filtro por códigos formateados (PERNR o DNI/NIE)
-            if ($codigos_formateados != '') {
-                $condiciones[] = "a.PERNR IN ($codigos_formateados) OR CONVERT(VARCHAR(MAX), DECOMPRESS(DecryptByKey(c.DNI))) IN ($codigos_formateados)";
-            }
-
-            // Siempre aplicar filtro de ZZWERKS
-            $condiciones[] = "b.ZZWERKS LIKE '1000%'";
-
-            // Aplicar WHERE
-            if (!empty($condiciones)) {
-                $sql .= "WHERE " . implode(" AND ", $condiciones);
-            }
-
-            // Filtro por relación laboral
-            if ($relacion_laboral != '') {
-                $sql .= (empty($condiciones) ? " WHERE " : " AND ") . "pa61.RELACION_LABORAL = '$relacion_laboral'";
-            }
-
-            // Filtro por fechas
-            if ($fecha_ini != '' && $fecha_fin != '') {
-                $sql .= " AND a.BEGDA BETWEEN '$fecha_ini' AND '$fecha_fin'";
-            } elseif ($fecha_ini != '') {
-                $sql .= " AND a.BEGDA = '$fecha_ini'";
+            if (isset($fecha_ini) && $fecha_ini != '') {
+                $fecha_ini_formatted = str_replace('-', '', $fecha_ini);
+                $sql .= ($first_param ? "" : ", ") . "@BEGDA_POSICION_INICIO = '$fecha_ini_formatted'";
+                $first_param = false;
             } else {
-                $sql .= " AND a.BEGDA >= DATEADD(MONTH, -16, GETDATE())";
+                $fecha_ini = DATE('Ymd', strtotime('-16 months'));
+                $sql .= ($first_param ? "" : ", ") . "@BEGDA_POSICION_INICIO = '$fecha_ini'";
+                $first_param = false;
             }
 
-            $sql .= " GROUP BY a.PERNR, a.MASSN, a.BEGDA, a.ENDDA, 
-                                c.NOMBREYAPELLIDOS, c.NOMBRE, c.APELLIDO1, c.APELLIDO2, b.ZZLGORT, c.SEXO, d.MOVIL, d.PRE_TELF, d.CORREO, 
-                                r.id_remesa, r.fecha_remesa, r.nombre_remesa, lr.FECHA_REGISTRO, 
-                                b.ZZLGORT, b.FINCA, b.DESC_FINCA, b.DESC_ALMACEN,
-                                pa61.RELACION_LABORAL, pa61.DESC_RELACION_LABORAL
-                    ORDER BY a.BEGDA ASC;
-                    CLOSE SYMMETRIC KEY ClaveSimétricaPA_REG;";
+            if (isset($fecha_fin) && $fecha_fin != '') {
+                $fecha_fin_formatted = str_replace('-', '', $fecha_fin);
+                $sql .= ($first_param ? "" : ", ") . "@BEGDA_POSICION_FIN = '$fecha_fin_formatted'";
+                $first_param = false;
+            } else {
+                $fecha_fin = DATE('Ymd');
+                $sql .= ($first_param ? "" : ", ") . "@BEGDA_POSICION_FIN = '$fecha_fin'";
+                $first_param = false;
+            }
 
+            if (isset($ubi_trab) && $ubi_trab != '') {
+                $sql .= ($first_param ? "" : ", ") . "@ZZLGORT = '$ubi_trab'";
+                $first_param = false;
+            }
 
-
-
+            if (isset($relacion_laboral) && $relacion_laboral != '') {
+                $sql .= ($first_param ? "" : ", ") . "@EMPL_RELATION = '$relacion_laboral'";
+            }
 
             $consulta = sqlsrv_query($conn, $sql);
             if ($consulta === FALSE) {
                 throw new Exception(print_r(sqlsrv_errors(), true));
             }
 
-            $resultado = array();
-            while ($row = sqlsrv_fetch_array($consulta, SQLSRV_FETCH_ASSOC)) {
-                $resultado[] = $row;
+            // Si el valor $grupo_trabajador es proporcionado, filtrar los resultados
+            if (isset($grupo_trabajador) && $grupo_trabajador != '') {
+                $filtered_results = array();
+                while ($row = sqlsrv_fetch_array($consulta, SQLSRV_FETCH_ASSOC)) {
+                    if (isset($row['grupo']) && $row['grupo'] == $grupo_trabajador) {
+                        $filtered_results[] = $row;
+                    }
+                }
+                sqlsrv_free_stmt($consulta);
+                sqlsrv_close($conn);
+                return $filtered_results;
+            } else {
+                $resultado = array();
+                while ($row = sqlsrv_fetch_array($consulta, SQLSRV_FETCH_ASSOC)) {
+                    $resultado[] = $row;
+                }
             }
 
             sqlsrv_free_stmt($consulta);
@@ -3300,7 +3203,7 @@ class sqlsrvModel
             $mail->Port = 587;
             $mail->SMTPAuth = true;
             $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
-            
+
             // Credenciales de la cuenta de correo
             $mail->Username = 'comunicadorrhh@surexport.com';
             $mail->Password = 'Ducu545130';
@@ -3708,7 +3611,7 @@ class sqlsrvModel
     }
 
 
-    
+
     // Mostrar todas las remesas disponibles
     public function Remesas_llama()
     {
@@ -4946,282 +4849,6 @@ class sqlsrvModel
 
 
 
-    // USUARIOS 
-    //! (NO USAR) Función para mostrar todos los usuarios del sistema
-    public function Usuarios()
-    {
-        $conn = $this->ConectarWebApp();
-        $sql = "select * from webphp_Usuarios where (elim=0 or elim is null) AND portal_rrhh != '' order by nombre, apellidos";
-        $consulta = sqlsrv_query($conn, $sql);
-        $resultado = array();
-        if ($consulta == FALSE)
-            die($this->FormatErrors(sqlsrv_errors()));
-        while ($row = sqlsrv_fetch_array($consulta, SQLSRV_FETCH_ASSOC)) {
-            $resultado[] = $row;
-        }
-        return $resultado;
-    }
-
-
-
-    //! (NO USAR) Obtenemos todos los datos de un usuario para modificarlo
-    public function infoUsuario($id)
-    {
-        if ($_SESSION["tipo_user_surexport_appreclu"] != '1') {
-            exit("Permisos insuficientes: usted no tiene permiso para gestionar los usuarios.");
-        }
-        $conn = $this->ConectarWebApp();
-        $sql = "select * FROM webphp_Usuarios WHERE id='" . $id . "'";
-        $params = array();
-        $options = array("Scrollable" => SQLSRV_CURSOR_KEYSET);
-        $consulta = sqlsrv_query($conn, $sql, $params, $options);
-        if ($consulta == FALSE) {
-            die($this->FormatErrors(sqlsrv_errors()));
-        } else {
-            if ((sqlsrv_num_rows($consulta) == 0) or (is_null($consulta))) {
-                return false;
-            } else {
-                $row = sqlsrv_fetch_array($consulta, SQLSRV_FETCH_ASSOC);
-                return $row;
-            }
-        }
-    }
-
-
-
-    //! (NO USAR) Función para insertar un nuevo usuario del sistema
-    public function inserUsuario($nombre, $apellidos, $usr_login, $usr_pass, $tipo_usuario, $permisos, $telefono)
-    {
-        if ($_SESSION["tipo_user_surexport_appreclu"] != '1') {
-            exit("Permisos insuficientes: usted no tiene permiso para gestionar los usuarios.");
-        }
-        $conn = $this->ConectarWebApp();
-        $sql = "select * from webphp_Usuarios where usr_login='" . $usr_login . "'";
-        $params = array();
-        $options = array("Scrollable" => SQLSRV_CURSOR_KEYSET);
-        $consulta = sqlsrv_query($conn, $sql, $params, $options);
-        if ($consulta == FALSE) {
-            die($this->FormatErrors(sqlsrv_errors()));
-        } else {
-            if ((sqlsrv_num_rows($consulta) == 0) or (is_null($consulta))) {
-                //El usuario se inserta con la contraseña encriptada con md5 y procedemos a enviarle la información por email
-                $tsql = "insert into webphp_Usuarios (nombre, apellidos, usr_login, usr_pass, tipo, elim, permisos, telefono) values ('" . $nombre . "','" . $apellidos . "','" . $usr_login . "','" . md5($usr_pass) . "','" . $tipo_usuario . "', 0, '" . implode(',', $permisos) . "', '" . $telefono . "')";
-                $insertfila = sqlsrv_query($conn, $tsql);
-                if ($insertfila == TRUE) {
-                    //Por último, enviamos el correo con los datos de acceso
-                    $mensaje = '
-                        <html>
-                            <head>
-                            <title>Surexport</title> 
-                            </head>
-                            <body>
-                                <p>Estimado/a ' . $nombre . ' ' . $apellidos . '</p>
-                                <p>Nos complace darle la más cordial bienvenida al Portal de Recursos Humanos.</p>
-                                
-                                <p>Para acceder al portal, simplemente siga estos pasos:</p>
-
-                                <ol>
-                                    <li>Visite https://aplicaciones.surexport.es:1110/portal_rrhh/</li>
-                                    <li>Nombre de usuario: ' . $usr_login . '</li>
-                                    <li>Contraseña: ' . $usr_pass . '</li>
-                                    <li>Explore todas las funciones y servicios que hemos diseñado para usted.</li>
-                                </ol>
-                                <p>Para cambiar la contraseña entre en su perfil arriba a la derecha.</p>
-                                <br>
-
-                                <p>Atentamente,</p>
-                                <p><b>El equipo de IT</b></p>
-                                <br>
-                                <img src="https://surexport.es/es/wp-content/themes/SurExport/images/logo-home.png" alt="Logotipo Surexport">
-                            </body>
-                        </html>';
-                    //Enviamos el correo con la clase phpmailer
-                    $mail = new PHPMailer();
-                    $mail->CharSet = 'UTF-8';
-                    $mail->isSMTP();
-                    $mail->Host = 'smtp.office365.com';
-                    $mail->Port = 587;
-                    $mail->SMTPAuth = true;
-                    $mail->Username = 'itcomunication@surexport.es';
-                    $mail->Password = 'Surxp2021+';
-                    $mail->setFrom('itcomunication@surexport.es', 'Surexport');
-                    $mail->addAddress($usr_login, $nombre);
-                    $mail->Subject = 'Surexport';
-                    $mail->Body = $mensaje;
-                    $mail->AltBody = $mensaje;
-                    if ($mail->send()) {
-                        $resultado = "Usuario insertado correctamente, le hemos enviado un email con los datos de acceso.";
-                    } else {
-                        $resultado = "Usuario insertado correctamente, pero ha ocurrido un error al enviar el email con los datos de acceso.";
-                    }
-                } else {
-                    $resultado = "Ha ocurrido un error al insertar el usuario, inténtelo de nuevo más tarde.";
-                }
-            } else {
-                $resultado = "La dirección de correo introducida ya existe en el sistema.";
-            }
-        }
-        return ($resultado);
-    }
-
-
-
-    //! (NO USAR) Función para actualizar la información de un usuario
-    public function updateUsuario($id_usuario, $nombre, $apellidos, $tipo_usuario, $departamento, $telefono)
-    {
-        $conn = $this->ConectarAppReclutamiento();
-        $tsql = "update webphp_Usuarios set nombre='" . $nombre . "', apellidos='" . $apellidos . "', tipo='" . $tipo_usuario . "', departamento='" . $departamento . "', telefono='" . $telefono . "' where id='" . $id_usuario . "'";
-        $insertfila = sqlsrv_query($conn, $tsql);
-        if ($insertfila == TRUE) {
-            $resultado = "Usuario actualizado correctamente.";
-        } else {
-            $resultado = "Ha ocurrido un error al actualizar los datos del usuario, inténtelo de nuevo más tarde.";
-        }
-        return $resultado;
-    }
-
-
-
-    //! (NO USAR) Función para actualizar los permisos del usuario
-    public function updateUsuarioPermisos($id_usuario, $permisos)
-    {
-        $conn = $this->ConectarAppReclutamiento();
-        $tsql = "update webphp_Usuarios set permisos='" . implode(',', $permisos) . "' where id='" . $id_usuario . "'";
-        $insertfila = sqlsrv_query($conn, $tsql);
-        if ($insertfila == TRUE) {
-            $resultado = "Permisos del usuario actualizado correctamente.";
-        } else {
-            $resultado = "Ha ocurrido un error al actualizar los permisos del usuario, inténtelo de nuevo más tarde.";
-        }
-        return $resultado;
-    }
-
-
-
-    //! (NO USAR) Función para restablecer la contraseña del usuario
-    public function renewPass($id)
-    {
-        //Consultamos el email del usuario
-        $conn = $this->ConectarAppReclutamiento();
-        $sql = "select * from webphp_Usuarios where id='" . $id . "'";
-        $consulta = sqlsrv_query($conn, $sql);
-        if ($consulta == FALSE) {
-            die($this->FormatErrors(sqlsrv_errors()));
-        } else {
-            $fila = sqlsrv_fetch_array($consulta, SQLSRV_FETCH_ASSOC);
-        }
-        //Generamos una contraseña nueva de forma aleatoria
-        $pass = "";
-        $str = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890";
-        for ($i = 0; $i < 12; $i++) {
-            $pass .= substr($str, rand(0, 62), 1);
-        }
-        $mensaje = '
-        <html>
-        <head>
-            <title>Surexport</title> 
-        </head>
-        <body>
-            <p>Estimado/a ' . $fila['nombre'] . ' ' . $fila['apellidos'] . '</p>
-            <br>
-
-            <p>Le informamos que su contraseña para acceder al Portal de Recursos Humanos ha sido restablecida exitosamente.
-            
-            <p>Nuevos datos de acceso:</p>
-            <ul>
-                <li>Visite https://aplicaciones.surexport.es:1110/portal_rrhh/</li>
-                <li>Nombre de usuario: ' . $fila['usr_login'] . '</li>
-                <li>Contraseña: ' . $pass . '</li>
-            </ul>
-            <p>Para cambiar la contraseña entre en su perfil arriba a la derecha.</p>
-
-            <p>Atentamente,</p>
-            <p><b>El equipo de IT</b></p>
-            <br>
-            <img src="https://surexport.es/es/wp-content/themes/SurExport/images/logo-home.png" alt="Logotipo Surexport">
-            <br>
-        </body>
-        </html>';
-        //Actualizamos la contraseña en la base de datos y enviamos el correo
-        $tsql = "update webphp_Usuarios set usr_pass='" . md5($pass) . "' where id='" . $id . "'";
-        $insertfila = sqlsrv_query($conn, $tsql);
-        if ($insertfila == TRUE) {
-            //Enviamos el correo con la clase phpmailer
-            $mail = new PHPMailer();
-            $mail->CharSet = 'UTF-8';
-            //$mail->SMTPDebug = 1;
-            $mail->isSMTP();
-            $mail->Host = 'smtp.office365.com';
-            $mail->Port = 587;
-            $mail->SMTPAuth = true;
-            $mail->Username = 'itcomunication@surexport.es';
-            $mail->Password = 'Surxp2021+';
-            $mail->setFrom('itcomunication@surexport.es', 'Surexport');
-            $mail->addAddress($fila['usr_login'], $fila['nombre']);
-            $mail->Subject = 'Surexport';
-            $mail->Body = $mensaje;
-            $mail->AltBody = $mensaje;
-            if ($mail->send()) {
-                $resultado = "Hemos enviado un correo electrónico con las nuevas contraseñas.";
-            } else {
-                $resultado = "Ha ocurrido un error al generar las nuevas contraseñas, inténtelo de nuevo más tarde.";
-            }
-        } else {
-            $resultado = "Ha ocurrido un error al generar las nuevas contraseñas, inténtelo de nuevo más tarde.";
-        }
-        return $resultado;
-    }
-
-
-
-    //! (NO USAR) Función para eliminar un usuario de la base de datos
-    public function eliminarUser($id)
-    {
-        if ($_SESSION["tipo_user_surexport_appreclu"] != '1') {
-            exit("Permisos insuficientes: usted no tiene permiso para gestionar los usuarios.");
-        }
-        $conn = $this->ConectarAppReclutamiento();
-        $tsql = "update webphp_Usuarios set elim=1 where id=" . $id;
-        $insertfila = sqlsrv_query($conn, $tsql);
-        if ($insertfila == TRUE) {
-            $resultado = "Usuario eliminado correctamente.";
-        } else {
-            $resultado = "Ha ocurrido un error al eliminar un usuario, inténtelo de nuevo más tarde";
-        }
-        return $resultado;
-    }
-
-
-
-    //! (NO USAR) Función para actualizar la contraseña del usuario que ha accedido al sistema
-    public function updatePassUser($id, $usr_pass, $usr_pass_new)
-    {
-        //Consultamos el email del usuario
-        $conn = $this->ConectarAppReclutamiento();
-        $sql = "select * from webphp_Usuarios where id='" . $id . "'";
-        $consulta = sqlsrv_query($conn, $sql);
-        if ($consulta == FALSE) {
-            die($this->FormatErrors(sqlsrv_errors()));
-        } else {
-            $fila = sqlsrv_fetch_array($consulta, SQLSRV_FETCH_ASSOC);
-            if ($fila['usr_pass'] == md5($usr_pass)) {
-                //Actualizamos la contraseña en la base de datos
-                $tsql = "update webphp_Usuarios set usr_pass='" . md5($usr_pass_new) . "' where id='" . $id . "'";
-                $insertfila = sqlsrv_query($conn, $tsql);
-                if ($insertfila == TRUE) {
-                    $resultado = "Contraseña actualizada correctamente.";
-                } else {
-                    $resultado = "Ha ocurrido un error al actualizar la nueva contraseña, inténtelo de nuevo más tarde.";
-                }
-            } else {
-                $resultado = "La contraseña actual no es correcta.";
-            }
-        }
-        return $resultado;
-    }
-
-
-
     //Función para ver los datos del usuario en mi perfil
     public function datos_usu($id)
     {
@@ -5235,21 +4862,6 @@ class sqlsrvModel
             $resultado[] = $row;
         }
         return $resultado;
-    }
-
-
-
-    //Función para actualizar la información de un usuario
-    public function UpdateUsuarioPerfil($id, $telefono, $departamento)
-    {
-        $conn = $this->ConectarAppReclutamiento();
-        $sql = "update webphp_usuarios set telefono='" . $telefono . "', departamento='" . $departamento . "' where id='" . $id . "'";
-        $consulta = sqlsrv_query($conn, $sql);
-        if ($consulta == TRUE) {
-            return true;
-        } else {
-            return false;
-        }
     }
 
 
@@ -5374,6 +4986,48 @@ class sqlsrvModel
     {
 
         $conn = $this->conectarMuleSoft();
+        // $sql = "WITH UltimaMedida AS (
+        //             SELECT 
+        //                 p0.PERNR,
+        //                 p0.STAT2,
+        //                 p0.BEGDA,
+        //                 ROW_NUMBER() OVER (PARTITION BY p0.PERNR ORDER BY p0.BEGDA DESC) AS rn
+        //             FROM [PA0000] p0
+        //             WHERE p0.BEGDA <= '$fecha'
+        //         ),
+        //         UltimaAusencia AS (
+        //             SELECT 
+        //                 pa201.PERNR, 
+        //                 pa201.ID, 
+        //                 pa201.BEGDA, 
+        //                 pa201.ENDDA,
+        //                 ROW_NUMBER() OVER (PARTITION BY pa201.PERNR ORDER BY pa201.ID DESC) AS rn
+        //             FROM [PA2001] pa201
+        //         ),
+        //         Trabajadores_1A AS (
+        //             SELECT 
+        //                 pa.PERNR AS A1_PERNR
+        //             FROM [PA_ACTIVOS] pa
+        //             INNER JOIN UltimaMedida um
+        //                 ON pa.PERNR = um.PERNR
+        //                 AND um.rn = 1
+        //                 AND um.STAT2 = '3'
+        //             LEFT JOIN UltimaAusencia pa201 
+        //                 ON pa.PERNR = pa201.PERNR 
+        //                 AND pa201.rn = 1 
+        //                 -- AND CONVERT(DATE, '$fecha') BETWEEN pa201.BEGDA AND ISNULL(pa201.ENDDA, '9999-12-31')
+        //                 AND '$fecha' BETWEEN pa201.BEGDA AND ISNULL(pa201.ENDDA, '9999-12-31')
+        //             WHERE pa.PERSK = '1A'
+        //             AND pa.STAT2 = '3'
+        //             AND pa.ZZWERKS = '1000'
+        //             AND pa201.PERNR IS NULL
+        //         )
+
+        //         SELECT COUNT(A1_PERNR) AS total_trabajadores
+        //         FROM Trabajadores_1A;";
+
+
+
         $sql = "WITH UltimaMedida AS (
                     SELECT 
                         p0.PERNR,
@@ -5381,7 +5035,6 @@ class sqlsrvModel
                         p0.BEGDA,
                         ROW_NUMBER() OVER (PARTITION BY p0.PERNR ORDER BY p0.BEGDA DESC) AS rn
                     FROM [PA0000] p0
-                    -- WHERE p0.BEGDA <= CONVERT(DATE, '$fecha')
                     WHERE p0.BEGDA <= '$fecha'
                 ),
                 UltimaAusencia AS (
@@ -5404,14 +5057,17 @@ class sqlsrvModel
                     LEFT JOIN UltimaAusencia pa201 
                         ON pa.PERNR = pa201.PERNR 
                         AND pa201.rn = 1 
-                        -- AND CONVERT(DATE, '$fecha') BETWEEN pa201.BEGDA AND ISNULL(pa201.ENDDA, '9999-12-31')
                         AND '$fecha' BETWEEN pa201.BEGDA AND ISNULL(pa201.ENDDA, '9999-12-31')
+                    LEFT JOIN [" . ConfigPortalEmpleado::$bdsrx_nombre . "].[dbo].[webphp_ausencias] wa
+                        ON pa.PERNR = wa.pernr
+                        AND wa.estado = 3
+                        AND '$fecha' BETWEEN wa.fecha_desde AND wa.fecha_hasta
                     WHERE pa.PERSK = '1A'
                     AND pa.STAT2 = '3'
                     AND pa.ZZWERKS = '1000'
                     AND pa201.PERNR IS NULL
+                    AND wa.pernr IS NULL  -- Excluye trabajadores con ausencias aprobadas
                 )
-
                 SELECT COUNT(A1_PERNR) AS total_trabajadores
                 FROM Trabajadores_1A;";
 
@@ -5554,20 +5210,27 @@ class sqlsrvModel
         $fecha_mas_uno = date('Y-m-d', strtotime($fecha . ' +1 day'));
 
         // $sql = "SELECT 
-        //             count(DISTINCT wh.pernr) as total_trabajadores
+        //             COUNT(DISTINCT wh.pernr) as total_trabajadores
         //         FROM [webphp_registro_horario] wh
-        //         LEFT JOIN [".ConfigMuleSoft::$bdsrx_nombre."].[dbo].[PA_ACTIVOS] pa
+        //         LEFT JOIN [" . ConfigMuleSoft::$bdsrx_nombre . "].[dbo].[PA_ACTIVOS] pa
         //             ON pa.PERNR = wh.PERNR 
-        //         WHERE fecha BETWEEN '{$fecha} 02:51:00' AND '{$fecha_mas_uno} 02:50:59'
-        //         AND pa.PERSK = '$tipo'";
+        //         WHERE fecha LIKE '{$fecha}%'
+        //         AND pa.PERSK = '$tipo'
+        //         AND wh.tipo_reg = 'entrada'";
+    
         $sql = "SELECT 
                     COUNT(DISTINCT wh.pernr) as total_trabajadores
                 FROM [webphp_registro_horario] wh
                 LEFT JOIN [" . ConfigMuleSoft::$bdsrx_nombre . "].[dbo].[PA_ACTIVOS] pa
                     ON pa.PERNR = wh.PERNR 
+                LEFT JOIN [" . ConfigPortalEmpleado::$bdsrx_nombre . "].[dbo].[webphp_ausencias] wa
+                    ON wh.pernr = wa.pernr
+                    AND wa.estado = 3
+                    AND '$fecha' BETWEEN wa.fecha_desde AND wa.fecha_hasta
                 WHERE fecha LIKE '{$fecha}%'
                 AND pa.PERSK = '$tipo'
-                AND wh.tipo_reg = 'entrada'";
+                AND wh.tipo_reg = 'entrada'
+                AND wa.pernr IS NULL";
 
         $consulta = sqlsrv_query($conn, $sql);
 
@@ -5582,100 +5245,189 @@ class sqlsrvModel
 
 
     // Trabajadores que han registrado presencia en la fecha
+    // public function trabajadores_conta($fecha, $tipo, $filtroAsistencia, $buscador)
+    // {
+    //     $conn = $this->conectarMuleSoft();
+    //     $fecha_mas_uno = date('Y-m-d', strtotime($fecha . ' +1 day'));
+
+    //     $sql = "
+    //         OPEN SYMMETRIC KEY ClaveSimétricaPA_REG 
+    //         DECRYPTION BY CERTIFICATE CertificadoPA_REG;
+
+    //         WITH UltimaMedida AS (
+    //             SELECT 
+    //                 p0.PERNR,
+    //                 p0.STAT2,
+    //                 p0.BEGDA,
+    //                 ROW_NUMBER() OVER (PARTITION BY p0.PERNR ORDER BY p0.BEGDA DESC) AS rn
+    //             FROM [PA0000] p0
+    //             WHERE p0.BEGDA <= CONVERT(DATE, '$fecha')
+    //         ),
+    //         UltimaAusencia AS (
+    //             SELECT 
+    //                 ID,       
+    //                 PERNR,     
+    //                 BEGDA, 
+    //                 ENDDA,
+    //                 ROW_NUMBER() OVER (PARTITION BY PERNR ORDER BY ID DESC) AS rn
+    //             FROM [PA2001]
+    //         ),
+    //         Trabajadores_Activos AS (
+    //             SELECT 
+    //                 pa.PERNR AS A1_PERNR,
+    //                 pa.PERSK,
+    //                 pa.NOMBREYAPELLIDOS
+    //             FROM [PA_ACTIVOS] pa
+    //             INNER JOIN UltimaMedida um
+    //                 ON pa.PERNR = um.PERNR
+    //                 AND um.rn = 1
+    //                 AND um.STAT2 = '3'
+    //             LEFT JOIN UltimaAusencia pa201 
+    //                 ON pa.PERNR = pa201.PERNR 
+    //                 AND pa201.rn = 1
+    //                 AND CONVERT(DATE, '$fecha') BETWEEN pa201.BEGDA AND ISNULL(pa201.ENDDA, '9999-12-31')
+    //             WHERE pa.STAT2 = '3'
+    //             AND pa.PERSK = '$tipo'
+    //             AND pa.ZZWERKS = '1000'
+    //             AND pa201.PERNR IS NULL
+    //         ),
+    //         Trabajadores_QueHanRegistrado AS (
+    //             SELECT 
+    //                 DISTINCT pernr
+    //             FROM [" . ConfigAppReclutamiento::$bdsrx_nombre . "].[dbo].[webphp_registro_horario] 
+    //             WHERE fecha BETWEEN '$fecha 02:51:00' AND '$fecha_mas_uno 02:50:59'
+    //         )
+
+    //         SELECT 
+    //             t1.A1_PERNR,
+    //             t1.NOMBREYAPELLIDOS,
+    //             t1.PERSK,  
+    //             CASE 
+    //                 WHEN t2.pernr IS NOT NULL THEN '1' 
+    //                 ELSE '0'
+    //             END AS Estado
+    //         FROM Trabajadores_Activos t1
+    //         LEFT JOIN Trabajadores_QueHanRegistrado t2
+    //             ON t1.A1_PERNR = t2.pernr
+    //         WHERE 1 = 1";
+
+    //     if (isset($filtroAsistencia) && $filtroAsistencia === '1') {
+    //         $sql .= " AND t2.pernr IS NOT NULL"; // Solo aquellos que han registrado presencia
+    //     } elseif (isset($filtroAsistencia) && $filtroAsistencia === '0') {
+    //         $sql .= " AND t2.pernr IS NULL"; // Solo aquellos que no han registrado presencia
+    //     } elseif (isset($filtroAsistencia) && $filtroAsistencia === 'todos') {
+
+    //     }
+
+    //     if (isset($buscador) && $buscador != '') {
+    //         $sql .= " AND (t1.NOMBREYAPELLIDOS LIKE '%$buscador%' OR t1.A1_PERNR LIKE '%$buscador%')";
+    //     }
+
+    //     $sql .= " ORDER BY Estado, t1.A1_PERNR;
+
+    //         CLOSE SYMMETRIC KEY ClaveSimétricaPA_REG;
+    //     ";
+
+    //     $consulta = sqlsrv_query($conn, $sql);
+
+    //     if ($consulta === false) {
+    //         die("Error al ejecutar la consulta: " . print_r(sqlsrv_errors(), true));
+    //     }
+
+    //     $resultado = [];
+    //     while ($row = sqlsrv_fetch_array($consulta, SQLSRV_FETCH_ASSOC)) {
+    //         $resultado[] = $row;
+    //     }
+
+    //     return $resultado;
+    // }
+
     public function trabajadores_conta($fecha, $tipo, $filtroAsistencia, $buscador)
     {
         $conn = $this->conectarMuleSoft();
         $fecha_mas_uno = date('Y-m-d', strtotime($fecha . ' +1 day'));
-
-        $sql = "
-            OPEN SYMMETRIC KEY ClaveSimétricaPA_REG 
-            DECRYPTION BY CERTIFICATE CertificadoPA_REG;
-
-            WITH UltimaMedida AS (
+        $sql = "OPEN SYMMETRIC KEY ClaveSimétricaPA_REG 
+                DECRYPTION BY CERTIFICATE CertificadoPA_REG;
+                WITH UltimaMedida AS (
+                    SELECT 
+                        p0.PERNR,
+                        p0.STAT2,
+                        p0.BEGDA,
+                        ROW_NUMBER() OVER (PARTITION BY p0.PERNR ORDER BY p0.BEGDA DESC) AS rn
+                    FROM [PA0000] p0
+                    WHERE p0.BEGDA <= CONVERT(DATE, '$fecha')
+                ),
+                UltimaAusencia AS (
+                    SELECT 
+                        ID,       
+                        PERNR,     
+                        BEGDA, 
+                        ENDDA,
+                        ROW_NUMBER() OVER (PARTITION BY PERNR ORDER BY ID DESC) AS rn
+                    FROM [PA2001]
+                ),
+                Trabajadores_Activos AS (
+                    SELECT 
+                        pa.PERNR AS A1_PERNR,
+                        pa.PERSK,
+                        pa.NOMBREYAPELLIDOS
+                    FROM [PA_ACTIVOS] pa
+                    INNER JOIN UltimaMedida um
+                        ON pa.PERNR = um.PERNR
+                        AND um.rn = 1
+                        AND um.STAT2 = '3'
+                    LEFT JOIN UltimaAusencia pa201 
+                        ON pa.PERNR = pa201.PERNR 
+                        AND pa201.rn = 1
+                        AND CONVERT(DATE, '$fecha') BETWEEN pa201.BEGDA AND ISNULL(pa201.ENDDA, '9999-12-31')
+                    LEFT JOIN [".ConfigPortalEmpleado::$bdsrx_nombre."].[dbo].[webphp_ausencias] wa
+                        ON pa.PERNR = wa.pernr
+                        AND wa.estado = 3
+                        AND CONVERT(DATE, '$fecha') BETWEEN wa.fecha_desde AND wa.fecha_hasta
+                    WHERE pa.STAT2 = '3'
+                    AND pa.PERSK = '$tipo'
+                    AND pa.ZZWERKS = '1000'
+                    AND pa201.PERNR IS NULL
+                    AND wa.pernr IS NULL
+                ),
+                Trabajadores_QueHanRegistrado AS (
+                    SELECT 
+                        DISTINCT pernr
+                    FROM [" . ConfigAppReclutamiento::$bdsrx_nombre . "].[dbo].[webphp_registro_horario] 
+                    WHERE fecha BETWEEN '$fecha 02:51:00' AND '$fecha_mas_uno 02:50:59'
+                )
                 SELECT 
-                    p0.PERNR,
-                    p0.STAT2,
-                    p0.BEGDA,
-                    ROW_NUMBER() OVER (PARTITION BY p0.PERNR ORDER BY p0.BEGDA DESC) AS rn
-                FROM [PA0000] p0
-                WHERE p0.BEGDA <= CONVERT(DATE, '$fecha')
-            ),
-            UltimaAusencia AS (
-                SELECT 
-                    ID,       
-                    PERNR,     
-                    BEGDA, 
-                    ENDDA,
-                    ROW_NUMBER() OVER (PARTITION BY PERNR ORDER BY ID DESC) AS rn
-                FROM [PA2001]
-            ),
-            Trabajadores_Activos AS (
-                SELECT 
-                    pa.PERNR AS A1_PERNR,
-                    pa.PERSK,
-                    pa.NOMBREYAPELLIDOS
-                FROM [PA_ACTIVOS] pa
-                INNER JOIN UltimaMedida um
-                    ON pa.PERNR = um.PERNR
-                    AND um.rn = 1
-                    AND um.STAT2 = '3'
-                LEFT JOIN UltimaAusencia pa201 
-                    ON pa.PERNR = pa201.PERNR 
-                    AND pa201.rn = 1
-                    AND CONVERT(DATE, '$fecha') BETWEEN pa201.BEGDA AND ISNULL(pa201.ENDDA, '9999-12-31')
-                WHERE pa.STAT2 = '3'
-                AND pa.PERSK = '$tipo'
-                AND pa.ZZWERKS = '1000'
-                AND pa201.PERNR IS NULL
-            ),
-            Trabajadores_QueHanRegistrado AS (
-                SELECT 
-                    DISTINCT pernr
-                FROM [" . ConfigAppReclutamiento::$bdsrx_nombre . "].[dbo].[webphp_registro_horario] 
-                WHERE fecha BETWEEN '$fecha 02:51:00' AND '$fecha_mas_uno 02:50:59'
-            )
-
-            SELECT 
-                t1.A1_PERNR,
-                t1.NOMBREYAPELLIDOS,
-                t1.PERSK,  
-                CASE 
-                    WHEN t2.pernr IS NOT NULL THEN '1' 
-                    ELSE '0'
-                END AS Estado
-            FROM Trabajadores_Activos t1
-            LEFT JOIN Trabajadores_QueHanRegistrado t2
-                ON t1.A1_PERNR = t2.pernr
-            WHERE 1 = 1";
-
+                    t1.A1_PERNR,
+                    t1.NOMBREYAPELLIDOS,
+                    t1.PERSK,  
+                    CASE 
+                        WHEN t2.pernr IS NOT NULL THEN '1' 
+                        ELSE '0'
+                    END AS Estado
+                FROM Trabajadores_Activos t1
+                LEFT JOIN Trabajadores_QueHanRegistrado t2
+                    ON t1.A1_PERNR = t2.pernr
+                WHERE 1 = 1";
         if (isset($filtroAsistencia) && $filtroAsistencia === '1') {
             $sql .= " AND t2.pernr IS NOT NULL"; // Solo aquellos que han registrado presencia
         } elseif (isset($filtroAsistencia) && $filtroAsistencia === '0') {
             $sql .= " AND t2.pernr IS NULL"; // Solo aquellos que no han registrado presencia
         } elseif (isset($filtroAsistencia) && $filtroAsistencia === 'todos') {
-
         }
-
         if (isset($buscador) && $buscador != '') {
             $sql .= " AND (t1.NOMBREYAPELLIDOS LIKE '%$buscador%' OR t1.A1_PERNR LIKE '%$buscador%')";
         }
-
         $sql .= " ORDER BY Estado, t1.A1_PERNR;
-
-            CLOSE SYMMETRIC KEY ClaveSimétricaPA_REG;
-        ";
-
+                  CLOSE SYMMETRIC KEY ClaveSimétricaPA_REG;
+                ";
         $consulta = sqlsrv_query($conn, $sql);
-
         if ($consulta === false) {
             die("Error al ejecutar la consulta: " . print_r(sqlsrv_errors(), true));
         }
-
         $resultado = [];
         while ($row = sqlsrv_fetch_array($consulta, SQLSRV_FETCH_ASSOC)) {
             $resultado[] = $row;
         }
-
         return $resultado;
     }
 
@@ -6210,7 +5962,7 @@ class sqlsrvModel
             $conn = $this->conectarMuleSoft();
 
             $sql = "SELECT [PERSK]
-                    FROM [Mulesoft].[dbo].[PA0001]
+                    FROM [" . ConfigMuleSoft::$bdsrx_nombre . "].[dbo].[PA0001]
                     GROUP BY [PERSK]
                     ORDER BY [PERSK]";
 
@@ -6732,7 +6484,7 @@ class sqlsrvModel
                         tgh.fecha_inicio,
                         tgh.fecha_fin
                     FROM [PA_ACTIVOS] pa 
-                    INNER JOIN [".ConfigAppReclutamiento::$bdsrx_nombre."].[dbo].[webphp_trabajadores_grupos_horario] tgh ON pa.PERNR = tgh.pernr
+                    INNER JOIN [" . ConfigAppReclutamiento::$bdsrx_nombre . "].[dbo].[webphp_trabajadores_grupos_horario] tgh ON pa.PERNR = tgh.pernr
                     WHERE tgh.grupo_horario_id = ?
                     ORDER BY pa.PERNR";
 
@@ -6815,8 +6567,8 @@ class sqlsrvModel
         $fecha_reg = date('Y-m-d H:i:s');
         $fecha = date('Y-m-d H:i:s', strtotime($fecha));
 
-        $sql = "INSERT INTO webphp_registro_horario (fecha, pernr, fecha_reg, tipo_reg, manual) 
-                VALUES ('" . $fecha_reg . "', '" . $registro['pernr'] . "', '" . $fecha . "', '" . $registro['tipo'] . "', 3)";
+        $sql = "INSERT INTO webphp_registro_horario (fecha, pernr, fecha_reg, tipo_reg, manual, fecha_utc, utc_api, zona_api ) 
+                VALUES ('" . $fecha_reg . "', '" . $registro['pernr'] . "', '" . $fecha . "', '" . $registro['tipo'] . "', 3, NULL, NULL, NULL )";
 
         $consulta = sqlsrv_query($conn, $sql);
 

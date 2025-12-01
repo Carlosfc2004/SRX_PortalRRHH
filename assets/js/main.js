@@ -322,7 +322,7 @@
       tabla_doc_cadu: [{ select: 5, sortable: false }],
       tabla_trab_sinllama: [{ select: 3, sortable: false }],
       tabla_trab: [{ select: 3, sortable: false }],
-      table_info: [{ select: 5, sortable: false }],
+      table_info: [{ select: 7, sortable: false }],
       trabajadores_presencia: [{ select: 3, sortable: false }],
     };
 

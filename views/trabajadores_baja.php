@@ -8,7 +8,7 @@ $num_trab = 0;
         border: 1px solid #dee2e6;
         border-right: 1px solid #dee2e6 !important;
     }
-    
+
     /* Alternativa: forzar borde en el select cuando está enfocado/desplegado */
     select.form-select:focus option,
     select.form-select option {
@@ -53,7 +53,8 @@ $num_trab = 0;
                             <?php if (isset($_POST['codigos_formateados']) && !empty($_POST['codigos_formateados'])) { ?>
                                 <span class="badge bg-light ms-1 text-dark" id="badgeTrabajadores">✓</span>
                             <?php } else { ?>
-                                <span class="badge bg-light ms-1 text-dark" id="badgeTrabajadores" style="display: none;"></span>
+                                <span class="badge bg-light ms-1 text-dark" id="badgeTrabajadores"
+                                    style="display: none;"></span>
                             <?php } ?>
                         </button>
                         <?php if (isset($_POST['codigos_formateados']) && !empty($_POST['codigos_formateados'])) { ?>
@@ -101,10 +102,23 @@ $num_trab = 0;
                         <select class="form-select w-100" name="relacion_laboral" id="relacion_laboral">
                             <option value=""></option>
                             <?php
-                                foreach ($params['relaciones_laborales'] as $key => $value) {
-                                    echo '<option value="' . $value['RELACION_LABORAL'] . '" ' . (isset($_POST['relacion_laboral']) && $_POST['relacion_laboral'] == $value['RELACION_LABORAL'] ? 'selected' : '') . '>' . $value['RELACION_LABORAL'] . " - " . $value['DESC_RELACION_LABORAL'] . '</option>';
-                                }
+                            foreach ($params['relaciones_laborales'] as $key => $value) {
+                                echo '<option value="' . $value['RELACION_LABORAL'] . '" ' . (isset($_POST['relacion_laboral']) && $_POST['relacion_laboral'] == $value['RELACION_LABORAL'] ? 'selected' : '') . '>' . $value['RELACION_LABORAL'] . " - " . $value['DESC_RELACION_LABORAL'] . '</option>';
+                            }
                             ?>
+                        </select>
+                    </div>
+
+                    <!-- Select con los Grupos disponibles -->
+                    <div class="col-md-3 mt-3">
+                        <label for="grupo_trabajador" class="form-label">Grupo Trabajador:</label>
+                        <select class="form-select" name="grupo_trabajador" id="grupo_trabajador">
+                            <option value="" ></option>
+                            <option value="A" <?php echo (isset($_POST['grupo_trabajador']) && $_POST['grupo_trabajador'] == 'A') ? 'selected' : ''; ?>>A</option>
+                            <option value="B" <?php echo (isset($_POST['grupo_trabajador']) && $_POST['grupo_trabajador'] == 'B') ? 'selected' : ''; ?>>B</option>
+                            <option value="C" <?php echo (isset($_POST['grupo_trabajador']) && $_POST['grupo_trabajador'] == 'C') ? 'selected' : ''; ?>>C</option>
+                            <option value="D" <?php echo (isset($_POST['grupo_trabajador']) && $_POST['grupo_trabajador'] == 'D') ? 'selected' : ''; ?>>D</option>
+                            <option value="E" <?php echo (isset($_POST['grupo_trabajador']) && $_POST['grupo_trabajador'] == 'E') ? 'selected' : ''; ?>>E</option>
                         </select>
                     </div>
                 </div>
@@ -128,7 +142,7 @@ $num_trab = 0;
 
             <form action='' id='exportar' class='mt-3' method='post' style='display: inline-block; margin-left: 15px;'>
                 <button type="button" target="_blank"
-                    onclick="document.getElementById('exportar').action='exportar.php?informe_trabajadores_baja_excel&ubicacion=' + document.getElementById('ubi_trab').value + '&fecha_ini=' + document.getElementById('fecha_ini').value + '&fecha_fin=' + document.getElementById('fecha_fin').value + '&codigos=' + document.getElementById('codigos_formateados').value + '&relacion_laboral=' + document.getElementById('relacion_laboral').value; document.getElementById('exportar').submit();"
+                    onclick="document.getElementById('exportar').action='exportar.php?informe_trabajadores_baja_excel&ubicacion=' + document.getElementById('ubi_trab').value + '&fecha_ini=' + document.getElementById('fecha_ini').value + '&fecha_fin=' + document.getElementById('fecha_fin').value + '&codigos=' + document.getElementById('codigos_formateados').value + '&relacion_laboral=' + document.getElementById('relacion_laboral').value + '&grupo_trabajador=' + document.getElementById('grupo_trabajador').value; document.getElementById('exportar').submit();"
                     style="background-color: white;">
                     <img src="img/xls.png" style="max-width: 100px; width: 35px; margin-top: 10px;">
                 </button>
@@ -143,13 +157,13 @@ $num_trab = 0;
             <table id="table_info" class="table datatable display" style="width:100%;">
                 <thead>
                     <tr>
-                        <th>Cod. Trabajador</th>
-                        <th style="width: 20%;"><?php echo $lang['nombre']; ?></th>
-                        <th style="width: 10%;">Fecha Baja</th>
-                        <th>Almacen</th>
-                        <th style="width: 15%;">Relacion Laboral</th>
-                        <th><?php echo $lang['menu5.1']; ?></th>
-                        <th><?php echo $lang['ult_llama']; ?></th>
+                        <th style="width: 10%;">Cod. Trabajador</th>
+                        <th style="width: 21%;"><?php echo $lang['nombre']; ?></th>
+                        <th style="width: 12%;">Fecha Baja</th>
+                        <th style="width: 13%;">Almacen</th>
+                        <th style="width: 19%;">Relacion Laboral</th>
+                        <th style="width: 12%;">Calificacion</th>
+                        <th style="width: 8%;">Grupo</th>
                         <th data-sortable="false"></th>
                     </tr>
                 </thead>
@@ -158,30 +172,35 @@ $num_trab = 0;
                     if (isset($params['datos_trab_baja'])) {
                         foreach ($params['datos_trab_baja'] as $resultado) {
                             $num_trab++;
-                            if (!empty($resultado['APELLIDO1']) && !empty($resultado['NOMBRE'])) {
+                            if (!empty($resultado['NACHN']) && !empty($resultado['VORNA'])) {
                                 // Si existen APELLIDO1 y NOMBRE, mostrar en formato: APELLIDO1 APELLIDO2, NOMBRE
-                                $nombre = $resultado['APELLIDO1'];
+                                $nombre = $resultado['NACHN'];
 
-                                if (!empty($resultado['APELLIDO2'])) {
-                                    $nombre .= ' ' . $resultado['APELLIDO2'];
+                                if (!empty($resultado['NACH2'])) {
+                                    $nombre .= ' ' . $resultado['NACH2'];
                                 }
 
-                                $nombre .= ', ' . $resultado['NOMBRE'];
-                            } elseif (!empty($resultado['NOMBREYAPELLIDOS'])) {
+                                $nombre .= ', ' . $resultado['VORNA'];
+                            } elseif (!empty($resultado['SNAME_CALC'])) {
                                 // Si existe el campo NOMBREYAPELLIDOS completo
-                                $nombre = $resultado['NOMBREYAPELLIDOS'];
+                                $nombre = $resultado['SNAME_CALC'];
                             }
 
                             ?>
                             <tr>
                                 <td><?php echo $resultado['PERNR']; ?></td>
                                 <td><?php echo $nombre; ?></td>
-                                <td><?php echo (!empty($resultado['BEGDA']) ? $resultado['BEGDA']->format('Y-m-d') : '') ?></td>
                                 <td>
                                     <?php
-                                    if (!empty($resultado['DESC_ALMACEN']) && !empty($resultado['ZZLGORT'])) {
+                                        $resultado['BEGDA_MEDIDA'] = DateTime::createFromFormat('Ymd', $resultado['BEGDA_MEDIDA'])->format('d/m/Y');
+                                        echo (!empty($resultado['BEGDA_MEDIDA']) ? $resultado['BEGDA_MEDIDA'] : '')
+                                    ?>
+                                </td>
+                                <td>
+                                    <?php
+                                    if (!empty($resultado['LGOBE']) && !empty($resultado['ZZLGORT'])) {
                                         // Si DESC_ALMACEN no está vacío ni es 'NULL', mostrarlo
-                                        echo $resultado['DESC_ALMACEN'] . ' (' . $resultado['ZZLGORT'] . ')';
+                                        echo $resultado['LGOBE'] . ' (' . $resultado['ZZLGORT'] . ')';
                                     } else {
                                         echo '';
                                     }
@@ -189,21 +208,29 @@ $num_trab = 0;
                                 </td>
                                 <td>
                                     <?php
-                                    if (!empty($resultado['DESC_RELACION_LABORAL'])) {
+                                    if (!empty($resultado['EMPL_RELATION']) && !empty($resultado['DESCRIPTION'])) {
                                         // Si DESC_RELACION_LABORAL no está vacío ni es 'NULL', mostrarlo
-                                        echo $resultado['RELACION_LABORAL'] . ' - ' . $resultado['DESC_RELACION_LABORAL'];
+                                        echo $resultado['EMPL_RELATION'] . ' - ' . $resultado['DESCRIPTION'];
                                     } else {
                                         echo '';
                                     }
                                     ?>
                                 </td>
                                 <td>
-                                    <a href="admin_cont.php?controller=index&action=view_remesa_llama&id=<?php echo $resultado['id_remesa'] ?>&ano=<?php echo $resultado['ano_remesa'] ?>"
-                                        target="_blank" style="color:#012970; text-decoration: underline;">
-                                        <?php echo $resultado['nombre_remesa'] ?>
-                                    </a>
+                                    <?php
+                                    // debe de tener el 0 antes del . si no hay ningun numero
+                                        $calificacion = strval($resultado['calificacion']);
+                                        if (strpos($calificacion, '.') === 0) {
+                                            $calificacion = '0' . $calificacion;
+                                        }
+                                        
+                                        echo !empty($calificacion) ? $calificacion : '';
+                                    ?>
                                 </td>
-                                <td><?php echo (!empty($resultado['FECHA_REGISTRO']) ? $resultado['FECHA_REGISTRO']->format('Y-m-d H:i:s') : '') ?>
+                                <td>
+                                    <?php
+                                        echo !empty($resultado['grupo']) ? $resultado['grupo'] : '';
+                                    ?>
                                 </td>
                                 <td>
                                     <a href='admin_cont.php?controller=index&action=update_trabajador&id=<?php echo $resultado['PERNR']; ?>&contact'
@@ -287,6 +314,7 @@ $num_trab = 0;
                     document.getElementById('codigosInput').value = codigosOriginales;
                 }
             });
+
         });
 
         /**
@@ -360,9 +388,7 @@ $num_trab = 0;
             alertify.success(mensaje);
         }
 
-        /**
-         * Limpiar códigos seleccionados
-         */
+        // Limpiar códigos seleccionados
         function limpiarCodigosSeleccionados() {
             // Limpiar campos ocultos
             document.getElementById('codigos_formateados').value = '';

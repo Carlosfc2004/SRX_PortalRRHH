@@ -1604,7 +1604,7 @@ try {
 	$fecha_fin = $_POST['fecha_fin'] ?? '';
 	$pernr_nom_sol = $_POST['pernr_nom_sol'] ?? '';
 	$tipo_ausencia = $_POST['tipo_ausencia'] ?? '';
-	$estado = $_POST['estado'] ?? '1';
+	$estado = $_POST['estado'] ?? '';
 	$justificante = $_POST['justificante'] ?? '';
 
 	$datosSolicitudes = $con_bdsrx->solicitudes_lista($fecha_inicio, $fecha_fin,  $pernr_nom_sol, $tipo_ausencia, $estado, $justificante);
@@ -1618,7 +1618,7 @@ try {
 
 			// Datos trabajador
 			$pdf->Cell(20, 6, $resultado['pernr'], 1, 0, 'C');
-			$pdf->Cell(55, 6, $resultado['NOMBREYAPELLIDOS'], 1, 0);
+			$pdf->Cell(55, 6, $resultado['nombre_trabajador'], 1, 0);
 
 			// Fechas
 			$pdf->Cell(35, 6, date_format($resultado['fecha_solicitud'], 'Y/m/d'), 1, 0, 'C');
@@ -1653,11 +1653,11 @@ try {
 			} elseif ($resultado['estado'] == '7') {
 				$estado = 'Pendiente anulación';
 			} elseif ($resultado['estado'] == '8') {
-				$estado = 'Anulación rechazada';
+				$estado = 'Aprobada';
 			} else {
 				$estado = 'Desconocido';
 			}
-			$pdf->Cell(22, 6, $estado, 1, 0, 'C');
+			$pdf->Cell(22, 6, utf8_decode($estado), 1, 0, 'C');
 
 			// Justificante
 			if ($resultado['tipo'] == '2') {
@@ -1734,7 +1734,7 @@ try {
 		$fecha_fin = $_POST['fecha_fin'] ?? '';
 		$pernr_nom_sol = $_POST['pernr_nom_sol'] ?? '';
 		$tipo_ausencia = $_POST['tipo_ausencia'] ?? '';
-		$estado = $_POST['estado'] ?? '1';
+		$estado = $_POST['estado'] ?? '';
 		$justificante = $_POST['justificante'] ?? '';
 
 		$datosSolicitudes = $con_bdsrx->solicitudes_lista($fecha_inicio, $fecha_fin,  $pernr_nom_sol, $tipo_ausencia, $estado, $justificante);
@@ -1746,7 +1746,7 @@ try {
 				$sheet->setCellValue('A'.$i, $resultado['pernr']);
 
 				// Nombre y apellidos
-				$sheet->setCellValue('B'.$i, $resultado['NOMBREYAPELLIDOS']);
+				$sheet->setCellValue('B'.$i, $resultado['nombre_trabajador']);
 
 				// Fechas
 				$sheet->setCellValue('C'.$i, date_format($resultado['fecha_solicitud'], 'Y/m/d'));
@@ -2210,32 +2210,40 @@ try {
 		$sheet->getColumnDimension('B')->setWidth(50);
 		$sheet->getColumnDimension('C')->setWidth(20);
 		$sheet->getColumnDimension('D')->setWidth(25);
+		$sheet->getColumnDimension('E')->setWidth(30);
+		$sheet->getColumnDimension('F')->setWidth(20);
 		
 		//Mostramos la cabecera
-		$sheet->getStyle('A1:D1')->getFont()->setBold(true);
-		$sheet->getStyle('A1:D1')->getFill()->setFillType("solid")->getStartColor()->setARGB('FFE5E5E5');
+		$sheet->getStyle('A1:F1')->getFont()->setBold(true);
+		$sheet->getStyle('A1:F1')->getFill()->setFillType("solid")->getStartColor()->setARGB('FFE5E5E5');
 		$sheet->setCellValue('A1', 'Cod. Trab');
 		$sheet->setCellValue('B1', 'Nombre y apellidos');
 		$sheet->setCellValue('C1', 'Fecha de baja');
 		$sheet->setCellValue('D1', 'Almacen');
+		// Calificacion
+		$sheet->setCellValue('E1', 'Calificacion');
+		// Grupo
+		$sheet->setCellValue('F1', 'Grupo');
 
-		$datosInforme = $con_bdsrx->trabajadores_baja($_GET['ubicacion'], $_GET['fecha_ini'], $_GET['fecha_fin'], $_GET['relacion_laboral'], $_GET['codigos']);
+		$datosInforme = $con_bdsrx->trabajadores_baja($_GET['ubicacion'], $_GET['fecha_ini'], $_GET['fecha_fin'], $_GET['relacion_laboral'], $_GET['codigos'], $_GET['grupo_trabajador']);
 		if (!empty($datosInforme)) {
 			$fila = 2;
 			foreach ($datosInforme as $resultado) {
 				$sheet->setCellValue('A' . $fila, $resultado['PERNR']);
-				$sheet->setCellValue('B' . $fila, $resultado['NOMBREYAPELLIDOS']);
-				$sheet->setCellValue('C' . $fila, $resultado['BEGDA']->format('Y-m-d'));
-				$sheet->setCellValue('D' . $fila, $resultado['DESC_ALMACEN'] ." (".$resultado['ZZLGORT'].")");
+				$sheet->setCellValue('B' . $fila, $resultado['SNAME_CALC']);
+				$sheet->setCellValue('C' . $fila, $resultado['BEGDA_MEDIDA']);
+				$sheet->setCellValue('D' . $fila, $resultado['LGOBE'] ." (".$resultado['ZZLGORT'].")");
+				$sheet->setCellValue('E' . $fila, $resultado['calificacion']);
+				$sheet->setCellValue('F' . $fila, $resultado['grupo']);
 				$fila++;
 			}
 		}
 
 		//Pintamos el borde de la tabla
-		$sheet->getStyle('A1:D' . ($fila - 1))->getBorders()->getAllBorders()->setBorderStyle("thin");
+		$sheet->getStyle('A1:F' . ($fila - 1))->getBorders()->getAllBorders()->setBorderStyle("thin");
 		//Centramos las columnas
-		$sheet->getStyle('A1:D' . ($fila - 1))->getAlignment()->setHorizontal('center');
-		$sheet->getStyle('A1:D' . ($fila - 1))->getAlignment()->setVertical('center');
+		$sheet->getStyle('A1:F' . ($fila - 1))->getAlignment()->setHorizontal('center');
+		$sheet->getStyle('A1:F' . ($fila - 1))->getAlignment()->setVertical('center');
 		
 		//Descargamos el archivo
 		header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');

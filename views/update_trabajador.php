@@ -138,26 +138,21 @@ if (isset($params['info_trabajador']) && is_array($params['info_trabajador'])) {
 
 					<!-- PESTAÑA 1 DATOS PERSONALES -->
 					<div class="tab-content pt-1">
-						<div class="tab-pane <?php if (isset($_GET['showll']) or isset($_GET['contact']) or isset($_GET['alertas'])) {
-							echo '';
-						} else {
-							echo 'fade show active profile-overview';
-						} ?> " id="datos-personales">
-
+						<div class="tab-pane <?php if (isset($_GET['showll']) or isset($_GET['contact']) or isset($_GET['alertas'])) {echo '';} else {echo 'fade show active profile-overview';} ?> " id="datos-personales">
 							<?php
 							// Al inicio del archivo o en un archivo de configuración
 							$nombreCompleto = '';
 
-							if ($params['info_trabajador']['APELLIDO1'] && $params['info_trabajador']['NOMBRE']) {
-								$nombreCompleto = $params['info_trabajador']['APELLIDO1'];
+							if ($params['info_trabajador']['NACHN'] && $params['info_trabajador']['VORNA']) {
+								$nombreCompleto = $params['info_trabajador']['NACHN'];
 
 								// Añadir segundo apellido si existe
-								if (!empty($params['info_trabajador']['APELLIDO2'])) {
-									$nombreCompleto .= ' ' . $params['info_trabajador']['APELLIDO2'];
+								if (!empty($params['info_trabajador']['NACH2'])) {
+									$nombreCompleto .= ' ' . $params['info_trabajador']['NACH2'];
 								}
 
 								// Añadir nombre
-								$nombreCompleto .= ', ' . $params['info_trabajador']['NOMBRE'];
+								$nombreCompleto .= ', ' . $params['info_trabajador']['VORNA'];
 							} elseif (!empty($params['info_trabajador']['NOMBREYAPELLIDOS'])) {
 								$nombreCompleto = $params['info_trabajador']['NOMBREYAPELLIDOS'];
 							}
@@ -181,7 +176,7 @@ if (isset($params['info_trabajador']) && is_array($params['info_trabajador'])) {
 								<div class="col-md-3">
 									<label class="form-label"><b><?php echo $lang['sexo']; ?></b></label>
 									<input type="text" name="SEXO" class="form-control"
-										value="<?php echo isset($params['info_trabajador']['SEXO']) ? ($params['info_trabajador']['SEXO'] == '1' ? 'Masculino' : 'Femenino') : ''; ?>"
+										value="<?php echo isset($params['info_trabajador']['GESCH']) ? ($params['info_trabajador']['GESCH'] == '1' ? 'Masculino' : 'Femenino') : ''; ?>"
 										readonly>
 								</div>
 							</div>
@@ -189,14 +184,25 @@ if (isset($params['info_trabajador']) && is_array($params['info_trabajador'])) {
 							<div class="row mb-3">
 								<div class="col-md-3">
 									<label class="form-label"><b><?php echo $lang['fecha_nac']; ?></b></label>
-									<input type="text" name="FECHA_NACIMIENTO" class="form-control"
-										value="<?php echo isset($params['info_trabajador']['FECHANACIMIENTO']) ? $params['info_trabajador']['FECHANACIMIENTO'] : ''; ?>"
+									<?php 
+										// Formatear la fecha de nacimiento de 99999999 a dd/mm/yyyy
+										$fecha_nac = isset($params['info_trabajador']['GBDAT']) ? $params['info_trabajador']['GBDAT'] : '';
+										if (strlen($fecha_nac) == 8) {
+											$year = substr($fecha_nac, 0, 4);
+											$month = substr($fecha_nac, 4, 2);
+											$day = substr($fecha_nac, 6, 2);
+											$fecha_nac_formateada = $day . '/' . $month . '/' . $year;
+										} else {
+											$fecha_nac_formateada = $fecha_nac; // Mantener el valor original si no tiene 8 caracteres
+										}
+									?>
+									<input type="text" name="FECHA_NACIMIENTO" class="form-control" value="<?php echo $fecha_nac_formateada; ?>"
 										readonly>
 								</div>
 								<div class="col-md-4">
 									<label class="form-label"><b><?php echo $lang['lug_nac']; ?></b></label>
 									<?php
-									$lugar_nac = isset($params['info_trabajador']['LUGAR_NACIMIENTO']) ? $params['info_trabajador']['LUGAR_NACIMIENTO'] : '';
+									$lugar_nac = isset($params['info_trabajador']['GBORT']) ? $params['info_trabajador']['GBORT'] : '';
 									?>
 									<input type="text" name="lugar_nac" id="lugar_nac" class="form-control"
 										value="<?php echo $lugar_nac; ?>" readonly>
@@ -204,16 +210,15 @@ if (isset($params['info_trabajador']) && is_array($params['info_trabajador'])) {
 								<div class="col-md-3">
 									<label class="form-label"><b><?php echo $lang['pais_nac']; ?></b></label>
 									<?php
-									$pais_nac = isset($params['info_trabajador']['PAIS_NACIMIENTO']) ? $params['info_trabajador']['PAIS_NACIMIENTO'] : '';
-									$desc_pais_na = isset($params['info_trabajador']['DESC_PAIS_NACIMIENTO']) ? $params['info_trabajador']['DESC_PAIS_NACIMIENTO'] : '';
+										$desc_pais_na = isset($params['info_trabajador']['GBLND']) ? $params['info_trabajador']['GBLND'] : '';
 									?>
 									<input type="text" name="pais_nac" id="pais_nac" class="form-control"
-										value="<?php echo $pais_nac . ' - ' . $desc_pais_na; ?>" readonly>
+										value="<?php echo $desc_pais_na; ?>" readonly>
 								</div>
 								<div class="col-md-2">
 									<label class="form-label"><b><?php echo $lang['nacionalidad']; ?></b></label>
 									<?php
-									$nacionalidad = isset($params['info_trabajador']['DESC_NACIONALIDAD']) ? $params['info_trabajador']['DESC_NACIONALIDAD'] : '';
+									$nacionalidad = isset($params['info_trabajador']['NATIO']) ? $params['info_trabajador']['NATIO'] : '';
 									?>
 									<input type="text" name="nacionalidad" id="nacionalidad" class="form-control"
 										value="<?php echo $nacionalidad; ?>" readonly>
@@ -231,7 +236,7 @@ if (isset($params['info_trabajador']) && is_array($params['info_trabajador'])) {
 								<div class="col-md-3">
 									<label class="form-label"><b><?php echo $lang['num_doc']; ?></b></label>
 									<input type="text" name="dni" class="form-control"
-										value="<?php echo isset($params['info_trabajador']['DNI']) ? $params['info_trabajador']['DNI'] : ''; ?>"
+										value="<?php echo isset($params['info_trabajador']['PERID']) ? $params['info_trabajador']['PERID'] : ''; ?>"
 										readonly>
 								</div>
 								<div class="col-md-6">
@@ -361,7 +366,7 @@ if (isset($params['info_trabajador']) && is_array($params['info_trabajador'])) {
 
 								<form action="" id="exportar" method="post" style="display: inline-block;">
 									<input type="hidden" name="documento"
-										value="<?php echo $params['info_trabajador']['DNI']; ?>">
+										value="<?php echo $params['info_trabajador']['PERID']; ?>">
 									<input type="hidden" name="nombre"
 										value="<?php echo $params['info_trabajador']['NOMBREYAPELLIDOS']; ?>">
 									<input type="hidden" name="pernr"
@@ -789,387 +794,578 @@ if (isset($params['info_trabajador']) && is_array($params['info_trabajador'])) {
 						<!-- PESTAÑA 3 DIRECCION -->
 
 						<div class="tab-pane pt-2" id="datos-direccion">
-							<div class="col-md-12">
-								<div class="row mb-3">
-									<div class="col-md-3">
-										<label class="form-label"><b><?php echo $lang['pais']; ?></b></label>
-										<?php
-										$pais = isset($params['datos_direccion'][0]['PAIS']) ? $params['datos_direccion'][0]['PAIS'] : '';
-										$desc_pais = isset($params['datos_direccion'][0]['DESC_PAIS']) ? $params['datos_direccion'][0]['DESC_PAIS'] : '';
-										?>
-										<input type="text" name="pais" id="pais" class="form-control"
-											value="<?php echo $pais . ' - ' . $desc_pais; ?>" readonly>
-									</div>
-									<div class="col-md-3">
-										<label class="form-label"><b><?php echo $lang['provincia']; ?></b></label>
-										<?php
-										$provincia = isset($params['datos_direccion'][0]['DESC_REGION']) ? $params['datos_direccion'][0]['DESC_REGION'] : '';
-										?>
-										<input type="text" name="provincia" id="provincia" class="form-control"
-											value="<?php echo $provincia; ?>" readonly>
-									</div>
-									<div class="col-md-4">
-										<label class="form-label"><b><?php echo $lang['municipio']; ?></b></label>
-										<?php
-										$municipio = isset($params['datos_direccion'][0]['POBLACION']) ? $params['datos_direccion'][0]['POBLACION'] : '';
-										?>
-										<input type="text" name="municipio" id="municipio" class="form-control"
-											value="<?php echo $municipio; ?>" readonly>
-									</div>
-									<div class="col-md-2">
-										<label class="form-label"><b><?php echo $lang['cod_post']; ?></b></label>
-										<?php
-										$cp = isset($params['datos_direccion'][0]['COD_POSTAL']) ? $params['datos_direccion'][0]['COD_POSTAL'] : '';
-										?>
-										<input type="text" name="cp" id="cp" class="form-control"
-											value="<?php echo $cp; ?>" readonly>
-									</div>
+							<!-- Loader -->
+							<div id="loader-direccion" class="text-center" style="padding: 40px;">
+								<div class="spinner-border text-primary" role="status">
+									<span class="visually-hidden">Cargando...</span>
 								</div>
+								<p class="mt-3">Cargando datos de dirección...</p>
+							</div>
 
-								<div class="row mb-3">
-									<div class="col-md-3">
-										<label class="form-label"><b><?php echo $lang['tipo']; ?></b></label>
-										<?php
-										$cod_tipo = isset($params['datos_direccion'][0]['SIGLAS_VP']) ? $params['datos_direccion'][0]['SIGLAS_VP'] : '';
-										$tipo = isset($params['datos_direccion'][0]['DESC_SIGLAS_VP']) ? $params['datos_direccion'][0]['DESC_SIGLAS_VP'] : '';
-										?>
-										<input type="text" name="tipo" id="tipo" class="form-control"
-											value="<?php echo $cod_tipo . ' - ' . $tipo; ?>" readonly>
+							<!-- Contenido -->
+							<div id="contenido-direccion" style="display: none;">
+								<div class="col-md-12">
+									<div class="row mb-3">
+										<div class="col-md-3">
+											<label class="form-label"><b><?php echo $lang['pais']; ?></b></label>
+											<input type="text" name="pais" id="pais" class="form-control" value=""
+												readonly>
+										</div>
+										<div class="col-md-3">
+											<label class="form-label"><b><?php echo $lang['provincia']; ?></b></label>
+											<input type="text" name="provincia" id="provincia" class="form-control"
+												value="" readonly>
+										</div>
+										<div class="col-md-4">
+											<label class="form-label"><b><?php echo $lang['municipio']; ?></b></label>
+											<input type="text" name="municipio" id="municipio" class="form-control"
+												value="" readonly>
+										</div>
+										<div class="col-md-2">
+											<label class="form-label"><b><?php echo $lang['cod_post']; ?></b></label>
+											<input type="text" name="cp" id="cp" class="form-control" value="" readonly>
+										</div>
 									</div>
-									<div class="col-md-6">
-										<label class="form-label"><b><?php echo $lang['calle']; ?></b></label>
-										<?php
-										$calle = isset($params['datos_direccion'][0]['CALLE_NUMERO']) ? $params['datos_direccion'][0]['CALLE_NUMERO'] : '';
-										?>
-										<input type="text" name="calle" id="calle" class="form-control"
-											value="<?php echo $calle; ?>" readonly>
-									</div>
-									<div class="col-md-3">
-										<label class="form-label"><b><?php echo $lang['numero']; ?></b></label>
-										<?php
-										$numero = isset($params['datos_direccion'][0]['N_EDIFICIO']) ? $params['datos_direccion'][0]['N_EDIFICIO'] : '';
-										?>
-										<input type="text" name="numero" id="numero" class="form-control"
-											value="<?php echo $numero; ?>" readonly>
-									</div>
-								</div>
 
-								<div class="row mb-3">
-									<div class="col-md-6">
-										<label class="form-label"><b><?php echo $lang['clase']; ?></b></label>
-										<?php
-										$clase = isset($params['datos_direccion'][0]['DESC_CLASE_DIRECCION']) ? $params['datos_direccion'][0]['DESC_CLASE_DIRECCION'] : '';
-										?>
-										<input type="text" name="clase" id="clase" class="form-control"
-											value="<?php echo $clase; ?>" readonly>
+									<div class="row mb-3">
+										<div class="col-md-3">
+											<label class="form-label"><b><?php echo $lang['tipo']; ?></b></label>
+											<input type="text" name="tipo" id="tipo" class="form-control" value=""
+												readonly>
+										</div>
+										<div class="col-md-6">
+											<label class="form-label"><b><?php echo $lang['calle']; ?></b></label>
+											<input type="text" name="calle" id="calle" class="form-control" value=""
+												readonly>
+										</div>
+										<div class="col-md-3">
+											<label class="form-label"><b><?php echo $lang['numero']; ?></b></label>
+											<input type="text" name="numero" id="numero" class="form-control" value=""
+												readonly>
+										</div>
+									</div>
+
+									<div class="row mb-3">
+										<div class="col-md-6">
+											<label class="form-label"><b><?php echo $lang['clase']; ?></b></label>
+											<input type="text" name="clase" id="clase" class="form-control" value=""
+												readonly>
+										</div>
 									</div>
 								</div>
 							</div>
 						</div>
+
+						<script>
+							// Obtener el ID del trabajador desde la URL
+							const urlParams = new URLSearchParams(window.location.search);
+							const trabajadorId = urlParams.get('id');
+
+
+							// Función para cargar datos de dirección
+							let datosDireccionCargados = false;
+
+							function cargarDatosDireccion() {
+								if (datosDireccionCargados || !trabajadorId) return;
+
+								fetch(`auto.php?datos_direccion=1&id=${trabajadorId}`)
+									.then(response => response.json())
+									.then(result => {
+										// Ocultar loader siempre
+										document.getElementById('loader-direccion').style.display = 'none';
+
+										if (result.success && result.data) {
+											const data = result.data;
+											document.getElementById('pais').value = (data.PAIS || '') + (data.DESC_PAIS ? ' - ' + data.DESC_PAIS : '');
+											document.getElementById('provincia').value = data.DESC_REGION || '';
+											document.getElementById('municipio').value = data.POBLACION || '';
+											document.getElementById('cp').value = data.COD_POSTAL || '';
+											document.getElementById('tipo').value = (data.SIGLAS_VP || '') /*+ (data.DESC_SIGLAS_VP ? ' - ' + data.DESC_SIGLAS_VP : '')*/;
+											document.getElementById('calle').value = data.CALLE_NUMERO || '';
+											document.getElementById('numero').value = data.N_EDIFICIO || '';
+											document.getElementById('clase').value = data.DESC_CLASE_DIRECCION || '';
+											document.getElementById('contenido-direccion').style.display = 'block';
+										} else {
+											// Mostrar alerta de no datos
+											const alertHtml = '<div class="alert alert-danger alert-dismissible fade show" role="alert">No hay datos de dirección disponibles.</div>';
+											document.getElementById('loader-direccion').innerHTML = alertHtml;
+											document.getElementById('loader-direccion').style.display = 'block';
+										}
+
+										datosDireccionCargados = true;
+									})
+									.catch(error => {
+										console.error('Error:', error);
+										document.getElementById('loader-direccion').innerHTML =
+											'<div class="alert alert-danger alert-dismissible fade show" role="alert">Error al cargar los datos de dirección.</div>';
+										document.getElementById('loader-direccion').style.display = 'block';
+									});
+							}
+						</script>
 
 
 						<!-- PESTAÑA 4 DATOS CONTRATO -->
 
 						<div class="tab-pane pt-2" id="datos-contrato">
-							<div class="col-md-12">
-								<h5
-									style="padding: 5px 0 10px 0; font-size: 18px; font-weight: 500; color: #012970; font-family: Poppins, sans-serif;">
-									<?php echo $lang['contratos']; ?>
-								</h5>
-								<div class="row mb-3">
-									<div class="col-md-6">
-										<label class="form-label"><b><?php echo $lang['tipo_cont']; ?></b></label>
-										<?php
-										$tipo_con = isset($params['datos_contrato'][0]['TIPO_CONTRATO']) ? $params['datos_contrato'][0]['TIPO_CONTRATO'] : '';
-										$desc_tipo_con = isset($params['datos_contrato'][0]['DESC_TIPO_CONTRATO']) ? $params['datos_contrato'][0]['DESC_TIPO_CONTRATO'] : '';
-										?>
-										<input type="text" name="tipo_con" id="tipo_con" class="form-control"
-											value="<?php echo $tipo_con . " - " . $desc_tipo_con; ?>" readonly>
-									</div>
-									<div class="col-md-6">
-										<label class="form-label"><b><?php echo $lang['cla_cont']; ?></b></label>
-										<?php
-										$clave_con = isset($params['datos_contrato'][0]['CLAVE_CONTRATO']) ? $params['datos_contrato'][0]['CLAVE_CONTRATO'] : '';
-										$desc_clave_con = isset($params['datos_contrato'][0]['DESC_CLAVE_CONTRATO']) ? $params['datos_contrato'][0]['DESC_CLAVE_CONTRATO'] : '';
-										?>
-										<input type="text" name="clave_con" id="clave_con" class="form-control"
-											value="<?php echo $clave_con . " - " . $desc_clave_con; ?>" readonly>
-									</div>
-
-									<div class="col-md-3 mt-3">
-										<label class="form-label"><b><?php echo $lang['alta']; ?>:</b></label>
-										<?php
-										$alta = isset($params['datos_contrato'][0]['BEGDA']) ? $params['datos_contrato'][0]['BEGDA'] : '';
-										?>
-										<input type="text" name="Alta" id="Alta" class="form-control"
-											value="<?php echo $alta; ?>" readonly>
-									</div>
-									<div class="col-md-3 mt-3">
-										<label class="form-label"><b><?php echo $lang['baja']; ?>:</b></label>
-										<?php
-										$baja = isset($params['datos_contrato'][0]['ENDDA']) ? $params['datos_contrato'][0]['ENDDA'] : '';
-										?>
-										<input type="text" name="Baja" id="Baja" class="form-control"
-											value="<?php echo $baja; ?>" readonly>
-									</div>
+							<!-- Loader -->
+							<div id="loader-contrato" class="text-center" style="padding: 40px;">
+								<div class="spinner-border text-primary" role="status">
+									<span class="visually-hidden">Cargando...</span>
 								</div>
-								<br>
-								<h5
-									style="padding: 5px 0 10px 0; font-size: 18px; font-weight: 500; color: #012970; font-family: Poppins, sans-serif;">
-									<?php echo $lang['seg_soc']; ?>
-								</h5>
-								<div class="row mb-3">
-									<div class="col-md-5">
-										<label class="form-label"><b><?php echo $lang['tipo_cont']; ?></b></label>
-										<?php
-										$tipo_con2 = isset($params['datos_contrato2'][0]['RELACION_LABORAL']) ? $params['datos_contrato2'][0]['RELACION_LABORAL'] : '';
-										$desc_tipo_con2 = isset($params['datos_contrato2'][0]['DESC_RELACION_LABORAL']) ? $params['datos_contrato2'][0]['DESC_RELACION_LABORAL'] : '';
-										?>
-										<input type="text" name="tipo_con2" id="tipo_con2" class="form-control"
-											value="<?php echo $tipo_con2 . " - " . $desc_tipo_con2; ?>" readonly>
+								<p class="mt-3">Cargando datos de contrato...</p>
+							</div>
+
+							<!-- Contenido -->
+							<div id="contenido-contrato" style="display: none;">
+								<div class="col-md-12">
+									<h5
+										style="padding: 5px 0 10px 0; font-size: 18px; font-weight: 500; color: #012970; font-family: Poppins, sans-serif;">
+										<?php echo $lang['contratos']; ?>
+									</h5>
+									<div class="row mb-3">
+										<div class="col-md-6">
+											<label class="form-label"><b><?php echo $lang['tipo_cont']; ?></b></label>
+											<input type="text" name="tipo_con" id="tipo_con" class="form-control"
+												value="" readonly>
+										</div>
+										<div class="col-md-6">
+											<label class="form-label"><b><?php echo $lang['cla_cont']; ?></b></label>
+											<input type="text" name="clave_con" id="clave_con" class="form-control"
+												value="" readonly>
+										</div>
+
+										<div class="col-md-3 mt-3">
+											<label class="form-label"><b><?php echo $lang['alta']; ?>:</b></label>
+											<input type="text" name="Alta" id="Alta" class="form-control" value=""
+												readonly>
+										</div>
+										<div class="col-md-3 mt-3">
+											<label class="form-label"><b><?php echo $lang['baja']; ?>:</b></label>
+											<input type="text" name="Baja" id="Baja" class="form-control" value=""
+												readonly>
+										</div>
 									</div>
-									<div class="col-md-3">
-										<label class="form-label"><b><?php echo $lang['alta']; ?>:</b></label>
-										<?php
-										$alta = isset($params['datos_contrato2'][0]['BEGDA']) ? $params['datos_contrato2'][0]['BEGDA'] : '';
-										?>
-										<input type="text" name="Alta" id="Alta" class="form-control"
-											value="<?php echo $alta; ?>" readonly>
-									</div>
-									<div class="col-md-3">
-										<label class="form-label"><b><?php echo $lang['baja']; ?>:</b></label>
-										<?php
-										$baja = isset($params['datos_contrato2'][0]['ENDDA']) ? $params['datos_contrato2'][0]['ENDDA'] : '';
-										?>
-										<input type="text" name="Baja" id="Baja" class="form-control"
-											value="<?php echo $baja; ?>" readonly>
+									<br>
+									<h5
+										style="padding: 5px 0 10px 0; font-size: 18px; font-weight: 500; color: #012970; font-family: Poppins, sans-serif;">
+										<?php echo $lang['seg_soc']; ?>
+									</h5>
+									<div class="row mb-3">
+										<div class="col-md-5">
+											<label class="form-label"><b><?php echo $lang['tipo_cont']; ?></b></label>
+											<input type="text" name="tipo_con2" id="tipo_con2" class="form-control"
+												value="" readonly>
+										</div>
+										<div class="col-md-3">
+											<label class="form-label"><b><?php echo $lang['alta']; ?>:</b></label>
+											<input type="text" name="Alta"  class="form-control" value=""
+												readonly>
+										</div>
+										<div class="col-md-3">
+											<label class="form-label"><b><?php echo $lang['baja']; ?>:</b></label>
+											<input type="text" name="Baja" class="form-control" value=""
+												readonly>
+										</div>
 									</div>
 								</div>
 							</div>
 						</div>
+
+						<script>
+							// Función para cargar datos de contrato
+							let datosContratoCargados = false;
+
+							function cargarDatosContrato() {
+								if (datosContratoCargados || !trabajadorId) return;
+
+								fetch(`auto.php?datos_contrato=1&id=${trabajadorId}`)
+									.then(response => response.json())
+									.then(result => {
+										// Ocultar loader siempre
+										document.getElementById('loader-contrato').style.display = 'none';
+
+										if (result.success && result.data && (result.data.contrato1 || result.data.contrato2)) {
+											const data = result.data;
+
+											// Contrato 1
+											if (data.contrato1) {
+												document.getElementById('tipo_con').value = (data.contrato1.TIPO_CONTRATO || '') + (data.contrato1.DESC_TIPO_CONTRATO ? ' - ' + data.contrato1.DESC_TIPO_CONTRATO : '');
+												document.getElementById('clave_con').value = (data.contrato1.CLAVE_CONTRATO || '') + (data.contrato1.DESC_CLAVE_CONTRATO ? ' - ' + data.contrato1.DESC_CLAVE_CONTRATO : '');
+												document.getElementById('Alta').value = data.contrato1.BEGDA || '';
+												document.getElementById('Baja').value = data.contrato1.ENDDA || '';
+											}
+
+											// Contrato 2
+											if (data.contrato2) {
+												document.getElementById('tipo_con2').value = (data.contrato2.RELACION_LABORAL || '') + (data.contrato2.DESC_RELACION_LABORAL ? ' - ' + data.contrato2.DESC_RELACION_LABORAL : '');
+												const altaElem = document.querySelector('input[name="Alta"][readonly]:not(#Alta)');
+												const bajaElem = document.querySelector('input[name="Baja"][readonly]:not(#Baja)');
+												if (altaElem) altaElem.value = data.contrato2.BEGDA || '';
+												if (bajaElem) bajaElem.value = data.contrato2.ENDDA || '';
+											}
+
+											document.getElementById('contenido-contrato').style.display = 'block';
+										} else {
+											// Mostrar alerta de no datos
+											const alertHtml = '<div class="alert alert-danger alert-dismissible fade show" role="alert">No hay datos de contrato disponibles.</div>';
+											document.getElementById('loader-contrato').innerHTML = alertHtml;
+											document.getElementById('loader-contrato').style.display = 'block';
+										}
+
+										datosContratoCargados = true;
+									})
+									.catch(error => {
+										console.error('Error:', error);
+										document.getElementById('loader-contrato').innerHTML =
+											'<div class="alert alert-danger alert-dismissible fade show" role="alert">Error al cargar los datos de contrato.</div>';
+										document.getElementById('loader-contrato').style.display = 'block';
+									});
+							}
+						</script>
 
 
 						<!-- PESTAÑA 5 DATOS ROPO -->
 
 						<div class="tab-pane fade pt-2" id="datos-ropo">
-							<div class="row mb-3">
-								<div class="col-md-3">
-									<label class="form-label"><b><?php echo $lang['alta']; ?></b></label>
-									<input type="text" name="FechaAlta" class="form-control" value="<?php if (!empty($params['datos_ropo'])) {
-										echo $params['datos_ropo'][0]['BEGDA'];
-									}
-									;
-									?>" readonly>
+							<!-- Loader -->
+							<div id="loader-ropo" class="text-center" style="padding: 40px;">
+								<div class="spinner-border text-primary" role="status">
+									<span class="visually-hidden">Cargando...</span>
 								</div>
-								<div class="col-md-3">
-									<label class="form-label"><b><?php echo $lang['baja']; ?></b></label>
-									<input type="text" name="FechaBaja" class="form-control" value="<?php if (!empty($params['datos_ropo'])) {
-										echo $params['datos_ropo'][0]['ENDDA'];
-									}
-									;
-									?>" readonly>
-								</div>
-								<div class="clear"><br></div>
-								<div class="col-md-3">
-									<label class="form-label"><b>ROPO</b></label>
-									<input type="text" name="ROPO" class="form-control" value="<?php if (!empty($params['datos_ropo'])) {
-										echo $params['datos_ropo'][0]['ZZCARNET'];
-									}
-									;
-									?>" readonly>
-								</div>
-								<div class="col-md-3">
-									<label class="form-label"><b><?php echo $lang['num_carnet']; ?></b></label>
-									<input type="text" name="NumCarnet" class="form-control" value="<?php if (!empty($params['datos_ropo'])) {
-										echo $params['datos_ropo'][0]['ZZROPO'];
-									}
-									;
-									?>" readonly>
-								</div>
-								<div class="col-md-3">
-									<label class="form-label"><b><?php echo $lang['fecha_carnet']; ?></b></label>
-									<input type="text" name="FechaCarnet" class="form-control" value="<?php if (!empty($params['datos_ropo'])) {
-										echo $params['datos_ropo'][0]['ZZFECHA'];
-									}
-									;
-									?>" readonly>
+								<p class="mt-3">Cargando datos ROPO...</p>
+							</div>
+
+							<!-- Contenido -->
+							<div id="contenido-ropo" style="display: none;">
+								<div class="row mb-3">
+									<div class="col-md-3">
+										<label class="form-label"><b><?php echo $lang['alta']; ?></b></label>
+										<input type="text" name="FechaAlta" class="form-control" value="" readonly>
+									</div>
+									<div class="col-md-3">
+										<label class="form-label"><b><?php echo $lang['baja']; ?></b></label>
+										<input type="text" name="FechaBaja" class="form-control" value="" readonly>
+									</div>
+									<div class="clear"><br></div>
+									<div class="col-md-3">
+										<label class="form-label"><b>ROPO</b></label>
+										<input type="text" name="ROPO" class="form-control" value="" readonly>
+									</div>
+									<div class="col-md-3">
+										<label class="form-label"><b><?php echo $lang['num_carnet']; ?></b></label>
+										<input type="text" name="NumCarnet" class="form-control" value="" readonly>
+									</div>
+									<div class="col-md-3">
+										<label class="form-label"><b><?php echo $lang['fecha_carnet']; ?></b></label>
+										<input type="text" name="FechaCarnet" class="form-control" value="" readonly>
+									</div>
 								</div>
 							</div>
 						</div>
+
+						<script>
+							// Función para cargar datos ROPO
+							let datosRopoCargados = false;
+
+							function cargarDatosRopo() {
+								if (datosRopoCargados || !trabajadorId) return;
+
+								fetch(`auto.php?datos_ropo=1&id=${trabajadorId}`)
+									.then(response => response.json())
+									.then(result => {
+										// Ocultar loader siempre
+										document.getElementById('loader-ropo').style.display = 'none';
+
+										if (result.success && result.data) {
+											const data = result.data;
+											document.querySelector('input[name="FechaAlta"]').value = data.BEGDA || '';
+											document.querySelector('input[name="FechaBaja"]').value = data.ENDDA || '';
+											document.querySelector('input[name="ROPO"]').value = data.ZZCARNET || '';
+											document.querySelector('input[name="NumCarnet"]').value = data.ZZROPO || '';
+											document.querySelector('input[name="FechaCarnet"]').value = data.ZZFECHA || '';
+											document.getElementById('contenido-ropo').style.display = 'block';
+										} else {
+											// Mostrar alerta de no datos
+											const alertHtml = '<div class="alert alert-danger alert-dismissible fade show" role="alert">No hay datos ROPO disponibles.</div>';
+											document.getElementById('loader-ropo').innerHTML = alertHtml;
+											document.getElementById('loader-ropo').style.display = 'block';
+										}
+
+										datosRopoCargados = true;
+									})
+									.catch(error => {
+										console.error('Error:', error);
+										document.getElementById('loader-ropo').innerHTML =
+											'<div class="alert alert-danger alert-dismissible fade show" role="alert">Error al cargar los datos ROPO.</div>';
+										document.getElementById('loader-ropo').style.display = 'block';
+									});
+							}
+						</script>
 
 
 						<!-- PESTAÑA 6 DATOS AUSENCIA -->
 
 						<div class="tab-pane fade pt-2" id="datos-ausencia">
-							<table class="table datatable" id="tabla_trab">
-								<thead>
-									<tr>
-										<div class="col-10">
-											<th class="col-3"><?php echo $lang['baja']; ?></th>
-											<th class="col-3"><?php echo $lang['alta']; ?></th>
-											<th class="col-4"><?php echo $lang['motivo']; ?></th>
-										</div>
-									</tr>
-								</thead>
-								<tbody>
-									<?php
-									foreach ($params['datos_ausencia'] as $resultado) {
-										?>
+							<!-- Loader -->
+							<div id="loader-ausencia" class="text-center" style="padding: 40px;">
+								<div class="spinner-border text-primary" role="status">
+									<span class="visually-hidden">Cargando...</span>
+								</div>
+								<p class="mt-3">Cargando datos de ausencia...</p>
+							</div>
+
+							<!-- Contenido tabla -->
+							<div id="tabla-ausencia-container" style="display: none;">
+								<table class="table" id="tabla_trab">
+									<thead>
 										<tr>
-											<td>
-												<?php echo $resultado['BEGDA']; ?>
-											</td>
-											<td>
-												<?php echo $resultado['ENDDA']; ?>
-											</td>
-											<td>
-												<?php echo $resultado['ATEXT']; ?>
-											</td>
+											<div class="col-10">
+												<th class="col-3"><?php echo $lang['baja']; ?></th>
+												<th class="col-3"><?php echo $lang['alta']; ?></th>
+												<th class="col-4"><?php echo $lang['motivo']; ?></th>
+											</div>
 										</tr>
-										<?php
-									}
-									?>
-								</tbody>
-							</table>
+									</thead>
+									<tbody id="tbody-ausencia">
+									</tbody>
+								</table>
+							</div>
 						</div>
+
+						<script>
+							// Función para cargar datos de ausencia
+							let datosAusenciaCargados = false;
+
+							function cargarDatosAusencia() {
+								if (datosAusenciaCargados || !trabajadorId) return;
+
+								fetch(`auto.php?datos_ausencia=1&id=${trabajadorId}`)
+									.then(response => response.json())
+									.then(result => {
+										// Ocultar loader siempre
+										document.getElementById('loader-ausencia').style.display = 'none';
+
+										if (result.success && result.data && result.data.length > 0) {
+											const tbody = document.getElementById('tbody-ausencia');
+											tbody.innerHTML = '';
+
+											result.data.forEach(row => {
+												const tr = document.createElement('tr');
+												tr.innerHTML = `
+													<td>${row.BEGDA}</td>
+													<td>${row.ENDDA}</td>
+													<td>${row.AUSENCIA} - ${row.DESC_AUSENCIA} </td>
+												`;
+												tbody.appendChild(tr);
+											});
+
+											document.getElementById('tabla-ausencia-container').style.display = 'block';
+
+											// Inicializar DataTable si está disponible
+											if (typeof $.fn.DataTable !== 'undefined') {
+												$('#tabla_trab').DataTable({
+													pageLength: 10,
+													language: {
+														url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json'
+													}
+												});
+											}
+										} else {
+											// Mostrar alerta de no datos
+											const alertHtml = '<div class="alert alert-danger alert-dismissible fade show" role="alert">No hay datos de ausencia disponibles.</div>';
+											document.getElementById('loader-ausencia').innerHTML = alertHtml;
+											document.getElementById('loader-ausencia').style.display = 'block';
+										}
+
+										datosAusenciaCargados = true;
+									})
+									.catch(error => {
+										console.error('Error:', error);
+										document.getElementById('loader-ausencia').innerHTML =
+											'<div class="alert alert-danger alert-dismissible fade show" role="alert">Error al cargar los datos de ausencia.</div>';
+										document.getElementById('loader-ausencia').style.display = 'block';
+									});
+							}
+						</script>
 
 
 						<!-- PESTAÑA 7 DATOS ASIGNACION -->
 
 						<div class="tab-pane fade pt-2" id="datos-asignacion">
-							<table class="table datatable" id="tabla_asig">
-								<thead>
-									<tr>
-										<div class="col-10">
-											<th class="col-1"><?php echo $lang['alta']; ?></th>
-											<th class="col-1"><?php echo $lang['baja']; ?></th>
-											<th class="col-1"><?php echo $lang['posicion']; ?></th>
-											<th class="col-1"><?php echo $lang['puesto']; ?></th>
-											<th class="col-1"><?php echo $lang['alamacen']; ?></th>
-											<th class="col-1"><?php echo $lang['finca']; ?></th>
-											<th class="col-1"><?php echo $lang['centro']; ?></th>
-											<th class="col-1"><?php echo $lang['division']; ?></th>
-											<th class="col-1">NFC</th>
-										</div>
-									</tr>
-								</thead>
-								<tbody>
-									<?php
-									foreach ($params['datos_asig'] as $resultado) {
-										?>
+							<!-- Loader -->
+							<div id="loader-asignacion" class="text-center" style="padding: 40px;">
+								<div class="spinner-border text-primary" role="status">
+									<span class="visually-hidden">Cargando...</span>
+								</div>
+								<p class="mt-3">Cargando datos de asignación...</p>
+							</div>
+
+							<!-- Tabla (inicialmente oculta) -->
+							<div id="tabla-asignacion-container" style="display: none;">
+								<table class="table" id="tabla_asig">
+									<thead>
 										<tr>
-											<td> <?php echo $resultado['BEGDA']; ?> </td>
-											<td>
-												<?php echo $resultado['ENDDA']; ?>
-											</td>
-											<td>
-												<?php echo $resultado['PLANS']; ?>
-											</td>
-											<td>
-												<?php echo $resultado['STEXT_PLANS']; ?>
-											</td>
-											<td>
-												<?php
-												if ($resultado['DESC_ALMACEN'] != "") {
-													echo $resultado['ZZLGORT'] . " - " . $resultado['DESC_ALMACEN'];
-												} else {
-													echo $resultado['ZZLGORT'];
-												}
-												?>
-											</td>
-											<td>
-												<?php
-												if ($resultado['DESC_FINCA'] != "") {
-													echo $resultado['FINCA'] . " - " . $resultado['DESC_FINCA'];
-												} else {
-													echo $resultado['FINCA'];
-												}
-												?>
-											</td>
-											<td>
-												<?php
-												if ($resultado['DESC_CENTRO'] != "") {
-													echo $resultado['ZZWERKS'] . " - " . $resultado['DESC_CENTRO'];
-												} else {
-													echo $resultado['ZZWERKS'];
-												}
-												?>
-											</td>
-											<td>
-												<?php
-												if ($resultado['DESC_DIVISION'] != "") {
-													echo $resultado['WERKS'] . " - " . $resultado['DESC_DIVISION'];
-												} else {
-													echo $resultado['WERKS'];
-												}
-												?>
-											</td>
-											<td>
-												<?php echo $resultado['ZZNFC']; ?>
-											</td>
+											<div class="col-10">
+												<th class="col-1"><?php echo $lang['alta']; ?></th>
+												<th class="col-1"><?php echo $lang['baja']; ?></th>
+												<th class="col-1"><?php echo $lang['posicion']; ?></th>
+												<th class="col-1"><?php echo $lang['puesto']; ?></th>
+												<th class="col-1"><?php echo $lang['alamacen']; ?></th>
+												<th class="col-1"><?php echo $lang['finca']; ?></th>
+												<th class="col-1"><?php echo $lang['centro']; ?></th>
+												<th class="col-1"><?php echo $lang['division']; ?></th>
+												<th class="col-1">NFC</th>
+											</div>
 										</tr>
-										<?php
-									}
-									?>
-								</tbody>
-							</table>
+									</thead>
+									<tbody id="tbody-asignacion">
+										<!-- Los datos se cargarán dinámicamente -->
+									</tbody>
+								</table>
+							</div>
 						</div>
+
+						<script>
+							let datosMedidasCargados = false;
+
+							// Función para cargar datos de medidas
+							function cargarDatosMedidas() {
+								if (datosMedidasCargados || !trabajadorId) return;
+
+								fetch(`auto.php?datos_medidas=1&id=${trabajadorId}`)
+									.then(response => response.json())
+									.then(result => {
+										if (result.success) {
+											const tbody = document.getElementById('tbody-medidas');
+											tbody.innerHTML = '';
+
+											result.data.forEach(row => {
+												const tr = document.createElement('tr');
+												tr.innerHTML = `
+												<td>${row.BEGDA}</td>
+												<td>${row.ENDDA}</td>
+												<td>${row.STAT2 ?? ''}</td>
+												<td>${row.MEDIDA}</td>
+												<td>${row.MOTIVO}</td>
+											`;
+												tbody.appendChild(tr);
+											});
+
+											// Ocultar loader y mostrar tabla
+											document.getElementById('loader-medidas').style.display = 'none';
+											document.getElementById('tabla-medidas-container').style.display = 'block';
+											datosMedidasCargados = true;
+											// Inicializar DataTable si está disponible
+											if (typeof $.fn.DataTable !== 'undefined') {
+												$('#tabla_medidas').DataTable({
+													pageLength: 10,
+													language: {
+														url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json'
+													}
+												});
+											}
+										} else {
+											document.getElementById('loader-medidas').innerHTML =
+												'<p class="text-danger">Error al cargar los datos</p>';
+										}
+									})
+									.catch(error => {
+										console.error('Error:', error);
+										document.getElementById('loader-medidas').innerHTML =
+											'<p class="text-danger">Error al cargar los datos</p>';
+									});
+							}
+						</script>
 
 
 						<!-- PESTAÑA 8 MEDIDAS -->
 
 						<div class="tab-pane fade pt-2" id="datos-medidas">
-							<table class="table datatable" id="tabla_medidas">
-								<thead>
-									<tr>
-										<div class="col-12">
-											<th class="col-2"><?php echo $lang['alta']; ?></th>
-											<th class="col-2"><?php echo $lang['baja']; ?></th>
-											<th class="col-2"><?php echo $lang['status']; ?></th>
-											<th class="col-3"><?php echo $lang['medida']; ?></th>
-											<th class="col-3"><?php echo $lang['motivo']; ?></th>
-										</div>
-									</tr>
-								</thead>
-								<tbody>
-									<?php
-									foreach ($params['datos_medidas'] as $resultado) {
-										?>
+							<!-- Loader -->
+							<div id="loader-medidas" class="text-center" style="padding: 40px;">
+								<div class="spinner-border text-primary" role="status">
+									<span class="visually-hidden">Cargando...</span>
+								</div>
+								<p class="mt-3">Cargando datos de medidas...</p>
+							</div>
+
+							<!-- Tabla (inicialmente oculta) -->
+							<div id="tabla-medidas-container" style="display: none;">
+								<table class="table" id="tabla_medidas">
+									<thead>
 										<tr>
-											<td>
-												<?php echo $resultado['BEGDA']; ?>
-											</td>
-											<td>
-												<?php echo $resultado['ENDDA']; ?>
-											</td>
-											<td>
-												<?php
-												if ($resultado['STAT2'] == 0) {
-													echo $lang['baja'];
-												} elseif ($resultado['STAT2'] == 1) {
-													echo $lang['rel_lab_sus'];
-												} elseif ($resultado['STAT2'] == 2) {
-													echo $lang['pensionista'];
-												} elseif ($resultado['STAT2'] == 3) {
-													echo $lang['activo'];
-												} else {
-													echo $resultado['STAT2'];
-												}
-												?>
-											</td>
-											<td>
-												<?php echo $resultado['MASSN'] . " - " . $resultado['MNTXT']; ?>
-											</td>
-											<td>
-												<?php echo $resultado['MASSG'] . " - " . $resultado['MGTXT']; ?>
-											</td>
+											<div class="col-12">
+												<th class="col-2"><?php echo $lang['alta']; ?></th>
+												<th class="col-2"><?php echo $lang['baja']; ?></th>
+												<th class="col-2"><?php echo $lang['status']; ?></th>
+												<th class="col-3"><?php echo $lang['medida']; ?></th>
+												<th class="col-3"><?php echo $lang['motivo']; ?></th>
+											</div>
 										</tr>
-										<?php
-									}
-									?>
-								</tbody>
-							</table>
+									</thead>
+									<tbody id="tbody-medidas">
+										<!-- Los datos se cargarán dinámicamente -->
+									</tbody>
+								</table>
+							</div>
 						</div>
+
+						<script>
+							// Cargar datos de asignación y medidas de forma dinámica
+							let datosAsignacionCargados = false;
+
+							// Función para cargar datos de asignación
+							function cargarDatosAsignacion() {
+								if (datosAsignacionCargados || !trabajadorId) return;
+
+								fetch(`auto.php?datos_asig=1&id=${trabajadorId}`)
+									.then(response => response.json())
+									.then(result => {
+										if (result.success) {
+											const tbody = document.getElementById('tbody-asignacion');
+											tbody.innerHTML = '';
+
+											result.data.forEach(row => {
+												const tr = document.createElement('tr');
+												tr.innerHTML = `
+												<td>${row.BEGDA}</td>
+												<td>${row.ENDDA}</td>
+												<td>${row.PLANS ?? ''}</td>
+												<td>${row.STEXT_PLANS ?? ''}</td>
+												<td>${row.ALMACEN ?? ''}</td>
+												<td>${row.FINCA ?? ''}</td>
+												<td>${row.CENTRO ?? ''}</td>
+												<td>${row.DIVISION ?? ''}</td>
+												<td>${row.NFC ?? ''}</td>
+											`;
+												tbody.appendChild(tr);
+											});
+
+											// Ocultar loader y mostrar tabla
+											document.getElementById('loader-asignacion').style.display = 'none';
+											document.getElementById('tabla-asignacion-container').style.display = 'block';
+											datosAsignacionCargados = true;
+											// Inicializar DataTable si está disponible
+											if (typeof $.fn.DataTable !== 'undefined') {
+												$('#tabla_asig').DataTable({
+													pageLength: 10,
+													language: {
+														url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json'
+													}
+												});
+											}
+										} else {
+											document.getElementById('loader-asignacion').innerHTML =
+												'<p class="text-danger">Error al cargar los datos</p>';
+										}
+									})
+									.catch(error => {
+										console.error('Error:', error);
+										document.getElementById('loader-asignacion').innerHTML =
+											'<p class="text-danger">Error al cargar los datos</p>';
+									});
+							}
+						</script>
 
 
 						<!-- PESTAÑA 9 ALERTAS -->
@@ -1658,13 +1854,13 @@ if (isset($params['info_trabajador']) && is_array($params['info_trabajador'])) {
 																				<label>" . $lang['motivo'] . ":</label><br>
 																				<select name='motivo' id='motivo' style='width: 100%;' required>
 																					<option value=''>Seleccione un motivo</option>";
-																					foreach ($params['motivos_pendiente'] as $motivo) {
-																						echo '<option value="' . htmlspecialchars($motivo['id_motivo']) . '">' .
-																							htmlspecialchars($motivo['desc_motivo']) . '</option>';
-																					}
-																					;
+													foreach ($params['motivos_pendiente'] as $motivo) {
+														echo '<option value="' . htmlspecialchars($motivo['id_motivo']) . '">' .
+															htmlspecialchars($motivo['desc_motivo']) . '</option>';
+													}
+													;
 
-																					echo "</select>
+													echo "</select>
 																					</div>
 																					<div id='error-motivo' style='color: red; display: none; margin-top: 5px;'>
 																						" . $lang['select_motivo'] . "
@@ -1920,7 +2116,7 @@ if (isset($params['info_trabajador']) && is_array($params['info_trabajador'])) {
 									}
 								}
 							}
-							
+
 							$hayJustificante = false;
 							if (!empty($params['datos_llamamiento'])) {
 								foreach ($params['datos_llamamiento'] as $resultado) {
@@ -1930,7 +2126,7 @@ if (isset($params['info_trabajador']) && is_array($params['info_trabajador'])) {
 									}
 								}
 							}
-							
+
 							// Determinar si hay registros con modales de respuesta disponibles
 							$hayRespuesta = false;
 							if (!empty($params['datos_llamamiento'])) {
@@ -1941,35 +2137,37 @@ if (isset($params['info_trabajador']) && is_array($params['info_trabajador'])) {
 										: new DateTime($resultado['FECHA_REGISTRO'], new DateTimeZone('Europe/Madrid'));
 									$diff_seconds = $current_date->getTimestamp() - $registro_date->getTimestamp();
 									$diff_hours = $diff_seconds / 3600;
-									
+
 									// Verificar si el registro tiene opciones de respuesta disponibles
-									$sinRespuesta15dias = ($diff_hours > 360 && $resultado['ESTADO'] == "0" && $resultado['NUM_ENVIO'] == "1") 
+									$sinRespuesta15dias = ($diff_hours > 360 && $resultado['ESTADO'] == "0" && $resultado['NUM_ENVIO'] == "1")
 										|| ($diff_hours > 360 && $resultado['ESTADO'] == "3" && $resultado['NUM_ENVIO'] == "1");
-									$sinRespuesta5dias = ($diff_hours > 120 && $resultado['ESTADO'] == "0" && $resultado['NUM_ENVIO'] == "2") 
+									$sinRespuesta5dias = ($diff_hours > 120 && $resultado['ESTADO'] == "0" && $resultado['NUM_ENVIO'] == "2")
 										|| ($diff_hours > 120 && $resultado['ESTADO'] == "3" && $resultado['NUM_ENVIO'] == "2");
-									
+
 									// Si tiene modales disponibles (estado 0 o 3, sin relaciones, y no ha pasado el tiempo límite)
-									if ((($resultado['ESTADO'] == "0" || $resultado['ESTADO'] == "3") && $resultado['NUM_RELACIONES'] == "0") 
-										&& !$sinRespuesta15dias && !$sinRespuesta5dias) {
+									if (
+										(($resultado['ESTADO'] == "0" || $resultado['ESTADO'] == "3") && $resultado['NUM_RELACIONES'] == "0")
+										&& !$sinRespuesta15dias && !$sinRespuesta5dias
+									) {
 										$hayRespuesta = true;
 										break;
 									}
 								}
 							}
-							
+
 							$esSupervisor = ($_SESSION["tipo_user_surexport_appreclu"] == 'Supervisor');
 							?>
-							
+
 							<table class="table datatable">
 								<thead>
 									<tr>
 										<th>Fecha llamamiento</th>
 										<th><?php echo $lang['tipo_llama']; ?></th>
 										<th><?php echo $lang['estado']; ?></th>
-										<?php 
-											if ($haydescripcion) {
-												echo '<th>Descripción</th>';
-											}
+										<?php
+										if ($haydescripcion) {
+											echo '<th>Descripción</th>';
+										}
 										?>
 										<th><?php echo $lang['persona_cont']; ?></th>
 										<?php
@@ -2067,16 +2265,16 @@ if (isset($params['info_trabajador']) && is_array($params['info_trabajador'])) {
 													}
 													?>
 												</td>
-												<?php 
-													if ($haydescripcion) {
-														echo '<td>';
-														if (!empty($resultado['DESCRIPCION'])) {
-															echo $resultado['DESCRIPCION'];
-														} else {
-															echo '';
-														}
-														echo '</td>';
+												<?php
+												if ($haydescripcion) {
+													echo '<td>';
+													if (!empty($resultado['DESCRIPCION'])) {
+														echo $resultado['DESCRIPCION'];
+													} else {
+														echo '';
 													}
+													echo '</td>';
+												}
 												?>
 												<td>
 													<?php echo $resultado['NOMBRE_USUARIO']; ?>
@@ -2382,13 +2580,13 @@ if (isset($params['info_trabajador']) && is_array($params['info_trabajador'])) {
 																												<label>" . $lang['select_moti_2'] . ":</label><br>
 																												<select name='motivo' id='motivo_rech_" . $resultado['ID'] . "' style='width: 350px;' required>
 																													<option value=''>Seleccione un motivo</option>";
-																														foreach ($params['motivos_pendiente'] as $motivo) {
-																															echo '<option value="' . htmlspecialchars($motivo['id_motivo']) . '">' .
-																																htmlspecialchars($motivo['desc_motivo']) . '</option>';
-																														}
-																														;
+																foreach ($params['motivos_pendiente'] as $motivo) {
+																	echo '<option value="' . htmlspecialchars($motivo['id_motivo']) . '">' .
+																		htmlspecialchars($motivo['desc_motivo']) . '</option>';
+																}
+																;
 
-																												echo "</select>
+																echo "</select>
 																											</div>
 																											<div id='error-motivo_rech_" . $resultado['ID'] . "' style='color: red; display: none; margin-top: 5px;'>
 																												" . $lang['select_motivo'] . "
@@ -2437,7 +2635,7 @@ if (isset($params['info_trabajador']) && is_array($params['info_trabajador'])) {
 																echo '';
 															} ?>
 														</td>
-													<?php
+														<?php
 													}
 													?>
 													<?php
@@ -2669,6 +2867,25 @@ include("footer.php");
 				searching: function () {
 					return 'Buscando...';
 				}
+			}
+		});
+
+		// Detectar cuando se abren las pestañas usando jQuery
+		$('button[data-bs-toggle="tab"]').on('shown.bs.tab', function (e) {
+			const targetId = $(e.target).data('bs-target');
+
+			if (targetId === '#datos-asignacion') {
+				cargarDatosAsignacion();
+			} else if (targetId === '#datos-medidas') {
+				cargarDatosMedidas();
+			} else if (targetId === '#datos-direccion') {
+				cargarDatosDireccion();
+			} else if (targetId === '#datos-contrato') {
+				cargarDatosContrato();
+			} else if (targetId === '#datos-ropo') {
+				cargarDatosRopo();
+			} else if (targetId === '#datos-ausencia') {
+				cargarDatosAusencia();
 			}
 		});
 	});

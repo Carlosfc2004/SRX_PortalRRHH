@@ -29,8 +29,31 @@ if (isset($params['resultado']) and $params['resultado']!="") {
   <script src="https://code.jquery.com/ui/1.13.3/jquery-ui.js"></script>
 	<script type="text/javascript" src="js/jquery.lightbox_me.js"></script>
   <script type="text/javascript" src="js/jquery.magnific-popup.min.js"></script>
-	<script type="text/javascript" src="js/script.js?ver=1.6"></script>
+	<script type="text/javascript" src="js/script.js?ver=1.7"></script>
 	<script src="js/alertify.min.js"></script>
+
+    <script>
+    $(document).ready(function() {
+      // Función para mostrar el overlay
+      function showLoadingOverlay() {
+        $('#loading-overlay').css('display', 'flex');
+      }
+
+      // Agregar event listener a todos los enlaces del header y sidebar
+      $('#header a, #sidebar a').on('click', function(e) {
+        const href = $(this).attr('href');
+
+        // Solo mostrar el spinner si el enlace tiene un href válido y no es un toggle o ancla
+        if (href &&
+            href !== '#' &&
+            href !== '' &&
+            !$(this).attr('data-bs-toggle') &&
+            !href.startsWith('javascript:')) {
+          showLoadingOverlay();
+        }
+      });
+    });
+  </script>
 </body>
 
 </html>

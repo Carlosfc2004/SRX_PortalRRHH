@@ -1,4 +1,5 @@
 <?php
+
 session_start();
 include_once("config.php");
 require_once("models/sqlsrvModel.php");
@@ -659,5 +660,281 @@ if (isset($_GET['load_fincas_soc']) and $_GET['load_fincas_soc'] != '') {
 			echo json_encode($resultado);
 			exit;
 		}
+	}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	// Endpoint para cargar datos de medidas de un trabajador
+	if (isset($_GET['datos_medidas']) && isset($_GET['id'])) {
+		header('Content-Type: application/json');
+
+		try {
+			$id_trabajador = $_GET['id'];
+			$datos_medidas = $m->datos_medidas($id_trabajador);
+
+			$data = array();
+			foreach ($datos_medidas as $resultado) {
+				// Formatear fechas
+				$fecha_alta = DateTime::createFromFormat('Ymd', $resultado['BEGDA'])->format('d/m/Y');
+				$fecha_baja = DateTime::createFromFormat('Ymd', $resultado['ENDDA'])->format('d/m/Y');
+
+				// Determinar el status
+				$status = '';
+				if ($resultado['STAT2'] == 0) {
+					$status = $lang['baja'];
+				} elseif ($resultado['STAT2'] == 1) {
+					$status = $lang['rel_lab_sus'];
+				} elseif ($resultado['STAT2'] == 2) {
+					$status = $lang['pensionista'];
+				} elseif ($resultado['STAT2'] == 3) {
+					$status = $lang['activo'];
+				} else {
+					$status = $resultado['STAT2'];
+				}
+
+				$row = array(
+					'BEGDA' => $fecha_alta,
+					'ENDDA' => $fecha_baja,
+					'STAT2' => $status,
+					'MEDIDA' => $resultado['MASSN'] . " - " . $resultado['MNTXT'],
+					'MOTIVO' => $resultado['MASSG'] . " - " . $resultado['MGTXT']
+				);
+				array_push($data, $row);
+			}
+
+			echo json_encode(['success' => true, 'data' => $data]);
+		} catch (Exception $e) {
+			http_response_code(500);
+			echo json_encode(['success' => false, 'error' => $e->getMessage()]);
+		}
+		exit;
+	}
+
+	// Endpoint para cargar datos de asignación de un trabajador
+	if (isset($_GET['datos_asig']) && isset($_GET['id'])) {
+		header('Content-Type: application/json');
+
+		try {
+			$id_trabajador = $_GET['id'];
+			$datos_asig = $m->datos_asignacion_trabajador($id_trabajador);
+
+			$data = array();
+			foreach ($datos_asig as $resultado) {
+				// Formatear fechas
+				$fecha_alta = DateTime::createFromFormat('Ymd', $resultado['BEGDA'])->format('d/m/Y');
+				$fecha_baja = DateTime::createFromFormat('Ymd', $resultado['ENDDA'])->format('d/m/Y');
+
+				// Formatear almacén
+				$almacen = $resultado['DESC_ALMACEN'] != "" ?
+					$resultado['ZZLGORT'] . " - " . $resultado['DESC_ALMACEN'] :
+					$resultado['ZZLGORT'];
+
+				// Formatear finca
+				$finca = $resultado['DESCR'] != "" ?
+					$resultado['ALTRN'] . " - " . $resultado['DESCR'] :
+					$resultado['ALTRN'];
+
+				// Formatear centro
+				$centro = $resultado['DESC_CENTRO'] != "" ?
+					$resultado['ZZWERKS'] . " - " . $resultado['DESC_CENTRO'] :
+					$resultado['ZZWERKS'];
+
+				// Formatear división
+				$division = $resultado['DESC_DIVISION'] != "" ?
+					$resultado['WERKS'] . " - " . $resultado['DESC_DIVISION'] :
+					$resultado['WERKS'];
+
+				$row = array(
+					'BEGDA' => $fecha_alta,
+					'ENDDA' => $fecha_baja,
+					'PLANS' => $resultado['PLANS'],
+					'STEXT_PLANS' => $resultado['STEXT_PLANS'],
+					'ALMACEN' => $almacen,
+					'FINCA' => $finca,
+					'CENTRO' => $centro,
+					'DIVISION' => $division,
+					'NFC' => $resultado['ZZNFC']
+				);
+				array_push($data, $row);
+			}
+
+			echo json_encode(['success' => true, 'data' => $data]);
+		} catch (Exception $e) {
+			http_response_code(500);
+			echo json_encode(['success' => false, 'error' => $e->getMessage()]);
+		}
+		exit;
+	}
+
+	// Endpoint para cargar datos de dirección de un trabajador
+	if (isset($_GET['datos_direccion']) && isset($_GET['id'])) {
+		header('Content-Type: application/json');
+
+		try {
+			$id_trabajador = $_GET['id'];
+			$datos_direccion = $m->datos_direccion_trabajador($id_trabajador);
+
+			if (!empty($datos_direccion)) {
+				$resultado = $datos_direccion[0];
+				$data = array(
+					'PAIS' => isset($resultado['LAND1']) ? $resultado['LAND1'] : '',
+					'DESC_PAIS' => isset($resultado['LANDX']) ? $resultado['LANDX'] : '',
+					'DESC_REGION' => isset($resultado['BEZEI']) ? $resultado['BEZEI'] : '',
+					'POBLACION' => isset($resultado['ORT01']) ? $resultado['ORT01'] : '',
+					'COD_POSTAL' => isset($resultado['PSTLZ']) ? $resultado['PSTLZ'] : '',
+					'SIGLAS_VP' => isset($resultado['STRDS']) ? $resultado['STRDS'] : '',
+					// 'DESC_SIGLAS_VP' => isset($resultado['DESC_SIGLAS_VP']) ? $resultado['DESC_SIGLAS_VP'] : '',
+					'CALLE_NUMERO' => isset($resultado['STRAS']) ? $resultado['STRAS'] : '',
+					'N_EDIFICIO' => isset($resultado['HSNMR']) ? $resultado['HSNMR'] : '',
+					'DESC_CLASE_DIRECCION' => isset($resultado['STEXT']) ? $resultado['STEXT'] : ''
+				);
+				echo json_encode(['success' => true, 'data' => $data]);
+			} else {
+				echo json_encode(['success' => true, 'data' => null]);
+			}
+		} catch (Exception $e) {
+			http_response_code(500);
+			echo json_encode(['success' => false, 'error' => $e->getMessage()]);
+		}
+		exit;
+	}
+
+	// Endpoint para cargar datos de contrato de un trabajador
+	if (isset($_GET['datos_contrato']) && isset($_GET['id'])) {
+		header('Content-Type: application/json');
+
+		try {
+			$id_trabajador = $_GET['id'];
+			$datos_contrato = $m->datos_contrato_trabajador($id_trabajador);
+			$datos_contrato2 = $m->datos_contrato2_trabajador($id_trabajador);
+
+			$data = array();
+
+			// Función para convertir fecha de YYYYMMDD a DD/MM/YYYY
+			function formatearFecha($fecha)
+			{
+				if (empty($fecha) || strlen($fecha) != 8) {
+					return $fecha;
+				}
+				$year = substr($fecha, 0, 4);
+				$month = substr($fecha, 4, 2);
+				$day = substr($fecha, 6, 2);
+				return $day . '/' . $month . '/' . $year;
+			}
+
+			if (!empty($datos_contrato)) {
+				$resultado = $datos_contrato[0];
+				$data['contrato1'] = array(
+					'TIPO_CONTRATO' => isset($resultado['IDCON']) ? $resultado['IDCON'] : '',
+					'DESC_TIPO_CONTRATO' => isset($resultado['TTEXT']) ? $resultado['TTEXT'] : '',
+					'CLAVE_CONTRATO' => isset($resultado['IDSEG']) ? $resultado['IDSEG'] : '',
+					'DESC_CLAVE_CONTRATO' => isset($resultado['DESC_CLAVE_CONTR']) ? $resultado['DESC_CLAVE_CONTR'] : '',
+					'BEGDA' => isset($resultado['BEGDA']) ? formatearFecha($resultado['BEGDA']) : '',
+					'ENDDA' => isset($resultado['ENDDA']) ? formatearFecha($resultado['ENDDA']) : ''
+				);
+			} else {
+				$data['contrato1'] = null;
+			}
+
+			if (!empty($datos_contrato2)) {
+				$resultado2 = $datos_contrato2[0];
+				$data['contrato2'] = array(
+					'RELACION_LABORAL' => isset($resultado2['EMPL_RELATION']) ? $resultado2['EMPL_RELATION'] : '',
+					'DESC_RELACION_LABORAL' => isset($resultado2['DESCRIPTION']) ? $resultado2['DESCRIPTION'] : '',
+					'BEGDA' => isset($resultado2['BEGDA']) ? formatearFecha($resultado2['BEGDA']) : '',
+					'ENDDA' => isset($resultado2['ENDDA']) ? formatearFecha($resultado2['ENDDA']) : ''
+				);
+			} else {
+				$data['contrato2'] = null;
+			}
+
+			echo json_encode(['success' => true, 'data' => $data]);
+		} catch (Exception $e) {
+			http_response_code(500);
+			echo json_encode(['success' => false, 'error' => $e->getMessage()]);
+		}
+		exit;
+	}
+
+	// Endpoint para cargar datos ROPO de un trabajador
+	if (isset($_GET['datos_ropo']) && isset($_GET['id'])) {
+		header('Content-Type: application/json');
+
+		function formatearFecha($fecha){
+			if (empty($fecha) || strlen($fecha) != 8) {
+				return $fecha;
+			}
+			$year = substr($fecha, 0, 4);
+			$month = substr($fecha, 4, 2);
+			$day = substr($fecha, 6, 2);
+			return $day . '/' . $month . '/' . $year;
+		}
+
+		try {
+			$id_trabajador = $_GET['id'];
+			$datos_ropo = $m->datos_ropo_trabajador($id_trabajador);
+
+			if (!empty($datos_ropo)) {
+				$resultado = $datos_ropo[0];
+				$data = array(
+					'BEGDA' => isset($resultado['BEGDA']) ? formatearFecha($resultado['BEGDA']) : '',
+					'ENDDA' => isset($resultado['ENDDA']) ? formatearFecha($resultado['ENDDA']) : '',
+					'ZZCARNET' => isset($resultado['ZZCARNET']) ? $resultado['ZZCARNET'] : '',
+					'ZZROPO' => isset($resultado['ZZROPO']) ? $resultado['ZZROPO'] : '',
+					'ZZFECHA' => isset($resultado['ZFECHAC']) ? formatearFecha($resultado['ZFECHAC']) : ''
+				);
+				echo json_encode(['success' => true, 'data' => $data]);
+			} else {
+				echo json_encode(['success' => true, 'data' => null]);
+			}
+		} catch (Exception $e) {
+			http_response_code(500);
+			echo json_encode(['success' => false, 'error' => $e->getMessage()]);
+		}
+		exit;
+	}
+
+	// Endpoint para cargar datos de ausencia de un trabajador
+	if (isset($_GET['datos_ausencia']) && isset($_GET['id'])) {
+		header('Content-Type: application/json');
+
+		try {
+			$id_trabajador = $_GET['id'];
+			$datos_ausencia = $m->datos_ausencia_trabajador($id_trabajador);
+
+			$data = array();
+			foreach ($datos_ausencia as $resultado) {
+				$resultado['BEGDA'] = DateTime::createFromFormat('Ymd', $resultado['BEGDA'])->format('d/m/Y');
+				$resultado['ENDDA'] = DateTime::createFromFormat('Ymd', $resultado['ENDDA'])->format('d/m/Y');
+				$row = array(
+					'BEGDA' => isset($resultado['BEGDA']) ? $resultado['BEGDA'] : '',
+					'ENDDA' => isset($resultado['ENDDA']) ? $resultado['ENDDA'] : '',
+					'AUSENCIA' => isset($resultado['SUBTY']) ? $resultado['SUBTY'] : '',
+					'DESC_AUSENCIA' => isset($resultado['ATEXT']) ? $resultado['ATEXT'] : ''
+				);
+				array_push($data, $row);
+			}
+
+			echo json_encode(['success' => true, 'data' => $data]);
+		} catch (Exception $e) {
+			http_response_code(500);
+			echo json_encode(['success' => false, 'error' => $e->getMessage()]);
+		}
+		exit;
 	}
 	?>
