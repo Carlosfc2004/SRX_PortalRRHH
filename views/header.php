@@ -16,12 +16,12 @@
 	<link href="assets/vendor/remixicon/remixicon.css" rel="stylesheet">
 	<link href="assets/vendor/simple-datatables/style.css" rel="stylesheet">
 	<!-- Template Main CSS File -->
-	<link href="assets/css/style.css" rel="stylesheet">
+	<link href="assets/css/style.css?ver=1.7" rel="stylesheet">
   <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
 
 </head>
 
-<script src="js/script.js"></script>
+<script src="js/script.js?ver=1.7"></script>
 
 
 <body>
@@ -134,7 +134,7 @@
                   <i class="bi bi-check-circle"></i>
                   <div style="margin-left: 10px;">
                     <h6>Llamamientos aceptados</h6>
-                    <p><?php echo "Siguen de baja ". $_SESSION["trab_aceptados_baja"]. " trabajadores"; ?></p>
+                    <p><?php //echo "Siguen de baja ". $_SESSION["trab_aceptados_baja"]. " trabajadores"; ?></p>
                   </div>
                 </div>
                 <a href="admin_cont.php?controller=index&action=reg_alertas&aceptados" class="text-end">
@@ -262,12 +262,14 @@
             <h6><?php echo $_SESSION["nombre_user_surexport_appreclu"] ?></h6>
             <span>
               <?php 
-                if ($_SESSION["tipo_user_surexport_appreclu"] === 'Administrador') {
+                if ($_SESSION["tipo_user_surexport_appreclu"] === '1') {
                   echo $lang['admin'];
-                } elseif ($_SESSION["tipo_user_surexport_appreclu"] === 'Usuario') {
-                  echo $lang['usu'];
-                } elseif ($_SESSION["tipo_user_surexport_appreclu"] === 'Supervisor') {
+                } elseif ($_SESSION["tipo_user_surexport_appreclu"] === '2') {
                   echo "Supervisor";
+                } elseif ($_SESSION["tipo_user_surexport_appreclu"] === '6') {
+                  echo "RRHH";
+                } else {
+                  echo $_SESSION["tipo_user_surexport_appreclu"];
                 }
               ?>
             </span>
@@ -426,4 +428,15 @@
     }
   ?>
 </aside>
-<main id="main" class="main">
+
+  <div id="loading-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.7); z-index: 9999; justify-content: center; align-items: center;">
+    <div style="text-align: center; color: white;">
+      <div class="spinner-border" role="status" style="width: 3rem; height: 3rem; margin-bottom: 1rem;">
+        <span class="visually-hidden">Cargando...</span>
+      </div>
+      <div style="font-size: 1.2rem; font-weight: bold;">Cargando...</div>
+      <div style="font-size: 0.9rem; margin-top: 0.5rem;">Por favor espere</div>
+    </div>
+  </div>
+
+  <main id="main" class="main">

@@ -36,9 +36,11 @@ include_once("header.php");
         border-top: none;
         border-radius: 0 0 4px 4px;
         background-color: white;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        width: calc(100% - 2px); /* Ajustar al ancho del input menos los bordes */
-        left: 1px; /* Alinear con el borde izquierdo del input */
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        width: calc(100% - 2px);
+        /* Ajustar al ancho del input menos los bordes */
+        left: 1px;
+        /* Alinear con el borde izquierdo del input */
     }
 
     #sugerencias_trabajadores .list-group-item {
@@ -146,7 +148,7 @@ include_once("header.php");
                                 <option value="6" <?php if (isset($_POST['estado_ofi']) && $_POST['estado_ofi'] == "6") {
                                     echo "selected";
                                 } ?>>Creado/Editado por usuario</option>
-                                
+
                             </select>
                         </div>
 
@@ -156,456 +158,458 @@ include_once("header.php");
 
 
 
-<!-- 1º filtro -->
-<div class="row filter mb-3" id="filtro_1">
-    <div class="col-md-3 mt-2">
-        <span style="font-weight: bold;">Horario:</span><br>
-        <select class="form-select mt-1" name="campo1_1" id="campo1_1">
-            <option value="0" <?php if (isset($_POST['campo1_1']) && $_POST['campo1_1'] == "0") {
-                echo "selected";
-            } ?>></option>
-            <option value="1" <?php if (isset($_POST['campo1_1']) && $_POST['campo1_1'] == "1") {
-                echo "selected";
-            } ?>>Desayuno</option>
-            <option value="2" <?php if (isset($_POST['campo1_1']) && $_POST['campo1_1'] == "2") {
-                echo "selected";
-            } ?>>Almuerzo</option>
-            <option value="3" <?php if (isset($_POST['campo1_1']) && $_POST['campo1_1'] == "3") {
-                echo "selected";
-            } ?>>Otros</option>
-            <option value="4" <?php if (isset($_POST['campo1_1']) && $_POST['campo1_1'] == "4") {
-                echo "selected";
-            } ?>>Descanso</option>
-            <option value="5" <?php if (isset($_POST['campo1_1']) && $_POST['campo1_1'] == "5") {
-                echo "selected";
-            } ?>>Tiempo Efectivo</option>
-            <option value="6" <?php if (isset($_POST['campo1_1']) && $_POST['campo1_1'] == "6") {
-                echo "selected";
-            } ?>>Horas Totales</option>
-        </select>
-    </div>
+                        <!-- 1º filtro -->
+                        <div class="row filter mb-3" id="filtro_1">
+                            <div class="col-md-3 mt-2">
+                                <span style="font-weight: bold;">Horario:</span><br>
+                                <select class="form-select mt-1" name="campo1_1" id="campo1_1">
+                                    <option value="0" <?php if (isset($_POST['campo1_1']) && $_POST['campo1_1'] == "0") {
+                                        echo "selected";
+                                    } ?>></option>
+                                    <option value="1" <?php if (isset($_POST['campo1_1']) && $_POST['campo1_1'] == "1") {
+                                        echo "selected";
+                                    } ?>>Desayuno</option>
+                                    <option value="2" <?php if (isset($_POST['campo1_1']) && $_POST['campo1_1'] == "2") {
+                                        echo "selected";
+                                    } ?>>Almuerzo</option>
+                                    <option value="3" <?php if (isset($_POST['campo1_1']) && $_POST['campo1_1'] == "3") {
+                                        echo "selected";
+                                    } ?>>Otros</option>
+                                    <option value="4" <?php if (isset($_POST['campo1_1']) && $_POST['campo1_1'] == "4") {
+                                        echo "selected";
+                                    } ?>>Descanso</option>
+                                    <option value="5" <?php if (isset($_POST['campo1_1']) && $_POST['campo1_1'] == "5") {
+                                        echo "selected";
+                                    } ?>>Tiempo Efectivo</option>
+                                    <option value="6" <?php if (isset($_POST['campo1_1']) && $_POST['campo1_1'] == "6") {
+                                        echo "selected";
+                                    } ?>>Horas Totales</option>
+                                </select>
+                            </div>
 
-    <div class="col-md-3 mt-2">
-        <span style="font-weight: bold;">Condición:</span><br>
-        <select class="form-select mt-1" name="campo2_1" id="campo2_1">
-            <option value="0" <?php if (isset($_POST['campo2_1']) && $_POST['campo2_1'] == "0") {
-                echo "selected";
-            } ?>></option>
-            <option value=">" <?php if (isset($_POST['campo2_1']) && $_POST['campo2_1'] == ">") {
-                echo "selected";
-            } ?>>Mayor</option>
-            <option value="=" <?php if (isset($_POST['campo2_1']) && $_POST['campo2_1'] == "=") {
-                echo "selected";
-            } ?>>Igual</option>
-            <option value="<" <?php if (isset($_POST['campo2_1']) && $_POST['campo2_1'] == "<") {
-                echo "selected";
-            } ?>>Menor</option>
-        </select>
-    </div>
+                            <div class="col-md-3 mt-2">
+                                <span style="font-weight: bold;">Condición:</span><br>
+                                <select class="form-select mt-1" name="campo2_1" id="campo2_1">
+                                    <option value="0" <?php if (isset($_POST['campo2_1']) && $_POST['campo2_1'] == "0") {
+                                        echo "selected";
+                                    } ?>></option>
+                                    <option value=">" <?php if (isset($_POST['campo2_1']) && $_POST['campo2_1'] == ">") {
+                                        echo "selected";
+                                    } ?>>Mayor</option>
+                                    <option value="=" <?php if (isset($_POST['campo2_1']) && $_POST['campo2_1'] == "=") {
+                                        echo "selected";
+                                    } ?>>Igual</option>
+                                    <option value="<" <?php if (isset($_POST['campo2_1']) && $_POST['campo2_1'] == "<") {
+                                        echo "selected";
+                                    } ?>>Menor</option>
+                                </select>
+                            </div>
 
-    <div class="col-md-3 mt-2">
-        <span style="font-weight: bold;">Tiempo:</span><br>
-        <input type="text" class="form-control mt-1" name="campo3_1" id="campo3_1"
-            placeholder="hh:mm" maxlength="5" <?php if (isset($_POST['campo3_1']) && $_POST['campo3_1'] != "") {
-                echo "value='" . $_POST['campo3_1'] . "'";
-            } ?>>
-    </div>
+                            <div class="col-md-3 mt-2">
+                                <span style="font-weight: bold;">Tiempo:</span><br>
+                                <input type="text" class="form-control mt-1" name="campo3_1" id="campo3_1"
+                                    placeholder="hh:mm" maxlength="5" <?php if (isset($_POST['campo3_1']) && $_POST['campo3_1'] != "") {
+                                        echo "value='" . $_POST['campo3_1'] . "'";
+                                    } ?>>
+                            </div>
 
-    <div class="col-md-3 mt-2">
-        <span style="font-weight: bold;">Conector:</span><br>
-        <select class="form-select mt-1" name="conector_1" id="conector_1"
-            onchange="mostrarSiguienteFiltro(1)">
-            <option value="0" <?php if (isset($_POST['conector_1']) && $_POST['conector_1'] == "0") {
-                echo "selected";
-            } ?>></option>
-            <option value="AND" <?php if (isset($_POST['conector_1']) && $_POST['conector_1'] == "AND") {
-                echo "selected";
-            } ?>>Y</option>
-            <option value="OR" <?php if (isset($_POST['conector_1']) && $_POST['conector_1'] == "OR") {
-                echo "selected";
-            } ?>>O</option>
-        </select>
-    </div>
-</div>
-
-
-<!-- 2º filtro -->
-<div class="row filter mb-2" id="filtro_2" style="display: none;">
-    <div class="col-md-3 mt-2">
-        <span style="font-weight: bold;">Horario:</span><br>
-        <select class="form-select mt-1" name="campo1_2" id="campo1_2">
-            <option value="" <?php if (isset($_POST['campo1_2']) && $_POST['campo1_2'] == "0") {
-                echo "selected";
-            } ?>></option>
-            <option value="1" <?php if (isset($_POST['campo1_2']) && $_POST['campo1_2'] == "1") {
-                echo "selected";
-            } ?>>Desayuno</option>
-            <option value="2" <?php if (isset($_POST['campo1_2']) && $_POST['campo1_2'] == "2") {
-                echo "selected";
-            } ?>>Almuerzo</option>
-            <option value="3" <?php if (isset($_POST['campo1_2']) && $_POST['campo1_2'] == "3") {
-                echo "selected";
-            } ?>>Otros</option>
-            <option value="4" <?php if (isset($_POST['campo1_2']) && $_POST['campo1_2'] == "4") {
-                echo "selected";
-            } ?>>Descanso</option>
-            <option value="5" <?php if (isset($_POST['campo1_2']) && $_POST['campo1_2'] == "5") {
-                echo "selected";
-            } ?>>Tiempo Efectivo</option>
-            <option value="6" <?php if (isset($_POST['campo1_2']) && $_POST['campo1_2'] == "6") {
-                echo "selected";
-            } ?>>Horas Totales</option>
-        </select>
-    </div>
-
-    <div class="col-md-3 mt-2">
-        <span style="font-weight: bold;">Condición:</span><br>
-        <select class="form-select mt-1" name="campo2_2" id="campo2_2">
-            <option value="0" <?php if (isset($_POST['campo2_2']) && $_POST['campo2_2'] == "0") {
-                echo "selected";
-            } ?>></option>
-            <option value=">" <?php if (isset($_POST['campo2_2']) && $_POST['campo2_2'] == ">") {
-                echo "selected";
-            } ?>>Mayor</option>
-            <option value="=" <?php if (isset($_POST['campo2_2']) && $_POST['campo2_2'] == "=") {
-                echo "selected";
-            } ?>>Igual</option>
-            <option value="<" <?php if (isset($_POST['campo2_2']) && $_POST['campo2_2'] == "<") {
-                echo "selected";
-            } ?>>Menor</option>
-        </select>
-    </div>
-
-    <div class="col-md-3 mt-2">
-        <span style="font-weight: bold;">Tiempo:</span><br>
-        <input type="text" class="form-control mt-1" name="campo3_2" id="campo3_2"
-            placeholder="hh:mm" maxlength="5"
-            value="<?php echo isset($_POST['campo3_2']) ? $_POST['campo3_2'] : ''; ?>">
-    </div>
-
-    <div class="col-md-3 mt-2">
-        <span style="font-weight: bold;">Conector:</span><br>
-        <select class="form-select mt-1" name="conector_2" id="conector_2"
-            onchange="mostrarSiguienteFiltro(2)">
-            <option value="0" <?php if (isset($_POST['conector_2']) && $_POST['conector_2'] == "0") {
-                echo "selected";
-            } ?>></option>
-            <option value="AND" <?php if (isset($_POST['conector_2']) && $_POST['conector_2'] == "AND") {
-                echo "selected";
-            } ?>>Y</option>
-            <option value="OR" <?php if (isset($_POST['conector_2']) && $_POST['conector_2'] == "OR") {
-                echo "selected";
-            } ?>>O</option>
-        </select>
-    </div>
-</div>
+                            <div class="col-md-3 mt-2">
+                                <span style="font-weight: bold;">Conector:</span><br>
+                                <select class="form-select mt-1" name="conector_1" id="conector_1"
+                                    onchange="mostrarSiguienteFiltro(1)">
+                                    <option value="0" <?php if (isset($_POST['conector_1']) && $_POST['conector_1'] == "0") {
+                                        echo "selected";
+                                    } ?>></option>
+                                    <option value="AND" <?php if (isset($_POST['conector_1']) && $_POST['conector_1'] == "AND") {
+                                        echo "selected";
+                                    } ?>>Y</option>
+                                    <option value="OR" <?php if (isset($_POST['conector_1']) && $_POST['conector_1'] == "OR") {
+                                        echo "selected";
+                                    } ?>>O</option>
+                                </select>
+                            </div>
+                        </div>
 
 
-<!-- 3º filtro -->
-<div class="row filter mb-2" id="filtro_3" style="display: none;">
-    <div class="col-md-3 mt-2">
-        <span style="font-weight: bold;">Horario:</span><br>
-        <select class="form-select mt-1" name="campo1_3" id="campo1_3">
-            <option value="0" <?php if (isset($_POST['campo1_3']) && $_POST['campo1_3'] == "0") {
-                echo "selected";
-            } ?>></option>
-            <option value="1" <?php if (isset($_POST['campo1_3']) && $_POST['campo1_3'] == "1") {
-                echo "selected";
-            } ?>>Desayuno</option>
-            <option value="2" <?php if (isset($_POST['campo1_3']) && $_POST['campo1_3'] == "2") {
-                echo "selected";
-            } ?>>Almuerzo</option>
-            <option value="3" <?php if (isset($_POST['campo1_3']) && $_POST['campo1_3'] == "3") {
-                echo "selected";
-            } ?>>Otros</option>
-            <option value="4" <?php if (isset($_POST['campo1_3']) && $_POST['campo1_3'] == "4") {
-                echo "selected";
-            } ?>>Descanso</option>
-            <option value="5" <?php if (isset($_POST['campo1_3']) && $_POST['campo1_3'] == "5") {
-                echo "selected";
-            } ?>>Tiempo Efectivo</option>
-            <option value="6" <?php if (isset($_POST['campo1_3']) && $_POST['campo1_3'] == "6") {
-                echo "selected";
-            } ?>>Horas Totales</option>
-        </select>
-    </div>
+                        <!-- 2º filtro -->
+                        <div class="row filter mb-2" id="filtro_2" style="display: none;">
+                            <div class="col-md-3 mt-2">
+                                <span style="font-weight: bold;">Horario:</span><br>
+                                <select class="form-select mt-1" name="campo1_2" id="campo1_2">
+                                    <option value="" <?php if (isset($_POST['campo1_2']) && $_POST['campo1_2'] == "0") {
+                                        echo "selected";
+                                    } ?>></option>
+                                    <option value="1" <?php if (isset($_POST['campo1_2']) && $_POST['campo1_2'] == "1") {
+                                        echo "selected";
+                                    } ?>>Desayuno</option>
+                                    <option value="2" <?php if (isset($_POST['campo1_2']) && $_POST['campo1_2'] == "2") {
+                                        echo "selected";
+                                    } ?>>Almuerzo</option>
+                                    <option value="3" <?php if (isset($_POST['campo1_2']) && $_POST['campo1_2'] == "3") {
+                                        echo "selected";
+                                    } ?>>Otros</option>
+                                    <option value="4" <?php if (isset($_POST['campo1_2']) && $_POST['campo1_2'] == "4") {
+                                        echo "selected";
+                                    } ?>>Descanso</option>
+                                    <option value="5" <?php if (isset($_POST['campo1_2']) && $_POST['campo1_2'] == "5") {
+                                        echo "selected";
+                                    } ?>>Tiempo Efectivo</option>
+                                    <option value="6" <?php if (isset($_POST['campo1_2']) && $_POST['campo1_2'] == "6") {
+                                        echo "selected";
+                                    } ?>>Horas Totales</option>
+                                </select>
+                            </div>
 
-    <div class="col-md-3 mt-2">
-        <span style="font-weight: bold;">Condición:</span><br>
-        <select class="form-select mt-1" name="campo2_3" id="campo2_3">
-            <option value="0" <?php if (isset($_POST['campo2_3']) && $_POST['campo2_3'] == "0") {
-                echo "selected";
-            } ?>></option>
-            <option value=">" <?php if (isset($_POST['campo2_3']) && $_POST['campo2_3'] == ">") {
-                echo "selected";
-            } ?>>Mayor</option>
-            <option value="=" <?php if (isset($_POST['campo2_3']) && $_POST['campo2_3'] == "=") {
-                echo "selected";
-            } ?>>Igual</option>
-            <option value="<" <?php if (isset($_POST['campo2_3']) && $_POST['campo2_3'] == "<") {
-                echo "selected";
-            } ?>>Menor</option>
-        </select>
-    </div>
+                            <div class="col-md-3 mt-2">
+                                <span style="font-weight: bold;">Condición:</span><br>
+                                <select class="form-select mt-1" name="campo2_2" id="campo2_2">
+                                    <option value="0" <?php if (isset($_POST['campo2_2']) && $_POST['campo2_2'] == "0") {
+                                        echo "selected";
+                                    } ?>></option>
+                                    <option value=">" <?php if (isset($_POST['campo2_2']) && $_POST['campo2_2'] == ">") {
+                                        echo "selected";
+                                    } ?>>Mayor</option>
+                                    <option value="=" <?php if (isset($_POST['campo2_2']) && $_POST['campo2_2'] == "=") {
+                                        echo "selected";
+                                    } ?>>Igual</option>
+                                    <option value="<" <?php if (isset($_POST['campo2_2']) && $_POST['campo2_2'] == "<") {
+                                        echo "selected";
+                                    } ?>>Menor</option>
+                                </select>
+                            </div>
 
-    <div class="col-md-3 mt-2">
-        <span style="font-weight: bold;">Tiempo:</span><br>
-        <input type="text" class="form-control mt-1" name="campo3_3" id="campo3_3"
-            placeholder="hh:mm" maxlength="5"
-            value="<?php echo isset($_POST['campo3_3']) ? $_POST['campo3_3'] : ''; ?>">
-    </div>
+                            <div class="col-md-3 mt-2">
+                                <span style="font-weight: bold;">Tiempo:</span><br>
+                                <input type="text" class="form-control mt-1" name="campo3_2" id="campo3_2"
+                                    placeholder="hh:mm" maxlength="5"
+                                    value="<?php echo isset($_POST['campo3_2']) ? $_POST['campo3_2'] : ''; ?>">
+                            </div>
 
-    <div class="col-md-3 mt-2">
-        <span style="font-weight: bold;">Conector:</span><br>
-        <select class="form-select mt-1" name="conector_3" id="conector_3"
-            onchange="mostrarSiguienteFiltro(3)">
-            <option value="0" <?php if (isset($_POST['conector_3']) && $_POST['conector_3'] == "0") {
-                echo "selected";
-            } ?>></option>
-            <option value="AND" <?php if (isset($_POST['conector_3']) && $_POST['conector_3'] == "AND") {
-                echo "selected";
-            } ?>>Y</option>
-            <option value="OR" <?php if (isset($_POST['conector_3']) && $_POST['conector_3'] == "OR") {
-                echo "selected";
-            } ?>>O</option>
-        </select>
-    </div>
-</div>
-
-
-<!-- 4º filtro -->
-<div class="row filter mb-2" id="filtro_4" style="display: none;">
-    <div class="col-md-3 mt-2">
-        <span style="font-weight: bold;">Horario:</span><br>
-        <select class="form-select mt-1" name="campo1_4" id="campo1_4">
-            <option value="0" <?php if (isset($_POST['campo1_4']) && $_POST['campo1_4'] == "0") {
-                echo "selected";
-            } ?>></option>
-            <option value="1" <?php if (isset($_POST['campo1_4']) && $_POST['campo1_4'] == "1") {
-                echo "selected";
-            } ?>>Desayuno</option>
-            <option value="2" <?php if (isset($_POST['campo1_4']) && $_POST['campo1_4'] == "2") {
-                echo "selected";
-            } ?>>Almuerzo</option>
-            <option value="4" <?php if (isset($_POST['campo1_4']) && $_POST['campo1_4'] == "3") {
-                echo "selected";
-            } ?>>Otros</option>
-            <option value="4" <?php if (isset($_POST['campo1_4']) && $_POST['campo1_4'] == "4") {
-                echo "selected";
-            } ?>>Descanso</option>
-            <option value="5" <?php if (isset($_POST['campo1_4']) && $_POST['campo1_4'] == "5") {
-                echo "selected";
-            } ?>>Tiempo Efectivo</option>
-            <option value="6" <?php if (isset($_POST['campo1_4']) && $_POST['campo1_4'] == "6") {
-                echo "selected";
-            } ?>>Horas Totales</option>
-        </select>
-    </div>
-
-    <div class="col-md-3 mt-2">
-        <span style="font-weight: bold;">Condición:</span><br>
-        <select class="form-select mt-1" name="campo2_4" id="campo2_4">
-            <option value="0" <?php if (isset($_POST['campo2_4']) && $_POST['campo2_4'] == "0") {
-                echo "selected";
-            } ?>></option>
-            <option value=">" <?php if (isset($_POST['campo2_4']) && $_POST['campo2_4'] == ">") {
-                echo "selected";
-            } ?>>Mayor</option>
-            <option value="=" <?php if (isset($_POST['campo2_4']) && $_POST['campo2_4'] == "=") {
-                echo "selected";
-            } ?>>Igual</option>
-            <option value="<" <?php if (isset($_POST['campo2_4']) && $_POST['campo2_4'] == "<") {
-                echo "selected";
-            } ?>>Menor</option>
-        </select>
-    </div>
-
-    <div class="col-md-3 mt-2">
-        <span style="font-weight: bold;">Tiempo:</span><br>
-        <input type="text" class="form-control mt-1" name="campo3_4" id="campo3_4"
-            placeholder="hh:mm" maxlength="5"
-            value="<?php echo isset($_POST['campo3_4']) ? $_POST['campo3_4'] : ''; ?>">
-    </div>
-
-    <div class="col-md-3 mt-2">
-        <span style="font-weight: bold;">Conector:</span><br>
-        <select class="form-select mt-1" name="conector_4" id="conector_4"
-            onchange="mostrarSiguienteFiltro(4)">
-            <option value="0" <?php if (isset($_POST['conector_4']) && $_POST['conector_4'] == "0") {
-                echo "selected";
-            } ?>></option>
-            <option value="AND" <?php if (isset($_POST['conector_4']) && $_POST['conector_4'] == "AND") {
-                echo "selected";
-            } ?>>Y</option>
-            <option value="OR" <?php if (isset($_POST['conector_4']) && $_POST['conector_4'] == "OR") {
-                echo "selected";
-            } ?>>O</option>
-        </select>
-    </div>
-</div>
+                            <div class="col-md-3 mt-2">
+                                <span style="font-weight: bold;">Conector:</span><br>
+                                <select class="form-select mt-1" name="conector_2" id="conector_2"
+                                    onchange="mostrarSiguienteFiltro(2)">
+                                    <option value="0" <?php if (isset($_POST['conector_2']) && $_POST['conector_2'] == "0") {
+                                        echo "selected";
+                                    } ?>></option>
+                                    <option value="AND" <?php if (isset($_POST['conector_2']) && $_POST['conector_2'] == "AND") {
+                                        echo "selected";
+                                    } ?>>Y</option>
+                                    <option value="OR" <?php if (isset($_POST['conector_2']) && $_POST['conector_2'] == "OR") {
+                                        echo "selected";
+                                    } ?>>O</option>
+                                </select>
+                            </div>
+                        </div>
 
 
-<!-- 5º filtro -->
-<div class="row filter mb-2" id="filtro_5" style="display: none;">
-    <div class="col-md-3 mt-2">
-        <span style="font-weight: bold;">Horario:</span><br>
-        <select class="form-select mt-1" name="campo1_5" id="campo1_5">
-            <option value="0" <?php if (isset($_POST['campo1_5']) && $_POST['campo1_5'] == "0") {
-                echo "selected";
-            } ?>></option>
-            <option value="1" <?php if (isset($_POST['campo1_5']) && $_POST['campo1_5'] == "1") {
-                echo "selected";
-            } ?>>Desayuno</option>
-            <option value="2" <?php if (isset($_POST['campo1_5']) && $_POST['campo1_5'] == "2") {
-                echo "selected";
-            } ?>>Almuerzo</option>
-            <option value="4" <?php if (isset($_POST['campo1_5']) && $_POST['campo1_5'] == "3") {
-                echo "selected";
-            } ?>>Otros</option>
-            <option value="4" <?php if (isset($_POST['campo1_5']) && $_POST['campo1_5'] == "4") {
-                echo "selected";
-            } ?>>Descanso</option>
-            <option value="5" <?php if (isset($_POST['campo1_5']) && $_POST['campo1_5'] == "5") {
-                echo "selected";
-            } ?>>Tiempo Efectivo</option>
-            <option value="6" <?php if (isset($_POST['campo1_5']) && $_POST['campo1_5'] == "6") {
-                echo "selected";
-            } ?>>Horas Totales</option>
-        </select>
-    </div>
+                        <!-- 3º filtro -->
+                        <div class="row filter mb-2" id="filtro_3" style="display: none;">
+                            <div class="col-md-3 mt-2">
+                                <span style="font-weight: bold;">Horario:</span><br>
+                                <select class="form-select mt-1" name="campo1_3" id="campo1_3">
+                                    <option value="0" <?php if (isset($_POST['campo1_3']) && $_POST['campo1_3'] == "0") {
+                                        echo "selected";
+                                    } ?>></option>
+                                    <option value="1" <?php if (isset($_POST['campo1_3']) && $_POST['campo1_3'] == "1") {
+                                        echo "selected";
+                                    } ?>>Desayuno</option>
+                                    <option value="2" <?php if (isset($_POST['campo1_3']) && $_POST['campo1_3'] == "2") {
+                                        echo "selected";
+                                    } ?>>Almuerzo</option>
+                                    <option value="3" <?php if (isset($_POST['campo1_3']) && $_POST['campo1_3'] == "3") {
+                                        echo "selected";
+                                    } ?>>Otros</option>
+                                    <option value="4" <?php if (isset($_POST['campo1_3']) && $_POST['campo1_3'] == "4") {
+                                        echo "selected";
+                                    } ?>>Descanso</option>
+                                    <option value="5" <?php if (isset($_POST['campo1_3']) && $_POST['campo1_3'] == "5") {
+                                        echo "selected";
+                                    } ?>>Tiempo Efectivo</option>
+                                    <option value="6" <?php if (isset($_POST['campo1_3']) && $_POST['campo1_3'] == "6") {
+                                        echo "selected";
+                                    } ?>>Horas Totales</option>
+                                </select>
+                            </div>
 
-    <div class="col-md-3 mt-2">
-        <span style="font-weight: bold;">Condición:</span><br>
-        <select class="form-select mt-1" name="campo2_5" id="campo2_5">
-            <option value="0" <?php if (isset($_POST['campo2_5']) && $_POST['campo2_5'] == "0") {
-                echo "selected";
-            } ?>></option>
-            <option value=">" <?php if (isset($_POST['campo2_5']) && $_POST['campo2_5'] == ">") {
-                echo "selected";
-            } ?>>Mayor</option>
-            <option value="=" <?php if (isset($_POST['campo2_5']) && $_POST['campo2_5'] == "=") {
-                echo "selected";
-            } ?>>Igual</option>
-            <option value="<" <?php if (isset($_POST['campo2_5']) && $_POST['campo2_5'] == "<") {
-                echo "selected";
-            } ?>>Menor</option>
-        </select>
-    </div>
+                            <div class="col-md-3 mt-2">
+                                <span style="font-weight: bold;">Condición:</span><br>
+                                <select class="form-select mt-1" name="campo2_3" id="campo2_3">
+                                    <option value="0" <?php if (isset($_POST['campo2_3']) && $_POST['campo2_3'] == "0") {
+                                        echo "selected";
+                                    } ?>></option>
+                                    <option value=">" <?php if (isset($_POST['campo2_3']) && $_POST['campo2_3'] == ">") {
+                                        echo "selected";
+                                    } ?>>Mayor</option>
+                                    <option value="=" <?php if (isset($_POST['campo2_3']) && $_POST['campo2_3'] == "=") {
+                                        echo "selected";
+                                    } ?>>Igual</option>
+                                    <option value="<" <?php if (isset($_POST['campo2_3']) && $_POST['campo2_3'] == "<") {
+                                        echo "selected";
+                                    } ?>>Menor</option>
+                                </select>
+                            </div>
 
-    <div class="col-md-3 mt-2">
-        <span style="font-weight: bold;">Tiempo:</span><br>
-        <input type="text" class="form-control mt-1" name="campo3_5" id="campo3_5"
-            placeholder="hh:mm" maxlength="5"
-            value="<?php echo isset($_POST['campo3_5']) ? $_POST['campo3_5'] : ''; ?>">
-    </div>
+                            <div class="col-md-3 mt-2">
+                                <span style="font-weight: bold;">Tiempo:</span><br>
+                                <input type="text" class="form-control mt-1" name="campo3_3" id="campo3_3"
+                                    placeholder="hh:mm" maxlength="5"
+                                    value="<?php echo isset($_POST['campo3_3']) ? $_POST['campo3_3'] : ''; ?>">
+                            </div>
 
-    <div class="col-md-3 mt-2">
-        <span style="font-weight: bold;">Conector:</span><br>
-        <select class="form-select mt-1" name="conector_5" id="conector_5"
-            onchange="mostrarSiguienteFiltro(5)">
-            <option value="0" <?php if (isset($_POST['conector_5']) && $_POST['conector_5'] == "0") {
-                echo "selected";
-            } ?>></option>
-            <option value="AND" <?php if (isset($_POST['conector_5']) && $_POST['conector_5'] == "AND") {
-                echo "selected";
-            } ?>>Y</option>
-            <option value="OR" <?php if (isset($_POST['conector_5']) && $_POST['conector_5'] == "OR") {
-                echo "selected";
-            } ?>>O</option>
-        </select>
-    </div>
-</div>
-
-
-<!-- 6º filtro -->
-<div class="row filter mb-2" id="filtro_6" style="display: none;">
-    <div class="col-md-3 mt-2">
-        <span style="font-weight: bold;">Horario:</span><br>
-        <select class="form-select mt-1" name="campo1_6" id="campo1_6">
-            <option value="0" <?php if (isset($_POST['campo1_6']) && $_POST['campo1_6'] == "0") {
-                echo "selected";
-            } ?>></option>
-            <option value="1" <?php if (isset($_POST['campo1_6']) && $_POST['campo1_6'] == "1") {
-                echo "selected";
-            } ?>>Desayuno</option>
-            <option value="2" <?php if (isset($_POST['campo1_6']) && $_POST['campo1_6'] == "2") {
-                echo "selected";
-            } ?>>Almuerzo</option>
-            <option value="4" <?php if (isset($_POST['campo1_6']) && $_POST['campo1_6'] == "3") {
-                echo "selected";
-            } ?>>Otros</option>
-            <option value="4" <?php if (isset($_POST['campo1_6']) && $_POST['campo1_6'] == "4") {
-                echo "selected";
-            } ?>>Descanso</option>
-            <option value="5" <?php if (isset($_POST['campo1_6']) && $_POST['campo1_6'] == "5") {
-                echo "selected";
-            } ?>>Tiempo Efectivo</option>
-            <option value="6" <?php if (isset($_POST['campo1_6']) && $_POST['campo1_6'] == "6") {
-                echo "selected";
-            } ?>>Horas Totales</option>
-        </select>
-    </div>
-
-    <div class="col-md-3 mt-2">
-        <span style="font-weight: bold;">Condición:</span><br>
-        <select class="form-select mt-1" name="campo2_6" id="campo2_6">
-            <option value="0" <?php if (isset($_POST['campo2_6']) && $_POST['campo2_6'] == "0") {
-                echo "selected";
-            } ?>></option>
-            <option value=">" <?php if (isset($_POST['campo2_6']) && $_POST['campo2_6'] == ">") {
-                echo "selected";
-            } ?>>Mayor</option>
-            <option value="=" <?php if (isset($_POST['campo2_6']) && $_POST['campo2_6'] == "=") {
-                echo "selected";
-            } ?>>Igual</option>
-            <option value="<" <?php if (isset($_POST['campo2_6']) && $_POST['campo2_6'] == "<") {
-                echo "selected";
-            } ?>>Menor</option>
-        </select>
-    </div>
-
-    <div class="col-md-3 mt-2">
-        <span style="font-weight: bold;">Tiempo:</span><br>
-        <input type="text" class="form-control mt-1" name="campo3_6" id="campo3_6"
-            placeholder="hh:mm" maxlength="5"
-            value="<?php echo isset($_POST['campo3_6']) ? $_POST['campo3_6'] : ''; ?>">
-    </div>
-
-    <!-- <div class="col-md-3 mt-2">
-        <span style="font-weight: bold;">Conector:</span><br>
-        <select class="form-select mt-1" name="conector_6" id="conector_6"
-            onchange="mostrarSiguienteFiltro(6)">
-            <option value="0" <?php if (isset($_POST['conector_6']) && $_POST['conector_6'] == "0") {
-                echo "selected";
-            } ?>></option>
-            <option value="AND" <?php if (isset($_POST['conector_6']) && $_POST['conector_6'] == "AND") {
-                echo "selected";
-            } ?>>Y</option>
-            <option value="OR" <?php if (isset($_POST['conector_6']) && $_POST['conector_6'] == "OR") {
-                echo "selected";
-            } ?>>O</option>
-        </select>
-    </div> -->
-</div>
+                            <div class="col-md-3 mt-2">
+                                <span style="font-weight: bold;">Conector:</span><br>
+                                <select class="form-select mt-1" name="conector_3" id="conector_3"
+                                    onchange="mostrarSiguienteFiltro(3)">
+                                    <option value="0" <?php if (isset($_POST['conector_3']) && $_POST['conector_3'] == "0") {
+                                        echo "selected";
+                                    } ?>></option>
+                                    <option value="AND" <?php if (isset($_POST['conector_3']) && $_POST['conector_3'] == "AND") {
+                                        echo "selected";
+                                    } ?>>Y</option>
+                                    <option value="OR" <?php if (isset($_POST['conector_3']) && $_POST['conector_3'] == "OR") {
+                                        echo "selected";
+                                    } ?>>O</option>
+                                </select>
+                            </div>
+                        </div>
 
 
-                        <div class="clear"></div>
+                        <!-- 4º filtro -->
+                        <div class="row filter mb-2" id="filtro_4" style="display: none;">
+                            <div class="col-md-3 mt-2">
+                                <span style="font-weight: bold;">Horario:</span><br>
+                                <select class="form-select mt-1" name="campo1_4" id="campo1_4">
+                                    <option value="0" <?php if (isset($_POST['campo1_4']) && $_POST['campo1_4'] == "0") {
+                                        echo "selected";
+                                    } ?>></option>
+                                    <option value="1" <?php if (isset($_POST['campo1_4']) && $_POST['campo1_4'] == "1") {
+                                        echo "selected";
+                                    } ?>>Desayuno</option>
+                                    <option value="2" <?php if (isset($_POST['campo1_4']) && $_POST['campo1_4'] == "2") {
+                                        echo "selected";
+                                    } ?>>Almuerzo</option>
+                                    <option value="4" <?php if (isset($_POST['campo1_4']) && $_POST['campo1_4'] == "3") {
+                                        echo "selected";
+                                    } ?>>Otros</option>
+                                    <option value="4" <?php if (isset($_POST['campo1_4']) && $_POST['campo1_4'] == "4") {
+                                        echo "selected";
+                                    } ?>>Descanso</option>
+                                    <option value="5" <?php if (isset($_POST['campo1_4']) && $_POST['campo1_4'] == "5") {
+                                        echo "selected";
+                                    } ?>>Tiempo Efectivo</option>
+                                    <option value="6" <?php if (isset($_POST['campo1_4']) && $_POST['campo1_4'] == "6") {
+                                        echo "selected";
+                                    } ?>>Horas Totales</option>
+                                </select>
+                            </div>
+
+                            <div class="col-md-3 mt-2">
+                                <span style="font-weight: bold;">Condición:</span><br>
+                                <select class="form-select mt-1" name="campo2_4" id="campo2_4">
+                                    <option value="0" <?php if (isset($_POST['campo2_4']) && $_POST['campo2_4'] == "0") {
+                                        echo "selected";
+                                    } ?>></option>
+                                    <option value=">" <?php if (isset($_POST['campo2_4']) && $_POST['campo2_4'] == ">") {
+                                        echo "selected";
+                                    } ?>>Mayor</option>
+                                    <option value="=" <?php if (isset($_POST['campo2_4']) && $_POST['campo2_4'] == "=") {
+                                        echo "selected";
+                                    } ?>>Igual</option>
+                                    <option value="<" <?php if (isset($_POST['campo2_4']) && $_POST['campo2_4'] == "<") {
+                                        echo "selected";
+                                    } ?>>Menor</option>
+                                </select>
+                            </div>
+
+                            <div class="col-md-3 mt-2">
+                                <span style="font-weight: bold;">Tiempo:</span><br>
+                                <input type="text" class="form-control mt-1" name="campo3_4" id="campo3_4"
+                                    placeholder="hh:mm" maxlength="5"
+                                    value="<?php echo isset($_POST['campo3_4']) ? $_POST['campo3_4'] : ''; ?>">
+                            </div>
+
+                            <div class="col-md-3 mt-2">
+                                <span style="font-weight: bold;">Conector:</span><br>
+                                <select class="form-select mt-1" name="conector_4" id="conector_4"
+                                    onchange="mostrarSiguienteFiltro(4)">
+                                    <option value="0" <?php if (isset($_POST['conector_4']) && $_POST['conector_4'] == "0") {
+                                        echo "selected";
+                                    } ?>></option>
+                                    <option value="AND" <?php if (isset($_POST['conector_4']) && $_POST['conector_4'] == "AND") {
+                                        echo "selected";
+                                    } ?>>Y</option>
+                                    <option value="OR" <?php if (isset($_POST['conector_4']) && $_POST['conector_4'] == "OR") {
+                                        echo "selected";
+                                    } ?>>O</option>
+                                </select>
+                            </div>
+                        </div>
+
+
+                        <!-- 5º filtro -->
+                        <div class="row filter mb-2" id="filtro_5" style="display: none;">
+                            <div class="col-md-3 mt-2">
+                                <span style="font-weight: bold;">Horario:</span><br>
+                                <select class="form-select mt-1" name="campo1_5" id="campo1_5">
+                                    <option value="0" <?php if (isset($_POST['campo1_5']) && $_POST['campo1_5'] == "0") {
+                                        echo "selected";
+                                    } ?>></option>
+                                    <option value="1" <?php if (isset($_POST['campo1_5']) && $_POST['campo1_5'] == "1") {
+                                        echo "selected";
+                                    } ?>>Desayuno</option>
+                                    <option value="2" <?php if (isset($_POST['campo1_5']) && $_POST['campo1_5'] == "2") {
+                                        echo "selected";
+                                    } ?>>Almuerzo</option>
+                                    <option value="4" <?php if (isset($_POST['campo1_5']) && $_POST['campo1_5'] == "3") {
+                                        echo "selected";
+                                    } ?>>Otros</option>
+                                    <option value="4" <?php if (isset($_POST['campo1_5']) && $_POST['campo1_5'] == "4") {
+                                        echo "selected";
+                                    } ?>>Descanso</option>
+                                    <option value="5" <?php if (isset($_POST['campo1_5']) && $_POST['campo1_5'] == "5") {
+                                        echo "selected";
+                                    } ?>>Tiempo Efectivo</option>
+                                    <option value="6" <?php if (isset($_POST['campo1_5']) && $_POST['campo1_5'] == "6") {
+                                        echo "selected";
+                                    } ?>>Horas Totales</option>
+                                </select>
+                            </div>
+
+                            <div class="col-md-3 mt-2">
+                                <span style="font-weight: bold;">Condición:</span><br>
+                                <select class="form-select mt-1" name="campo2_5" id="campo2_5">
+                                    <option value="0" <?php if (isset($_POST['campo2_5']) && $_POST['campo2_5'] == "0") {
+                                        echo "selected";
+                                    } ?>></option>
+                                    <option value=">" <?php if (isset($_POST['campo2_5']) && $_POST['campo2_5'] == ">") {
+                                        echo "selected";
+                                    } ?>>Mayor</option>
+                                    <option value="=" <?php if (isset($_POST['campo2_5']) && $_POST['campo2_5'] == "=") {
+                                        echo "selected";
+                                    } ?>>Igual</option>
+                                    <option value="<" <?php if (isset($_POST['campo2_5']) && $_POST['campo2_5'] == "<") {
+                                        echo "selected";
+                                    } ?>>Menor</option>
+                                </select>
+                            </div>
+
+                            <div class="col-md-3 mt-2">
+                                <span style="font-weight: bold;">Tiempo:</span><br>
+                                <input type="text" class="form-control mt-1" name="campo3_5" id="campo3_5"
+                                    placeholder="hh:mm" maxlength="5"
+                                    value="<?php echo isset($_POST['campo3_5']) ? $_POST['campo3_5'] : ''; ?>">
+                            </div>
+
+                            <div class="col-md-3 mt-2">
+                                <span style="font-weight: bold;">Conector:</span><br>
+                                <select class="form-select mt-1" name="conector_5" id="conector_5"
+                                    onchange="mostrarSiguienteFiltro(5)">
+                                    <option value="0" <?php if (isset($_POST['conector_5']) && $_POST['conector_5'] == "0") {
+                                        echo "selected";
+                                    } ?>></option>
+                                    <option value="AND" <?php if (isset($_POST['conector_5']) && $_POST['conector_5'] == "AND") {
+                                        echo "selected";
+                                    } ?>>Y</option>
+                                    <option value="OR" <?php if (isset($_POST['conector_5']) && $_POST['conector_5'] == "OR") {
+                                        echo "selected";
+                                    } ?>>O</option>
+                                </select>
+                            </div>
+                        </div>
+
+
+                        <!-- 6º filtro -->
+                        <div class="row filter mb-2" id="filtro_6" style="display: none;">
+                            <div class="col-md-3 mt-2">
+                                <span style="font-weight: bold;">Horario:</span><br>
+                                <select class="form-select mt-1" name="campo1_6" id="campo1_6">
+                                    <option value="0" <?php if (isset($_POST['campo1_6']) && $_POST['campo1_6'] == "0") {
+                                        echo "selected";
+                                    } ?>></option>
+                                    <option value="1" <?php if (isset($_POST['campo1_6']) && $_POST['campo1_6'] == "1") {
+                                        echo "selected";
+                                    } ?>>Desayuno</option>
+                                    <option value="2" <?php if (isset($_POST['campo1_6']) && $_POST['campo1_6'] == "2") {
+                                        echo "selected";
+                                    } ?>>Almuerzo</option>
+                                    <option value="4" <?php if (isset($_POST['campo1_6']) && $_POST['campo1_6'] == "3") {
+                                        echo "selected";
+                                    } ?>>Otros</option>
+                                    <option value="4" <?php if (isset($_POST['campo1_6']) && $_POST['campo1_6'] == "4") {
+                                        echo "selected";
+                                    } ?>>Descanso</option>
+                                    <option value="5" <?php if (isset($_POST['campo1_6']) && $_POST['campo1_6'] == "5") {
+                                        echo "selected";
+                                    } ?>>Tiempo Efectivo</option>
+                                    <option value="6" <?php if (isset($_POST['campo1_6']) && $_POST['campo1_6'] == "6") {
+                                        echo "selected";
+                                    } ?>>Horas Totales</option>
+                                </select>
+                            </div>
+
+                            <div class="col-md-3 mt-2">
+                                <span style="font-weight: bold;">Condición:</span><br>
+                                <select class="form-select mt-1" name="campo2_6" id="campo2_6">
+                                    <option value="0" <?php if (isset($_POST['campo2_6']) && $_POST['campo2_6'] == "0") {
+                                        echo "selected";
+                                    } ?>></option>
+                                    <option value=">" <?php if (isset($_POST['campo2_6']) && $_POST['campo2_6'] == ">") {
+                                        echo "selected";
+                                    } ?>>Mayor</option>
+                                    <option value="=" <?php if (isset($_POST['campo2_6']) && $_POST['campo2_6'] == "=") {
+                                        echo "selected";
+                                    } ?>>Igual</option>
+                                    <option value="<" <?php if (isset($_POST['campo2_6']) && $_POST['campo2_6'] == "<") {
+                                        echo "selected";
+                                    } ?>>Menor</option>
+                                </select>
+                            </div>
+
+                            <div class="col-md-3 mt-2">
+                                <span style="font-weight: bold;">Tiempo:</span><br>
+                                <input type="text" class="form-control mt-1" name="campo3_6" id="campo3_6"
+                                    placeholder="hh:mm" maxlength="5"
+                                    value="<?php echo isset($_POST['campo3_6']) ? $_POST['campo3_6'] : ''; ?>">
+                            </div>
+
+                            <!-- <div class="col-md-3 mt-2">
+                                <span style="font-weight: bold;">Conector:</span><br>
+                                <select class="form-select mt-1" name="conector_6" id="conector_6"
+                                    onchange="mostrarSiguienteFiltro(6)">
+                                    <option value="0" <?php if (isset($_POST['conector_6']) && $_POST['conector_6'] == "0") {
+                                        echo "selected";
+                                    } ?>></option>
+                                    <option value="AND" <?php if (isset($_POST['conector_6']) && $_POST['conector_6'] == "AND") {
+                                        echo "selected";
+                                    } ?>>Y</option>
+                                    <option value="OR" <?php if (isset($_POST['conector_6']) && $_POST['conector_6'] == "OR") {
+                                        echo "selected";
+                                    } ?>>O</option>
+                                </select>
+                            </div> -->
+                        </div>
+
+
+
 
 
                         <div class="col-md-12">
                             <input type="submit" name="enviar_cont" id="submit_export"
                                 value="<?php echo $lang['exportar']; ?>" class="btn btn-primary">
-                            <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#modalNuevoRegistro">
+                            <button id="btnExportando" class="btn btn-primary" type="button" disabled=""
+                                style="display: none;">
+                                <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                                Por favor, espere...
+                            </button>
+                            <button type="button" class="btn btn-success" data-bs-toggle="modal"
+                                data-bs-target="#modalNuevoRegistro">
                                 Nuevo registro
                             </button>
                         </div>
 
                     </form>
 
-                    <button id="btnExportando" class="btn btn-primary" type="button" disabled="" style="display: none;">
-                        <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-                        Por favor, espere...
-                    </button>
 
                     <script>
                         // Mostrar el spinner y ocultar el botón "Exportar" al enviar el formulario
@@ -660,7 +664,7 @@ include_once("header.php");
                             // Iterar sobre los conectores de 1 a 6
                             for (let i = 1; i <= 6; i++) {
                                 const conectorInput = document.getElementById(`conector_${i}`);
-                                
+
                                 // ⚠️ Verificar si el elemento existe antes de acceder a su valor
                                 if (conectorInput && conectorInput.value !== "0") {
                                     mostrarSiguienteFiltro(i);
@@ -776,7 +780,7 @@ include_once("header.php");
                             value="<?php echo (isset($_POST['fecha_inicio_ofi']) ? ($_POST['fecha_inicio_ofi']) : date('Y-m-d')); ?>">
                         <input type="hidden" name="tipo" value="1A">
                         <button type="submit" class="btn btn-secondary m-2" id="btn_trab_1A">
-                            Cargar 1A
+                            <i class="bi bi-download"></i>
                         </button> 1A (Personal mensual)
                     </form>
 
@@ -788,7 +792,7 @@ include_once("header.php");
                             value="<?php echo (isset($_POST['fecha_inicio_ofi']) ? ($_POST['fecha_inicio_ofi']) : date('Y-m-d')); ?>">
                         <input type="hidden" name="tipo" value="1E">
                         <button type="submit" class="btn btn-secondary m-2" id="btn_trab_1E">
-                            Cargar 1E
+                            <i class="bi bi-download"></i>
                         </button> 1E (Prácticas)
                     </form>
 
@@ -800,7 +804,7 @@ include_once("header.php");
                             value="<?php echo (isset($_POST['fecha_inicio_ofi']) ? ($_POST['fecha_inicio_ofi']) : date('Y-m-d')); ?>">
                         <input type="hidden" name="tipo" value="9A">
                         <button type="submit" class="btn btn-secondary m-2" id="btn_trab_9A">
-                            Cargar 9A
+                            <i class="bi bi-download"></i>
                         </button> 9A (Becarios)
                     </form>
 
@@ -818,7 +822,7 @@ include_once("header.php");
                         <div id="resultado_1D" class="mt-2"></div> -->
 
                     <script>
-                        // Funcion para obtener los datos de presncia de los trabajadores automaticamente
+                        // Funcion para obtener los datos de presncia de los trabajadores manualmente
                         document.addEventListener('DOMContentLoaded', function () {
                             // Array con los tipos de formularios
                             const formTypes = ['1A', '1E', '9A'];
@@ -827,8 +831,6 @@ include_once("header.php");
                             formTypes.forEach(type => {
                                 const form = document.getElementById(`form_trab_${type}`);
                                 if (form) {
-                                    loadData(form, type);
-
                                     // Añadir event listener para cada formulario
                                     form.addEventListener('submit', function (e) {
                                         e.preventDefault();
@@ -983,7 +985,7 @@ include_once("header.php");
                                     value='<?php echo isset($_POST['campo2_6']) ? htmlspecialchars($_POST['campo2_6']) : ''; ?>'>
                                 <input type='hidden' name='campo3_6'
                                     value='<?php echo isset($_POST['campo3_6']) ? htmlspecialchars($_POST['campo3_6']) : ''; ?>'>
-                                    
+
                                 <button type="button" target="_blank"
                                     onclick="document.getElementById('exportar').action='exportar.php?informe_presencia_ofi_audi_pdf'; document.getElementById('exportar').target='_blank'; document.getElementById('exportar').submit();"
                                     style="background-color: white; margin-right: 60px;">
@@ -1024,7 +1026,7 @@ include_once("header.php");
                                 <?php
                                 foreach ($params['datos_export_ofi'] as $registro) {
 
-                                    
+
 
                                     // Verificar si estamos en modo totales
                                     $esTotales = !isset($registro['fecha']) || $registro['fecha'] === null;
@@ -1039,7 +1041,7 @@ include_once("header.php");
                                         $pernr = $registro['pernr'];
                                     }
 
-                                    
+
                                     $nombreCompleto = $registro['NOMBREYAPELLIDOS'];
 
 
@@ -1074,9 +1076,11 @@ include_once("header.php");
                                         <td>
                                             <?php echo $nombreCompleto . "<br>" . $registro['pernr']; ?>
                                             <?php if ($tieneEstado3) { ?>
-                                                <br><small class="text-info"><i class="bi bi-pencil-square"></i> <strong>CREADO/EDITADO POR RRHH</strong></small>
-                                            <?php }elseif ($tieneEstado6 || $tieneEstado7) { ?>
-                                                <br><small class="text-info"><i class="bi bi-pencil-square"></i> <strong>CREADO/EDITADO POR USUARIO</strong></small>
+                                                <br><small class="text-info"><i class="bi bi-pencil-square"></i>
+                                                    <strong>CREADO/EDITADO POR RRHH</strong></small>
+                                            <?php } elseif ($tieneEstado6 || $tieneEstado7) { ?>
+                                                <br><small class="text-info"><i class="bi bi-pencil-square"></i>
+                                                    <strong>CREADO/EDITADO POR USUARIO</strong></small>
                                             <?php } ?>
                                             <?php if ($esTotales) { ?>
                                                 <br><small class="text-muted"><strong>TOTALES</strong></small>
@@ -1148,6 +1152,21 @@ include_once("header.php");
                                 });
                             });
                         });
+
+                        // Función para escapar caracteres especiales en atributos HTML y JavaScript
+                        function escapeHtml(text) {
+                            if (!text) return '';
+                            const map = {
+                                '&': '&amp;',
+                                '<': '&lt;',
+                                '>': '&gt;',
+                                '"': '&quot;',
+                                "'": '&#039;',
+                                '\n': ' ',
+                                '\r': ''
+                            };
+                            return String(text).replace(/[&<>"'\n\r]/g, m => map[m]);
+                        }
 
                         function toggleDetails(fecha, pernr) {
                             const detalles = document.querySelector(`.detalle-${fecha}-${pernr}`);
@@ -1225,7 +1244,7 @@ include_once("header.php");
                             dispositivo = dispositivo.toLowerCase();
                             if (dispositivo.includes('android')) {
                                 return "<i class='bx bxl-android'></i>";
-                            } else if(dispositivo.includes('web manual') || dispositivo.includes('manual')) {
+                            } else if (dispositivo.includes('web manual') || dispositivo.includes('manual')) {
                                 return "<i class='bi bi-globe'></i>";
                             } else if (dispositivo.includes('windows') || dispositivo.includes('linux') || dispositivo.includes('macintosh')) {
                                 return "<i class='bi bi-laptop'></i>";
@@ -1298,203 +1317,203 @@ include_once("header.php");
                         function construirBotonModificacion(reg) {
                             const id = reg.id;
                             const pernr = reg.pernr;
-                            
+
                             // Extraer datos del registro
                             const fechaObj = reg.fecha_reg?.date ? reg.fecha_reg : reg.fecha;
                             const fechaOriginalStr = fechaObj?.date?.split('.')[0].replace(' ', 'T');
                             const fechaOriginal = fechaOriginalStr ? new Date(fechaOriginalStr) : null;
-                            
+
                             if (!fechaOriginal) return "";
-                            
+
                             const pad = n => n.toString().padStart(2, '0');
-                            
+
                             // Si la hora es <= 3, usamos día anterior para la fecha
                             const fechaParaInput = new Date(fechaOriginal);
                             if (fechaParaInput.getHours() <= 3) {
                                 fechaParaInput.setDate(fechaParaInput.getDate() - 1);
                             }
-                            
+
                             const fechaStr = `${fechaParaInput.getFullYear()}-${pad(fechaParaInput.getMonth() + 1)}-${pad(fechaParaInput.getDate())}`;
                             const horaStr = `${pad(fechaOriginal.getHours())}:${pad(fechaOriginal.getMinutes())}`;
                             const tipoRegistro = reg.tipo_reg || '';
-                            const comentario = reg.motivo || '';
-                            
+                            const comentario = (reg.motivo || '').replace(/[\r\n]+/g, ' ').replace(/'/g, "\\'").replace(/"/g, '\\"');
+
                             return `
-                                <button type='button' style='background-color: transparent;' 
-                                        onclick="editarRegistro('${id}', '${pernr}', '${fechaStr}', '${horaStr}', '${tipoRegistro}', '${comentario.replace(/'/g, "\\'")}')">
+                                <button type='button' style='background-color: transparent;'
+                                        onclick="editarRegistro('${id}', '${pernr}', '${fechaStr}', '${horaStr}', '${tipoRegistro}', '${comentario}')">
                                     <i data-bs-toggle='tooltip' data-bs-placement='right' title='Modificar' class='bi bi-pencil-square fs-4' style='margin-left: 25px; color: #2c384e;'></i>
                                 </button>
                             `;
+                    }
+
+                    function construirTablaDetalles(data) {
+                        if (!data || data.length === 0) return "<div class='text-info'>No hay registros disponibles</div>";
+
+                        const columnasConContenido = {
+                            tipoReg: data.some(reg => tieneContenido(reg.tipo_reg)),
+                            comentario: data.some(reg => tieneContenido(reg.comentario)),
+                            motivo: data.some(reg => tieneContenido(reg.motivo)),
+                            validacion: data.some(reg => reg.manual == 2 || reg.manual == 3),
+                            sedeOubi: data.some(reg => tieneContenido(reg.sede) || tieneContenido(reg.nombre_ubi)),
+                            localizacion: data.some(reg => tieneContenido(reg.localizacion))
+                        };
+
+                        let tabla = "<table class='table table-bordered'><thead><tr>";
+                        tabla += "<th class='col-md-1'></th>";
+
+                        if (columnasConContenido.tipoReg) {
+                            tabla += "<th class='col-md-2'>Tipo Registro</th>";
                         }
 
-                        function construirTablaDetalles(data) {
-                            if (!data || data.length === 0) return "<div class='text-info'>No hay registros disponibles</div>";
+                        tabla += "<th class='col-md-2'>Fecha Registro</th>";
+                        tabla += "<th class='col-md-2'>Sede</th>";
+                        tabla += "<th class='col-md-2'>Ubicación</th>";
 
-                            const columnasConContenido = {
-                                tipoReg: data.some(reg => tieneContenido(reg.tipo_reg)),
-                                comentario: data.some(reg => tieneContenido(reg.comentario)),
-                                motivo: data.some(reg => tieneContenido(reg.motivo)),
-                                validacion: data.some(reg => reg.manual == 2 || reg.manual == 3),
-                                sedeOubi: data.some(reg => tieneContenido(reg.sede) || tieneContenido(reg.nombre_ubi)),
-                                localizacion: data.some(reg => tieneContenido(reg.localizacion))
-                            };
+                        if (columnasConContenido.comentario) {
+                            tabla += "<th class='col-md-2'>Comentario</th>";
+                        }
 
-                            let tabla = "<table class='table table-bordered'><thead><tr>";
-                            tabla += "<th class='col-md-1'></th>";
+                        // if (columnasConContenido.validacion) {
+                        //     tabla += "<th class='col-md-1'>Validación</th>";
+                        // }
 
-                            if (columnasConContenido.tipoReg) {
-                                tabla += "<th class='col-md-2'>Tipo Registro</th>";
+                        if (columnasConContenido.motivo) {
+                            tabla += "<th class='col-md-2'>Motivo</th>";
+                        }
+
+
+                        //! comentado a falta de confirmacion de RRHH
+                        tabla += "<th class='col-md-1'>Editar</th>";
+
+                        tabla += "</tr></thead><tbody>";
+
+                        data.forEach(reg => {
+                            // Detectar si el registro ha sido modificado (manual 6, 7 u 8)
+                            const esModificadoRRHH = reg.manual == 3;
+                            const esModificadoUsuario = reg.manual == 6;
+                            const esValidado = reg.manual == 7;
+                            const claseFilaRRHH = esModificadoRRHH ? 'table-info' : '';
+                            const claseFilaUsuario = esModificadoUsuario || esValidado ? 'table-warning' : '';
+
+                            tabla += `<tr class="${claseFilaRRHH} ${claseFilaUsuario}">`;
+                            tabla += `<td>${iconoDispositivo(reg.dispositivo)}`;
+                            if (esModificadoRRHH) {
+                                let editado = ' <small class="text-info"><i class="bi bi-pencil-square"></i><span class="badge bg-info text-dark ms-2">CREADO/EDITADO POR RRHH</span></small>';
+                                tabla += `${editado}</td>`;
+                            } else if (esModificadoUsuario) {
+                                let editado = ' <small class="text-info"><i class="bi bi-pencil-square"></i><span class="badge bg-info text-dark ms-2">CREADO/EDITADO POR USUARIO</span></small>';
+                                tabla += `${editado}</td>`;
+                            } else if (esValidado) {
+                                let editado = ' <small class="text-info">Validado por responsable</small>';
+                                tabla += `${editado}</td>`;
+                            } else {
+                                tabla += `</td>`;
                             }
 
-                            tabla += "<th class='col-md-2'>Fecha Registro</th>";
-                            tabla += "<th class='col-md-2'>Sede</th>";
-                            tabla += "<th class='col-md-2'>Ubicación</th>";
+
+                            if (columnasConContenido.tipoReg) {
+                                let tipoRegistro = escapeHTML(reg.tipo_reg || '-');
+                                tabla += `<td>${tipoRegistro}</td>`;
+                            }
+
+                            const fecha = reg.fecha_reg?.date ? reg.fecha_reg.date.split(" ")[0] + " " + reg.fecha_reg.date.split(" ")[1].slice(0, 5) : '-';
+                            tabla += `<td>${fecha}</td>`;
+
+                            if (reg.sede || reg.nombre_ubi) {
+                                tabla += `<td>${escapeHTML(reg.sede || '-')}</td>`;
+                                tabla += `<td>${escapeHTML(reg.nombre_ubi || '-')}</td>`;
+                            } else {
+                                tabla += `<td colspan="2">${limpiarLocalizacion(reg.localizacion)}</td>`;
+                            }
 
                             if (columnasConContenido.comentario) {
-                                tabla += "<th class='col-md-2'>Comentario</th>";
+                                tabla += `<td>${escapeHTML(reg.comentario || '-')}</td>`;
                             }
 
                             // if (columnasConContenido.validacion) {
-                            //     tabla += "<th class='col-md-1'>Validación</th>";
+                            //     let celdaValidacion = "";
+                            //     if (reg.manual == 2) {
+                            //         celdaValidacion = construirBotonValidacion(reg);
+                            //     } else if (reg.manual == 3) {
+                            //         celdaValidacion = construirBotonModificacion(reg);
+                            //     }
+                            //     tabla += `<td>${celdaValidacion}</td>`;
                             // }
 
                             if (columnasConContenido.motivo) {
-                                tabla += "<th class='col-md-2'>Motivo</th>";
+                                tabla += `<td>${escapeHTML(reg.motivo || '-')}</td>`;
                             }
 
 
                             //! comentado a falta de confirmacion de RRHH
-                            tabla += "<th class='col-md-1'>Editar</th>";
+                            tabla += `<td>${construirBotonModificacion(reg)}</td>`;
 
-                            tabla += "</tr></thead><tbody>";
+                            tabla += "</tr>";
+                        });
 
-                            data.forEach(reg => {
-                                // Detectar si el registro ha sido modificado (manual 6, 7 u 8)
-                                const esModificadoRRHH = reg.manual == 3;
-                                const esModificadoUsuario = reg.manual == 6;
-                                const esValidado = reg.manual == 7;
-                                const claseFilaRRHH = esModificadoRRHH ? 'table-info' : '';
-                                const claseFilaUsuario = esModificadoUsuario || esValidado ? 'table-warning' : '';
+                        tabla += "</tbody></table>";
 
-                                tabla += `<tr class="${claseFilaRRHH} ${claseFilaUsuario}">`;
-                                tabla += `<td>${iconoDispositivo(reg.dispositivo)}`;
-                                if (esModificadoRRHH) {
-                                    let editado = ' <small class="text-info"><i class="bi bi-pencil-square"></i><span class="badge bg-info text-dark ms-2">CREADO/EDITADO POR RRHH</span></small>';
-                                    tabla += `${editado}</td>`;
-                                }else if(esModificadoUsuario){
-                                    let editado = ' <small class="text-info"><i class="bi bi-pencil-square"></i><span class="badge bg-info text-dark ms-2">CREADO/EDITADO POR USUARIO</span></small>';
-                                    tabla += `${editado}</td>`;
-                                }else if(esValidado){
-                                    let editado = ' <small class="text-info">Validado por responsable</small>';
-                                    tabla += `${editado}</td>`;
-                                }else{
-                                    tabla += `</td>`;
-                                }
-                                
-
-                                if (columnasConContenido.tipoReg) {
-                                    let tipoRegistro = escapeHTML(reg.tipo_reg || '-');
-                                    tabla += `<td>${tipoRegistro}</td>`;
-                                }
-
-                                const fecha = reg.fecha_reg?.date ? reg.fecha_reg.date.split(" ")[0] + " " + reg.fecha_reg.date.split(" ")[1].slice(0, 5) : '-';
-                                tabla += `<td>${fecha}</td>`;
-
-                                if (reg.sede || reg.nombre_ubi) {
-                                    tabla += `<td>${escapeHTML(reg.sede || '-')}</td>`;
-                                    tabla += `<td>${escapeHTML(reg.nombre_ubi || '-')}</td>`;
-                                } else {
-                                    tabla += `<td colspan="2">${limpiarLocalizacion(reg.localizacion)}</td>`;
-                                }
-
-                                if (columnasConContenido.comentario) {
-                                    tabla += `<td>${escapeHTML(reg.comentario || '-')}</td>`;
-                                }
-
-                                // if (columnasConContenido.validacion) {
-                                //     let celdaValidacion = "";
-                                //     if (reg.manual == 2) {
-                                //         celdaValidacion = construirBotonValidacion(reg);
-                                //     } else if (reg.manual == 3) {
-                                //         celdaValidacion = construirBotonModificacion(reg);
-                                //     }
-                                //     tabla += `<td>${celdaValidacion}</td>`;
-                                // }
-
-                                if (columnasConContenido.motivo) {
-                                    tabla += `<td>${escapeHTML(reg.motivo || '-')}</td>`;
-                                }
-
-
-                                //! comentado a falta de confirmacion de RRHH
-                                tabla += `<td>${construirBotonModificacion(reg)}</td>`;
-
-                                tabla += "</tr>";
-                            });
-
-                            tabla += "</tbody></table>";
-
-                            return tabla;
-                        }
-                    </script>
-                </div>
+                        return tabla;
+                    }
+                </script>
             </div>
         </div>
+    </div>
 
-        <?php
-        if (isset($params['datos_export_ofi']) && !empty($params['datos_export_ofi'])) {
-            ?>
-            <div class="card">
-                <div class="card-body">
-                    <h5 class="card-title">Detalles de Tiempo totales</h5>
-                    <p class="card-text">
-                        <!-- Tabla con los tiempos totales -->
-                    <div style="overflow-x: auto; width: 100%;">
-                        <table class="table">
-                            <thead>
-                                <tr>
-                                    <th class="col-2"></th>
-                                    <th class="col-1"></th>
-                                    <th class="col-1">Desayuno</th>
-                                    <th class="col-1">Almuerzo</th>
-                                    <th class="col-1">Otros</th>
-                                    <th class="col-1">Descanso</th>
-                                    <th class="col-1">Tiempo <br>Efectivo</th>
-                                    <th class="col-1">Horas Totales</th>
-                                    <th class="col-1"></th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <?php
-                                    // Función para convertir segundos a formato de horas:minutos
-                                    function convertir_a_horas($segundos)
-                                    {
-                                        $horas = floor($segundos / 3600);
-                                        $minutos = floor(($segundos % 3600) / 60);
-                                        return sprintf("%02d:%02d", $horas, $minutos);
-                                    }
-                                    ?>
-                                    <!-- cálculos para mostrar los segundos en horas y minutos dividiendo -->
-                                    <td style='color: white;'>XXXXX XXXXXXXX, XXXX</td>
-                                    <td style='color: white;'>XX-XX-XX</td>
-                                    <td><?php echo convertir_a_horas($segundos_desayuno); ?></td>
-                                    <td><?php echo convertir_a_horas($segundos_almuerzo); ?></td>
-                                    <td><?php echo convertir_a_horas($segundos_otros); ?></td>
-                                    <td><?php echo convertir_a_horas($segundos_descanso); ?></td>
-                                    <td><?php echo convertir_a_horas($segundos_tiempo_efectivo); ?></td>
-                                    <td><?php echo convertir_a_horas($segundos_horas_totales); ?></td>
-                                    <td style='color: white;'>XXXXXXXX</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                        <p class="additional-info">Nota: Los tiempos están expresados en horas y minutos.</p>
-                    </div>
-                    </p>
-                </div>
+    <?php
+    if (isset($params['datos_export_ofi']) && !empty($params['datos_export_ofi'])) {
+        ?>
+    <div class="card">
+        <div class="card-body">
+            <h5 class="card-title">Detalles de Tiempo totales</h5>
+            <p class="card-text">
+                <!-- Tabla con los tiempos totales -->
+            <div style="overflow-x: auto; width: 100%;">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th class="col-2"></th>
+                            <th class="col-1"></th>
+                            <th class="col-1">Desayuno</th>
+                            <th class="col-1">Almuerzo</th>
+                            <th class="col-1">Otros</th>
+                            <th class="col-1">Descanso</th>
+                            <th class="col-1">Tiempo <br>Efectivo</th>
+                            <th class="col-1">Horas Totales</th>
+                            <th class="col-1"></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <?php
+                            // Función para convertir segundos a formato de horas:minutos
+                            function convertir_a_horas($segundos)
+                            {
+                                $horas = floor($segundos / 3600);
+                                $minutos = floor(($segundos % 3600) / 60);
+                                return sprintf("%02d:%02d", $horas, $minutos);
+                            }
+                            ?>
+                            <!-- cálculos para mostrar los segundos en horas y minutos dividiendo -->
+                            <td style='color: white;'>XXXXX XXXXXXXX, XXXX</td>
+                            <td style='color: white;'>XX-XX-XX</td>
+                            <td><?php echo convertir_a_horas($segundos_desayuno); ?></td>
+                            <td><?php echo convertir_a_horas($segundos_almuerzo); ?></td>
+                            <td><?php echo convertir_a_horas($segundos_otros); ?></td>
+                            <td><?php echo convertir_a_horas($segundos_descanso); ?></td>
+                            <td><?php echo convertir_a_horas($segundos_tiempo_efectivo); ?></td>
+                            <td><?php echo convertir_a_horas($segundos_horas_totales); ?></td>
+                            <td style='color: white;'>XXXXXXXX</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <p class="additional-info">Nota: Los tiempos están expresados en horas y minutos.</p>
             </div>
-            <?php
-        }
+            </p>
+        </div>
+    </div>
+    <?php
+    }
         } else {
 
         }
@@ -1503,7 +1522,8 @@ include_once("header.php");
 </section>
 
 <!-- Modal para Nuevo Registro -->
-<div class="modal fade" id="modalNuevoRegistro" tabindex="-1" aria-labelledby="modalNuevoRegistroLabel" aria-hidden="true">
+<div class="modal fade" id="modalNuevoRegistro" tabindex="-1" aria-labelledby="modalNuevoRegistroLabel"
+    aria-hidden="true">
     <div class="modal-dialog modal-xl">
         <div class="modal-content">
             <div class="modal-header">
@@ -1515,18 +1535,24 @@ include_once("header.php");
                     <div class="row mb-3">
                         <!-- Select de trabajador -->
                         <div class="col-md-6" style="position: relative;">
-                            <label for="trabajadoresNuevoRegistro" class="form-label" style="font-weight: bold;">Cod. Trabajador, Nombre:</label>
-                            <input type="text" class="form-control" name="trabajador_seleccionado" id="trabajadoresNuevoRegistro" placeholder="Escribir código o nombre del trabajador..." autocomplete="off">
+                            <label for="trabajadoresNuevoRegistro" class="form-label" style="font-weight: bold;">Cod.
+                                Trabajador, Nombre:</label>
+                            <input type="text" class="form-control" name="trabajador_seleccionado"
+                                id="trabajadoresNuevoRegistro" placeholder="Escribir código o nombre del trabajador..."
+                                autocomplete="off">
                             <input type="hidden" id="pernr_seleccionado" name="pernr_seleccionado">
-                            <div id="sugerencias_trabajadores" class="list-group" style="display: none; position: absolute; z-index: 1000; max-height: 200px; overflow-y: auto;"></div>
+                            <div id="sugerencias_trabajadores" class="list-group"
+                                style="display: none; position: absolute; z-index: 1000; max-height: 200px; overflow-y: auto;">
+                            </div>
                         </div>
-                        
+
                         <!-- Fecha del registro -->
                         <div class="col-md-3">
                             <label for="fechaRegistro" class="form-label"><strong>Fecha:</strong></label>
-                            <input type="date" class="form-control" id="fechaRegistro" name="fecha_registro" value="<?php echo date('Y-m-d'); ?>" required>
+                            <input type="date" class="form-control" id="fechaRegistro" name="fecha_registro"
+                                value="<?php echo date('Y-m-d'); ?>" required>
                         </div>
-                        
+
                         <!-- Tipo de registro -->
                         <div class="col-md-3">
                             <label for="tipoRegistro" class="form-label"><strong>Tipo de Registro:</strong></label>
@@ -1624,7 +1650,7 @@ include_once("header.php");
                     <div id="tablaRegistrosExistentes" style="display: none;">
                         <hr>
                         <h6><strong>📋 Registros Existentes:</strong></h6>
-                        
+
                         <div class="table-responsive" style="max-height: 300px; overflow-y: auto;">
                             <div id="contenedorRegistrosExistentes">
                                 <!-- Aquí se mostrarán los registros existentes -->
@@ -1646,7 +1672,8 @@ include_once("header.php");
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                <button type="button" class="btn btn-success" onclick="enviarDatos()" id="btnEnviarDatos" style="display: none;">
+                <button type="button" class="btn btn-success" onclick="enviarDatos()" id="btnEnviarDatos"
+                    style="display: none;">
                     <i class="bi bi-send"></i> Enviar Datos
                 </button>
             </div>
@@ -1668,7 +1695,46 @@ include_once("header.php");
                     <input type="hidden" id="editarTipoRegistro" name="tipo_registro">
                     <input type="hidden" id="editarPernr" name="pernr">
                     <input type="hidden" id="editarFechaMod" name="fecha_mod">
-                    
+
+                    <!-- Campos ocultos para mantener los filtros -->
+                    <input type="hidden" name="form_oficina" value="1">
+                    <input type="hidden" name="fecha_inicio_ofi" id="hidden_fecha_inicio_ofi" value="<?php echo isset($_POST['fecha_inicio_ofi']) ? $_POST['fecha_inicio_ofi'] : ''; ?>">
+                    <input type="hidden" name="fecha_fin_ofi" id="hidden_fecha_fin_ofi" value="<?php echo isset($_POST['fecha_fin_ofi']) ? $_POST['fecha_fin_ofi'] : ''; ?>">
+                    <?php
+                    // Mantener los trabajadores seleccionados
+                    if (isset($_POST['pernr_nom_trab']) && is_array($_POST['pernr_nom_trab'])) {
+                        foreach ($_POST['pernr_nom_trab'] as $pernr) {
+                            echo '<input type="hidden" name="pernr_nom_trab[]" value="' . htmlspecialchars($pernr) . '">';
+                        }
+                    }
+                    ?>
+                    <input type="hidden" name="filtro_horas" id="hidden_filtro_horas" value="<?php echo isset($_POST['filtro_horas']) ? $_POST['filtro_horas'] : ''; ?>">
+                    <input type="hidden" name="estado_ofi" id="hidden_estado_ofi" value="<?php echo isset($_POST['estado_ofi']) ? $_POST['estado_ofi'] : ''; ?>">
+
+                    <!-- Filtros condicionales - Filtro 1 -->
+                    <input type="hidden" name="campo1_1" id="hidden_campo1_1" value="<?php echo isset($_POST['campo1_1']) ? $_POST['campo1_1'] : '0'; ?>">
+                    <input type="hidden" name="campo2_1" id="hidden_campo2_1" value="<?php echo isset($_POST['campo2_1']) ? $_POST['campo2_1'] : '0'; ?>">
+                    <input type="hidden" name="campo3_1" id="hidden_campo3_1" value="<?php echo isset($_POST['campo3_1']) ? $_POST['campo3_1'] : ''; ?>">
+                    <input type="hidden" name="conector_1" id="hidden_conector_1" value="<?php echo isset($_POST['conector_1']) ? $_POST['conector_1'] : '0'; ?>">
+
+                    <!-- Filtros condicionales - Filtro 2 -->
+                    <input type="hidden" name="campo1_2" id="hidden_campo1_2" value="<?php echo isset($_POST['campo1_2']) ? $_POST['campo1_2'] : ''; ?>">
+                    <input type="hidden" name="campo2_2" id="hidden_campo2_2" value="<?php echo isset($_POST['campo2_2']) ? $_POST['campo2_2'] : '0'; ?>">
+                    <input type="hidden" name="campo3_2" id="hidden_campo3_2" value="<?php echo isset($_POST['campo3_2']) ? $_POST['campo3_2'] : ''; ?>">
+                    <input type="hidden" name="conector_2" id="hidden_conector_2" value="<?php echo isset($_POST['conector_2']) ? $_POST['conector_2'] : '0'; ?>">
+
+                    <!-- Filtros condicionales - Filtro 3 -->
+                    <input type="hidden" name="campo1_3" id="hidden_campo1_3" value="<?php echo isset($_POST['campo1_3']) ? $_POST['campo1_3'] : '0'; ?>">
+                    <input type="hidden" name="campo2_3" id="hidden_campo2_3" value="<?php echo isset($_POST['campo2_3']) ? $_POST['campo2_3'] : '0'; ?>">
+                    <input type="hidden" name="campo3_3" id="hidden_campo3_3" value="<?php echo isset($_POST['campo3_3']) ? $_POST['campo3_3'] : ''; ?>">
+                    <input type="hidden" name="conector_3" id="hidden_conector_3" value="<?php echo isset($_POST['conector_3']) ? $_POST['conector_3'] : '0'; ?>">
+
+                    <!-- Filtros condicionales - Filtro 4 -->
+                    <input type="hidden" name="campo1_4" id="hidden_campo1_4" value="<?php echo isset($_POST['campo1_4']) ? $_POST['campo1_4'] : '0'; ?>">
+                    <input type="hidden" name="campo2_4" id="hidden_campo2_4" value="<?php echo isset($_POST['campo2_4']) ? $_POST['campo2_4'] : '0'; ?>">
+                    <input type="hidden" name="campo3_4" id="hidden_campo3_4" value="<?php echo isset($_POST['campo3_4']) ? $_POST['campo3_4'] : ''; ?>">
+                    <input type="hidden" name="conector_4" id="hidden_conector_4" value="<?php echo isset($_POST['conector_4']) ? $_POST['conector_4'] : '0'; ?>">
+
                     <div class="row mb-3">
                         <div class="col-md-6">
                             <label for="editarFecha" class="form-label"><strong>Fecha:</strong></label>
@@ -1679,10 +1745,11 @@ include_once("header.php");
                             <input type="time" class="form-control" id="editarHora" name="hora" required>
                         </div>
                     </div>
-                    
+
                     <div class="mb-3">
                         <label for="editarComentario" class="form-label"><strong>Comentario (opcional):</strong></label>
-                        <textarea class="form-control" id="editarComentario" name="comentario" rows="3" maxlength="149" placeholder="Comentario opcional..."></textarea>
+                        <textarea class="form-control" id="editarComentario" name="comentario" rows="3" maxlength="149"
+                            placeholder="Comentario opcional..."></textarea>
                         <div class="form-text">Máximo 149 caracteres</div>
                     </div>
                 </div>
@@ -1698,8 +1765,8 @@ include_once("header.php");
 <!-- redireccion con js a los 3 segundos cunado encuentre en la url 'validado' -->
 
 <script>
-// Pasar datos de PHP a JavaScript
-window.trabajadoresAuditoria = <?php echo json_encode($params['trabajadores_auditoria']); ?>;
+    // Pasar datos de PHP a JavaScript
+    window.trabajadoresAuditoria = <?php echo json_encode($params['trabajadores_auditoria']); ?>;
 </script>
 <script src="js/auditor.js"></script>
 

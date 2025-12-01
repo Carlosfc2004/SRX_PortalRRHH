@@ -157,11 +157,15 @@ include_once("header.php");
                                 <td class="col-2">
                                     <div style="display: flex; gap: 5px; align-items: center;">
                                         <!-- Botón editar -->
-                                        <form action="admin_cont.php?controller=index&action=update_trabajador&id=<?php echo $remesa['PERNR']; ?>&showll&id_rem=<?php echo $remesa['id_remesa']; ?>&ano_rem=<?php echo $remesa['ano_remesa']; ?>&remesa=<?php echo $_GET['remesa']; ?>" method="post">
+                                        <form action="admin_cont.php?controller=index&action=update_trabajador&
+                                            id=<?php echo $remesa['PERNR']; ?>&showll&
+                                            id_rem=<?php echo $remesa['id_remesa']; ?>&
+                                            ano_rem=<?php echo $remesa['ano_remesa']; ?>&
+                                            remesa=<?php echo $_GET['id']; ?>" method="post">
                                             <input type="hidden" value="<?php echo $remesa['id_remesa']; ?>" name="id_remesa">
                                             <input type="hidden" value="<?php echo $remesa['ano_remesa']; ?>" name="ano_remesa">
                                             <input type="hidden" name="datos_remesa" value="1">
-                                            <input type="hidden" name="remesa" value="<?php echo $_GET['remesa']; ?>">
+                                            <input type="hidden" name="remesa" value="<?php echo $_GET['id']; ?>">
                                             <button type="submit" class="icono hvr-icon" style="background: none; border: none; cursor: pointer;">
                                                 <i class="bi bi-pencil-square fs-4" style="color: #012970;"></i>
                                             </button>
@@ -173,7 +177,10 @@ include_once("header.php");
                                             } else {
                                             ?>
                                             <!-- Botón eliminar -->
-                                            <form action="admin_cont.php?controller=index&action=view_remesa_llama&delete_trab_rem=1&id=<?php echo $remesa['id_remesa']; ?>&ano=<?php echo $remesa['ano_remesa']; ?>&remesa=<?php echo $_GET['remesa']; ?>" method="post" class="form-eliminar">
+                                            <form action="admin_cont.php?controller=index&action=view_remesa_llama&delete_trab_rem=1&
+                                                id=<?php echo $remesa['id_remesa']; ?>&
+                                                ano=<?php echo $remesa['ano_remesa']; ?>&
+                                                remesa=<?php echo $_GET['id']; ?>" method="post" class="form-eliminar">
                                                 <input type="hidden" name="id_remesa" value="<?php echo $remesa['id_remesa']; ?>">
                                                 <input type="hidden" name="ano_remesa" value="<?php echo $remesa['ano_remesa']; ?>">
                                                 <input type="hidden" name="pernr" value="<?php echo $remesa['PERNR']; ?>">

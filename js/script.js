@@ -16,9 +16,7 @@ function validNumber(evt){
 }
 
 
-
 $(document).ready(function() {
-	$(".loader").fadeOut("slow");
 
 	var currentUrl = window.location.href;
 	$('ul.nav-content').each(function() {
@@ -68,14 +66,20 @@ $(document).ready(function() {
   	// });
 
 	//Cambiamos el idioma
-	
-	
+
+
 	$(".idioma").on('click', function(event) {
 		event.preventDefault();  // Prevents the default anchor behavior (page navigation)
 		var idioma = $(this).attr('data-idioma');
 		console.log(idioma);
-		$.get("auto.php?idioma=" + idioma);  // Sends the selected language code to auto.php
-		location.reload();  // Reloads the page
+
+		// Mostrar el loading overlay
+		$('#loading-overlay').css('display', 'flex');
+
+		// Enviar petición y recargar la página
+		$.get("auto.php?idioma=" + idioma, function() {
+			location.reload();  // Reloads the page
+		});
 	});
 
 	
@@ -255,7 +259,5 @@ $(document).ready(function() {
 			});
 		})
 	};
-
-		
 
 });

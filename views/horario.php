@@ -972,18 +972,20 @@ include_once("header.php");
         // Mostrar loading
         alertify.notify('Guardando festivo...', 'info', 2);
 
+        const payload = {
+            action: 'agregar_festivo_grupo',
+            grupo_id: grupoCalendarioActual.id,
+            fecha: fecha,
+            tipo_festivo: tipoFestivo
+        };
+
         // Enviar petición al servidor
         fetch('auto.php', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({
-                action: 'agregar_festivo_grupo',
-                grupo_id: grupoCalendarioActual.id,
-                fecha: fecha,
-                tipo_festivo: tipoFestivo
-            })
+            body: JSON.stringify(payload)
         })
             .then(response => response.json())
             .then(data => {

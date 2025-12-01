@@ -7,11 +7,13 @@ include_once("seguridad.php");
 require_once("models/sqlsrvModel.php");
 
 
-class index{
-	
+class index
+{
+
 	private $meses;
 
-	public function __construct() {
+	public function __construct()
+	{
 		// Inicializar el array de meses según el idioma de la sesión
 		if ($_SESSION['idioma_surexport_appreclu'] === 'es') {
 			$this->meses = array(
@@ -73,13 +75,14 @@ class index{
 				11 => 'Novembro',
 				12 => 'Dezembro'
 			);
-		} 
+		}
 	}
-	
 
 
-	public function home(){
-		include_once("idiomas/".$_SESSION['idioma_surexport_appreclu'].".php");
+
+	public function home()
+	{
+		include_once("idiomas/" . $_SESSION['idioma_surexport_appreclu'] . ".php");
 		$m = new sqlsrvModel();
 		// $params['total_cont'] = $m->total_contrataciones_mensuales();
 		// $params['sociedades'] = $m->Sociedades_graf();
@@ -92,86 +95,87 @@ class index{
 
 
 	// Funcion con llamada a api de Altiria para comprobar los creditos disponibles SMS
-	public function consultarCreditos() {
-		
-        $baseUrl = 'https://www.altiria.net:8443/apirest/ws';
+	public function consultarCreditos()
+	{
 
-        // Credenciales
-        $credentials = array(
-            'login' => 'developer@surexport.es', 
-            'passwd' => 'xyvaagmy'
-        );
+		$baseUrl = 'https://www.altiria.net:8443/apirest/ws';
 
-        $jsonData = array(
-            'credentials' => $credentials
-        );
+		// Credenciales
+		$credentials = array(
+			'login' => 'developer@surexport.es',
+			'passwd' => 'xyvaagmy'
+		);
 
-        $jsonDataEncoded = json_encode($jsonData);
+		$jsonData = array(
+			'credentials' => $credentials
+		);
 
-        // Inicialización de cURL
-        $ch = curl_init($baseUrl . '/getCredit');
-        curl_setopt($ch, CURLOPT_POST, 1);
-        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 5);
-        curl_setopt($ch, CURLOPT_TIMEOUT, 60);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, $jsonDataEncoded);
-        curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json;charset=UTF-8'));
+		$jsonDataEncoded = json_encode($jsonData);
 
-        // Envío de la petición y procesamiento de la respuesta
-        $response = curl_exec($ch);
-        $statusCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+		// Inicialización de cURL
+		$ch = curl_init($baseUrl . '/getCredit');
+		curl_setopt($ch, CURLOPT_POST, 1);
+		curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 5);
+		curl_setopt($ch, CURLOPT_TIMEOUT, 60);
+		curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+		curl_setopt($ch, CURLOPT_POSTFIELDS, $jsonDataEncoded);
+		curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json;charset=UTF-8'));
 
-        if ($statusCode != 200) {
-            return "Error: No se pudo conectar con el servidor. Estado HTTP: $statusCode";
-        }
+		// Envío de la petición y procesamiento de la respuesta
+		$response = curl_exec($ch);
+		$statusCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
 
-        $json_array = json_decode($response, true);
+		if ($statusCode != 200) {
+			return "Error: No se pudo conectar con el servidor. Estado HTTP: $statusCode";
+		}
 
-        // Verifica si la clave "credit" existe
-        if (isset($json_array['credit'])) {
-            $creditos = intval($json_array['credit']);
+		$json_array = json_decode($response, true);
 
-            if ($json_array['status'] == '000') {
-                if ($creditos > 100) {
-                    return "Tienes $creditos créditos disponibles.";
-                } elseif ($creditos <= 100 && $creditos > 0) {
-                    return "Tienes menos de 100 créditos disponibles.<br>
+		// Verifica si la clave "credit" existe
+		if (isset($json_array['credit'])) {
+			$creditos = intval($json_array['credit']);
+
+			if ($json_array['status'] == '000') {
+				if ($creditos > 100) {
+					return "Tienes $creditos créditos disponibles.";
+				} elseif ($creditos <= 100 && $creditos > 0) {
+					return "Tienes menos de 100 créditos disponibles.<br>
                     Total $creditos créditos.";
-                } elseif ($creditos == 0) {
-                    return "No tienes créditos disponibles. <br>
+				} elseif ($creditos == 0) {
+					return "No tienes créditos disponibles. <br>
                     Total $creditos créditos.";
-                }
-            } else {
-                return "Error al verificar los créditos. Por favor, intenta nuevamente.";
-            }
-        } else {
-            return "Error: La respuesta no contiene créditos. Respuesta completa: " . var_export($json_array, true) . "";
-        }
+				}
+			} else {
+				return "Error al verificar los créditos. Por favor, intenta nuevamente.";
+			}
+		} else {
+			return "Error: La respuesta no contiene créditos. Respuesta completa: " . var_export($json_array, true) . "";
+		}
 
-        curl_close($ch);
-    }
+		curl_close($ch);
+	}
 
 
 
 	// Método para consultar el estado de la API de WhatsApp
-    // public function estadoapiwhatsapp() {
+	// public function estadoapiwhatsapp() {
 	// 	include_once("idiomas/".$_SESSION['idioma_surexport_appreclu'].".php");
 	// 	$apiUrl = 'https://graph.facebook.com/v20.0/357269130811588'; 
 	// 	$accessToken = 'EAAQy3aeDCjsBO15NVDGCtl8tM4ZAxNN3X1FYXjYKY9WNutxgvE7mFQxi6ZBJfz6gQc5xoA4k4BrALZCYYuZCiJp6kbLHZBqFLL8wjW5yj6dnHjPLZCzukF4eZBkbcNufydptfbyWysyrgFIO2sJVcM85L5rlkVJ8cGK8bYzYZCdGEmk3ckKwcIGDxK9pcgzovf6yKAZDZD';
-		
+
 	// 	// Inicializa cURL
 	// 	$ch = curl_init($apiUrl);
-		
+
 	// 	// Configura las opciones de cURL
 	// 	curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 	// 	curl_setopt($ch, CURLOPT_HTTPHEADER, [
 	// 		'Authorization: Bearer ' . $accessToken,
 	// 		'Content-Type: application/json'
 	// 	]);
-		
+
 	// 	// Ejecuta la solicitud
 	// 	$response = curl_exec($ch);
-		
+
 	// 	// Verifica si hubo un error en la solicitud
 	// 	if (curl_errno($ch)) {
 	// 		return 'Error en la solicitud: ' . curl_error($ch);
@@ -180,7 +184,7 @@ class index{
 
 	// 		// Procesa la respuesta
 	// 		$jsonResponse = json_decode($response, true);
-	
+
 	// 		// Verifica el código de estado HTTP
 	// 		if ($httpCode == 200) {
 	// 			// Mensaje de éxito con detalles
@@ -194,34 +198,36 @@ class index{
 	// 			// Manejo de errores basado en el código de estado
 	// 			$error = "Error al consultar el estado de la API. Código de estado HTTP: " . $httpCode . "<br>";
 	// 			$error .= "Mensaje de error: " . ($jsonResponse['error']['message'] ?? 'No se proporcionó un mensaje de error.') . "<br>";
-	
+
 	// 			return $error;
 	// 		}
 	// 	}
-	
+
 	// 	// Cierra la sesión cURL
 	// 	curl_close($ch);
 	// }
 
 
 
-    // Configuración WEB
-    public function configuracion() {
-		include_once("idiomas/".$_SESSION['idioma_surexport_appreclu'].".php");
+	// Configuración WEB
+	public function configuracion()
+	{
+		include_once("idiomas/" . $_SESSION['idioma_surexport_appreclu'] . ".php");
 		$m = new sqlsrvModel();
 		if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 			if (isset($_POST['consultar'])) {
 				$params['resultado'] = $this->consultarCreditos();
-			} 
+			}
 		}
 
-        require 'views/configuracion.php';
-    }
+		require 'views/configuracion.php';
+	}
 
 
 
-	public function salir(){
-		include_once("idiomas/".$_SESSION['idioma_surexport_appreclu'].".php");
+	public function salir()
+	{
+		include_once("idiomas/" . $_SESSION['idioma_surexport_appreclu'] . ".php");
 		header('Cache-Control: no-cache, no-store, must-revalidate');
 		header('Pragma: no-cache');
 		header('Expires: 0');
@@ -233,38 +239,41 @@ class index{
 
 
 	//error 404
-	public function error404(){
-		include_once("idiomas/".$_SESSION['idioma_surexport_appreclu'].".php");
+	public function error404()
+	{
+		include_once("idiomas/" . $_SESSION['idioma_surexport_appreclu'] . ".php");
 		require 'views/error-404.php';
 	}
 
 
 
 	// Alertas
-	public function reg_alertas(){
-		include_once("idiomas/".$_SESSION['idioma_surexport_appreclu'].".php");
-		
+	public function reg_alertas()
+	{
+		include_once("idiomas/" . $_SESSION['idioma_surexport_appreclu'] . ".php");
+
 		$m = new sqlsrvModel();
 		$params['cumples'] = $m->cumple_trabajador();
 		$params['dni_caducados'] = $m->dni_caducados();
 		$params['trab_sinllama'] = $m->trabajadores_sinllamamiento();
 		$params['trab_aceptados_baja'] = $m->total_aceptados_baja();
-		
+
 		require 'views/reg_alertas.php';
 	}
 
 
 
 	// Mostrar Trabajadores SAP
-	public function trabajadores_sap(){
-		include_once("idiomas/".$_SESSION['idioma_surexport_appreclu'].".php");
+	public function trabajadores_sap()
+	{
+		include_once("idiomas/" . $_SESSION['idioma_surexport_appreclu'] . ".php");
 		if (!in_array(1, $_SESSION["permisos_surexport_appreclu"])) {
 			header("Location: admin_cont.php?controller=index&action=error404");
 		}
 
 		// Capturar los valores del formulario
 		// los valores quitamos los espacios por delate y por atras
-		
+
 		$txt_pernr = isset($_POST['txt_pernr']) ? trim($_POST['txt_pernr']) : '';
 		$txt_nombre = isset($_POST['txt_nombre']) ? trim($_POST['txt_nombre']) : '';
 		$sociedad = isset($_POST['sociedad']) ? trim($_POST['sociedad']) : '';
@@ -281,28 +290,29 @@ class index{
 
 
 	//Datos Trabajadores SAP
-	public function update_trabajador(){
-		include_once("idiomas/".$_SESSION['idioma_surexport_appreclu'].".php");
+	public function update_trabajador()
+	{
+		include_once("idiomas/" . $_SESSION['idioma_surexport_appreclu'] . ".php");
 		if (!in_array(1, $_SESSION["permisos_surexport_appreclu"])) {
-		header("Location: admin_cont.php?controller=index&action=error404");
+			header("Location: admin_cont.php?controller=index&action=error404");
 		}
 		$m = new sqlsrvModel();
 		$params['info_trabajador'] = $m->info_trabajador($_GET['id']);
 		$params['datos_contacto'] = $m->datos_contacto_trabajador($_GET['id']);
 		$params['prefijos'] = $m->datos_prefijos();
 		$params['parentesco'] = $m->datos_parentesco();
-		$params['datos_direccion'] = $m->datos_direccion_trabajador($_GET['id']);
-		$params['datos_medidas'] = $m->datos_medidas($_GET['id']);
-		$params['datos_contrato'] = $m->datos_contrato_trabajador($_GET['id']);
-		$params['datos_contrato2'] = $m->datos_contrato2_trabajador($_GET['id']);
-		$params['datos_ausencia'] = $m->datos_ausencia_trabajador($_GET['id']);
-		$params['datos_ropo'] = $m->datos_ropo_trabajador($_GET['id']);
-		$params['datos_asig'] = $m->datos_asignacion_trabajador($_GET['id']);
+		// $params['datos_medidas'] = $m->datos_medidas($_GET['id']);
+		// $params['datos_asig'] = $m->datos_asignacion_trabajador($_GET['id']);
+		// $params['datos_direccion'] = $m->datos_direccion_trabajador($_GET['id']);
+		// $params['datos_contrato'] = $m->datos_contrato_trabajador($_GET['id']);
+		// $params['datos_contrato2'] = $m->datos_contrato2_trabajador($_GET['id']);
+		// $params['datos_ausencia'] = $m->datos_ausencia_trabajador($_GET['id']);
+		// $params['datos_ropo'] = $m->datos_ropo_trabajador($_GET['id']);
 		$params['datos_nfc'] = $m->datos_nfc_trabajador($_GET['id']);
 		$params['datos_llamamiento'] = $m->llamamientos_trabajador($_GET['id']);
 		$params['alertas_trabajador'] = $m->alertas_trabajador($_GET['id']);
 		$params['fecha_val_dni'] = $m->fecha_val_dni($_GET['id']);
-		$params['motivos_pendiente'] =  $m->motivos_pendiente();
+		$params['motivos_pendiente'] = $m->motivos_pendiente();
 
 		if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 			if (isset($_POST["act_cont"]) && $_POST["act_cont"] == 'Actualizar') {
@@ -321,7 +331,7 @@ class index{
 				$parent_telf_emer = isset($_POST['PARENT_TELF_EMER']) ? $_POST['PARENT_TELF_EMER'] : '';
 
 				$datos = array();
-				
+
 				// CURL API mulesoft
 				if ($movil != '') {
 					$data = array(
@@ -358,8 +368,8 @@ class index{
 					);
 					$datos[] = $data;
 				}
-				
-			
+
+
 				$path = '/comunicacion';
 				$metod = 'PATCH';
 				$resultado = $m->curl_api_mulesoft($datos, $metod, $path);
@@ -367,9 +377,9 @@ class index{
 				$mensajes = [];
 
 				if ($resultado['success']) {
-			
+
 					// Actualización en Maestro 105
-					
+
 					if ($resultadoMaestro = $m->actualizar_contacto($pernr, $movil, $correo, $telempresa, $telemergencias, $pre_telf, $pre_telf_emp, $pre_telf_emer, $parent_telf, $parent_telf_emp, $parent_telf_emer)) {
 						$mensajes[] = "✅ Maestro: Actualizado correctamente";
 
@@ -381,7 +391,7 @@ class index{
 						// REGISTRAR ACCIÓN en caso de error en Maestro
 						$m->reg_acciones('Actualizar contacto', $pernr, $_SESSION["id_user_surexport_appreclu"], 'Error en Maestro');
 					}
-			
+
 					// Resultado de SAP
 					$mensajes[] = "SAP: " . $resultado['message'];
 				} else {
@@ -390,18 +400,18 @@ class index{
 					// REGISTRAR ACCIÓN en caso de error en SAP
 					$m->reg_acciones('Actualizar contacto', $pernr, $_SESSION["id_user_surexport_appreclu"], 'Error en SAP');
 				}
-			
+
 				$params['resultado'] = implode('<br>', $mensajes);
 
 
-			// REGISTRAR LLAMAMIENTO
-			} elseif (isset($_POST["Tipo_llamamiento"]) && $_POST["Tipo_llamamiento"]== "Telefono") {
-				
+				// REGISTRAR LLAMAMIENTO
+			} elseif (isset($_POST["Tipo_llamamiento"]) && $_POST["Tipo_llamamiento"] == "Telefono") {
+
 				$pernr = $_POST['pernr'];
 				$tipo_llamamiento = $_POST['Tipo_llamamiento'];
 				$pre_contacto = $_POST['prefijo'];
 				$fecha_llamamiento = $_POST['fecha_llamamiento'];
-				$fecha_registro = date('Y-m-d H:i:s'); 
+				$fecha_registro = date('Y-m-d H:i:s');
 				$info_contacto = $_POST['contacto'];
 				$estado = $_POST['estado'];
 				$motivo = $_POST['motivo'];
@@ -483,13 +493,13 @@ class index{
 
 					// REGISTRAR ACCIÓN en caso de error al insertar registro
 					$m->reg_acciones('Llamamiento telefono', $pernr, $_SESSION["id_user_surexport_appreclu"], 'Error');
-				}	
+				}
 
-			} elseif (isset($_POST["Tipo_llamamiento"]) && $_POST["Tipo_llamamiento"] == "Correo") { 
+			} elseif (isset($_POST["Tipo_llamamiento"]) && $_POST["Tipo_llamamiento"] == "Correo") {
 				$pernr = $_POST['pernr'];
 				$nombre = $_POST['nombre'];
 				$tipo_llamamiento2 = $_POST['Tipo_llamamiento'];
-				$fecha_registro2 = date('Y-m-d H:i:s'); 
+				$fecha_registro2 = date('Y-m-d H:i:s');
 				$info_contacto = $_POST['contacto'];
 				$estado = "0";
 				$id_usuario = $_SESSION["id_user_surexport_appreclu"];
@@ -508,13 +518,13 @@ class index{
 					$m->reg_acciones('Llamamiento correo', $pernr, $id_usuario, 'Error');
 				}
 
-			// ACTUALIZAR RESPUESTA Y MOTIVO DEL TRABAJADOR PARA EL LLAMAMIENTO
+				// ACTUALIZAR RESPUESTA Y MOTIVO DEL TRABAJADOR PARA EL LLAMAMIENTO
 			} elseif (isset($_POST["Tipo_respuesta"]) && $_POST["Tipo_respuesta"] == "rechazar") {
-				$id_registro = $_POST['id_registro']; 
-				$estado = "2"; 
-				$fecha = date('Y-m-d H:i:s'); 
+				$id_registro = $_POST['id_registro'];
+				$estado = "2";
+				$fecha = date('Y-m-d H:i:s');
 				$pernr = $_GET['id'];
-				$motivo = $_POST['motivo']; 
+				$motivo = $_POST['motivo'];
 				$id_remesa = isset($_POST['id_remesa']) && $_POST['id_remesa'] !== 'undefined' && !empty($_POST['id_remesa']) ? $_POST['id_remesa'] : null;
 				$ano_remesa = isset($_POST['ano_remesa']) && $_POST['ano_remesa'] !== 'undefined' && !empty($_POST['ano_remesa']) ? $_POST['ano_remesa'] : null;
 				$descipcion = isset($_POST['descripcion']) ? $_POST['descripcion'] : '';
@@ -591,9 +601,9 @@ class index{
 
 					// REGISTRAR ACCIÓN en caso de error
 					$m->reg_acciones('Rechazar llamamiento', $pernr, $_SESSION["id_user_surexport_appreclu"], 'Error');
-				}	
+				}
 
-			} elseif (isset($_POST["Tipo_respuesta"]) && $_POST["Tipo_respuesta"] == "pendiente"){
+			} elseif (isset($_POST["Tipo_respuesta"]) && $_POST["Tipo_respuesta"] == "pendiente") {
 				$id_registro = $_POST['id_registro'];
 				$estado = "3";
 				$pernr = $_GET['id'];
@@ -677,15 +687,15 @@ class index{
 				}
 
 			} elseif (isset($_POST['Tipo_respuesta']) && $_POST['Tipo_respuesta'] == "Aceptado") {
-				$id_registro = $_POST['id_registro']; 
+				$id_registro = $_POST['id_registro'];
 				$estado = "1";
 				$pernr = $_GET['id'];
-				$fecha = date('Y-m-d H:i:s'); 
-				$id_remesa = $_POST['id_remesa'];  
+				$fecha = date('Y-m-d H:i:s');
+				$id_remesa = $_POST['id_remesa'];
 				$ano_remesa = $_POST['ano_remesa'];
 				$descipcion = isset($_POST['descripcion']) ? $_POST['descripcion'] : '';
 
-								$url_just = null;
+				$url_just = null;
 				$url_just_bbdd = null;
 
 				if (!empty($_FILES["justificante"]["name"])) {
@@ -756,7 +766,7 @@ class index{
 
 					// REGISTRAR ACCIÓN en caso de error
 					$m->reg_acciones('Aceptar llamamiento', $pernr, $_SESSION["id_user_surexport_appreclu"], 'Error');
-				}    
+				}
 
 			} elseif (isset($_POST['nfc'])) {
 				// CURL API mulesoft
@@ -769,20 +779,20 @@ class index{
 
 				// var_dump($data);
 				// die;
-				
+
 				$pernr = $_GET['id'];
 				$path = '/update_nfc';
 				$metod = 'PATCH';
 				$resultado = $m->curl_api_mulesoft($data, $metod, $path);
-				
+
 				$mensajes = [];
-				
+
 				if ($resultado['success']) {
 					$actualizacionExitosa = true; // Variable para verificar el estado global
 
 					// Actualización en Agromobile
 					$resultadoAgro = $m->update_nfc_agro($_GET['id'], $_POST['nfc']);
-								
+
 					// Actualización en Maestro
 					$resultadoMaestro = $m->update_nfc_maestro($_GET['id'], $_POST['nfc']);
 
@@ -838,7 +848,7 @@ class index{
 					} else {
 						// $mensajes[] = "❌ Mantenimiento: " . $resultadoMante['message'];
 						$error++;
-					} 
+					}
 
 					// PA0001
 					if ($resultadoPA0001['success']) {
@@ -857,7 +867,7 @@ class index{
 					if ($correcto < 4 || $correcto > 0) {
 						$mensajes[] = $resultado['message'];
 					}
-			
+
 					// Resultado de SAP
 
 					// REGISTRAR ACCIÓN todo ok
@@ -868,39 +878,51 @@ class index{
 					// REGISTRAR ACCIÓN en caso de error en SAP
 					$m->reg_acciones('Actualizar NFC', $pernr, $_SESSION["id_user_surexport_appreclu"], 'Error en SAP');
 				}
-			
+
 				$params['resultado'] = implode('<br>', $mensajes);
-			
+
 			} elseif (isset($_POST['alerta'])) {
 				$pernr = $_GET['id'];
 				$tipo_alerta = $_POST['alertType'];
 				$descripcion = $_POST['description'];
 				$fecha_ini = $_POST['startDate'];
 				$fecha_fin = $_POST['endDate'];
-				
-				
+
+
 				// Para campos de texto opcionales
 				$tipo_formacion = !empty($_POST['trainingType']) ? $_POST['trainingType'] : NULL;
 				$obligatorio = !empty($_POST['mandatory']) ? $_POST['mandatory'] : NULL;
 				$tipo_incidente = !empty($_POST['incidentType']) ? $_POST['incidentType'] : NULL;
-				
+
 				// Campos obligatorios
 				$prioridad = $_POST['priority'];
 				$notificado = $_POST['notifyTo'];
 				$frecuencia = $_POST['frequency'];
-			
-				if ($m->nueva_alerta($pernr, $tipo_alerta, $descripcion, $fecha_ini, $fecha_fin, 
-									$tipo_formacion, $obligatorio, $tipo_incidente, $prioridad, 
-									$notificado, $frecuencia)) {
+
+				if (
+					$m->nueva_alerta(
+						$pernr,
+						$tipo_alerta,
+						$descripcion,
+						$fecha_ini,
+						$fecha_fin,
+						$tipo_formacion,
+						$obligatorio,
+						$tipo_incidente,
+						$prioridad,
+						$notificado,
+						$frecuencia
+					)
+				) {
 					$params['resultado'] = 'Alerta insertada';
 
 					// REGISTRAR ACCIÓN todo ok
-					$m->reg_acciones('Alerta '.$tipo_alerta , $pernr, $_SESSION["id_user_surexport_appreclu"], 'OK');
+					$m->reg_acciones('Alerta ' . $tipo_alerta, $pernr, $_SESSION["id_user_surexport_appreclu"], 'OK');
 				} else {
 					$params['resultado'] = 'Error al insertar la alerta';
 
 					// REGISTRAR ACCIÓN en caso de error
-					$m->reg_acciones('Alerta'.$tipo_alerta , $pernr, $_SESSION["id_user_surexport_appreclu"], 'Error en SAP');
+					$m->reg_acciones('Alerta' . $tipo_alerta, $pernr, $_SESSION["id_user_surexport_appreclu"], 'Error en SAP');
 				}
 			} elseif (isset($_POST['validez'])) {
 				$fecha_validez = $_POST['validez'];
@@ -908,8 +930,8 @@ class index{
 				$tipo_doc = $_POST['tipo_doc2'];
 
 				if ($m->update_fecha_val_dni($pernr, $tipo_doc, $fecha_validez)) {
-					$params['resultado'] = 'Fecha validez actualizada del trabajador '.$pernr;
-					
+					$params['resultado'] = 'Fecha validez actualizada del trabajador ' . $pernr;
+
 					// REGISTRAR ACCIÓN todo ok
 					$m->reg_acciones('Actualizar Validez', $pernr, $_SESSION["id_user_surexport_appreclu"], 'OK');
 				} else {
@@ -918,7 +940,7 @@ class index{
 					// REGISTRAR ACCIÓN en caso de error
 					$m->reg_acciones('Actualizar Validez', $pernr, $_SESSION["id_user_surexport_appreclu"], 'Error');
 				}
-				
+
 			}
 		}
 		require 'views/update_trabajador.php';
@@ -927,11 +949,12 @@ class index{
 
 
 	// Solicitudes
-	public function solicitudes(){
-		include_once("idiomas/".$_SESSION['idioma_surexport_appreclu'].".php");
+	public function solicitudes()
+	{
+		include_once("idiomas/" . $_SESSION['idioma_surexport_appreclu'] . ".php");
 		if (!in_array(28, $_SESSION["permisos_surexport_appreclu"])) {
 			header("Location: admin_cont.php?controller=index&action=error404");
-		}	
+		}
 		$m = new sqlsrvModel();
 		$params['otras_aus'] = $m->getotrasausencias(NULL);
 		$params['tipo_ausencias'] = $m->tipos_ausencias();
@@ -957,41 +980,41 @@ class index{
 				$nombre_s = $_POST['nombre_s'];
 				$mail = $_POST['mail'];
 				$fecha_sol = $_POST['fecha_sol'];
-				
-			
+
+
 				// Verificar si se ha presionado "aceptar" o "rechazar" y el estado actual para determinar la acción
 				if (isset($_POST['aceptar'])) {
 					if (isset($_POST['estado']) && $_POST['estado'] == '7') {
-						$estado = '5'; 
+						$estado = '5';
 					} else {
-						$estado = '3'; 
+						$estado = '3';
 					}
 				} elseif (isset($_POST['rechazar'])) {
 					if (isset($_POST['estado']) && $_POST['estado'] == '7') {
-						$estado = '8'; 
+						$estado = '8';
 					} else {
-						$estado = '4'; 
+						$estado = '4';
 					}
 				}
-			
+
 				// Llamar a la función para actualizar la solicitud
 				if ($m->actualizarSolicitud($id_solicitud, $fecha_res_rrhh, $firma_rrhh, $fecha_sol, $estado, $id_rrhh, $mail_s, $nombre, $nombre_s, $mail)) {
 					if ($estado == '3') {
 						$params['resultado'] = 'Solicitud aceptada correctamente.';
-						$m->reg_acciones('Solicitud aprobada', $pernr." - ".$id_solicitud, $_SESSION["id_user_surexport_appreclu"], 'OK');
+						$m->reg_acciones('Solicitud aprobada', $pernr . " - " . $id_solicitud, $_SESSION["id_user_surexport_appreclu"], 'OK');
 					} elseif ($estado == '4') {
 						$params['resultado'] = 'Solicitud rechazada correctamente.';
-						$m->reg_acciones('Solicitud rechazada', $pernr." - ".$id_solicitud, $_SESSION["id_user_surexport_appreclu"], 'OK');
+						$m->reg_acciones('Solicitud rechazada', $pernr . " - " . $id_solicitud, $_SESSION["id_user_surexport_appreclu"], 'OK');
 					} elseif ($estado == '5') {
 						$params['resultado'] = 'Solicitud de anulacion aceptada correctamente.';
-						$m->reg_acciones('Anulacion aceptada', $pernr." - ".$id_solicitud, $_SESSION["id_user_surexport_appreclu"], 'OK');
+						$m->reg_acciones('Anulacion aceptada', $pernr . " - " . $id_solicitud, $_SESSION["id_user_surexport_appreclu"], 'OK');
 					} elseif ($estado == '8') {
 						$params['resultado'] = 'Solicitud de anulacion rechazada correctamente.';
-						$m->reg_acciones('Anulacion rechazada', $pernr." - ".$id_solicitud, $_SESSION["id_user_surexport_appreclu"], 'OK');
+						$m->reg_acciones('Anulacion rechazada', $pernr . " - " . $id_solicitud, $_SESSION["id_user_surexport_appreclu"], 'OK');
 					}
 				} else {
 					$params['resultado'] = 'Ha ocurrido un error al actualizar la solicitud.';
-					$m->reg_acciones('Actualizar solicitud', $pernr." - ".$id_solicitud, $_SESSION["id_user_surexport_appreclu"], 'Error');
+					$m->reg_acciones('Actualizar solicitud', $pernr . " - " . $id_solicitud, $_SESSION["id_user_surexport_appreclu"], 'Error');
 				}
 			} elseif (isset($_POST['observacion'])) {
 
@@ -1004,10 +1027,10 @@ class index{
 
 				if ($m->agregarObservacion($id_solicitud, $pernr_obs, $fecha_crea, $pernr_usu, $observacion)) {
 					$params['resultado'] = 'Observación añadida correctamente.';
-					$m->reg_acciones('Añadir observación', $pernr_usu." - ".$id_solicitud, $_SESSION["id_user_surexport_appreclu"], 'OK');
+					$m->reg_acciones('Añadir observación', $pernr_usu . " - " . $id_solicitud, $_SESSION["id_user_surexport_appreclu"], 'OK');
 				} else {
 					$params['resultado'] = 'Error al añadir la observación.';
-					$m->reg_acciones('Añadir observación', $pernr_usu." - ".$id_solicitud, $_SESSION["id_user_surexport_appreclu"], 'Error');
+					$m->reg_acciones('Añadir observación', $pernr_usu . " - " . $id_solicitud, $_SESSION["id_user_surexport_appreclu"], 'Error');
 				}
 
 			} elseif (isset($_POST['filtros_sol'])) {
@@ -1033,11 +1056,12 @@ class index{
 
 	// Trabajadores baja
 
-	public function trabajadores_baja(){
-		include_once("idiomas/".$_SESSION['idioma_surexport_appreclu'].".php");
+	public function trabajadores_baja()
+	{
+		include_once("idiomas/" . $_SESSION['idioma_surexport_appreclu'] . ".php");
 		if (!in_array(4, $_SESSION["permisos_surexport_appreclu"])) {
 			header("Location: admin_cont.php?controller=index&action=error404");
-		}	
+		}
 		$m = new sqlsrvModel();
 		$params['fincas_almacenes'] = $m->fincas_almacenes_sociedad();
 		$params['relaciones_laborales'] = $m->maestro_relaciones_laborales();
@@ -1048,24 +1072,26 @@ class index{
 			$fecha_fin = $_POST['fecha_fin'] ? $_POST['fecha_fin'] : '';
 			$relacion_laboral = $_POST['relacion_laboral'] ? $_POST['relacion_laboral'] : '';
 			$codigos_formateados = isset($_POST['codigos_formateados']) && !empty($_POST['codigos_formateados']) ? $_POST['codigos_formateados'] : '';
-			$params['datos_trab_baja'] = $m->trabajadores_baja($ubi, $fecha_ini, $fecha_fin, $relacion_laboral, $codigos_formateados);
+			$grupo_trabajador = isset($_POST['grupo_trabajador']) && !empty($_POST['grupo_trabajador']) ? $_POST['grupo_trabajador'] : '';
+			$params['datos_trab_baja'] = $m->trabajadores_baja($ubi, $fecha_ini, $fecha_fin, $relacion_laboral, $codigos_formateados, $grupo_trabajador);
 		} else {
 			$ubi = '';
 			$params['datos_trab_baja'] = $m->trabajadores_baja($ubi, '', '', '', '');
 		}
-		
+
 		require 'views/trabajadores_baja.php';
 	}
 
 
-	
+
 	// Llamamientos y generacion de remesa
 
-	public function llamamientos(){
-		include_once("idiomas/".$_SESSION['idioma_surexport_appreclu'].".php");
+	public function llamamientos()
+	{
+		include_once("idiomas/" . $_SESSION['idioma_surexport_appreclu'] . ".php");
 		if (!in_array(5, $_SESSION["permisos_surexport_appreclu"])) {
 			header("Location: admin_cont.php?controller=index&action=error404");
-		}	
+		}
 		$m = new sqlsrvModel();
 		// Cargamos los datos de fincas y almacenes para la vista
 		$params['fincas_almacenes'] = $m->fincas_almacenes_sociedad();
@@ -1078,65 +1104,66 @@ class index{
 
 	// Actualización del controlador
 
-	public function generar_rem_llama(){
-		include_once("idiomas/".$_SESSION['idioma_surexport_appreclu'].".php");
-		
+	public function generar_rem_llama()
+	{
+		include_once("idiomas/" . $_SESSION['idioma_surexport_appreclu'] . ".php");
+
 		if (!in_array(5, $_SESSION["permisos_surexport_appreclu"])) {
 			header("Location: admin_cont.php?controller=index&action=error404");
-		}   
+		}
 		$m = new sqlsrvModel();
 		$resultado = ""; // Inicializamos la variable para el resultado
 
-		
+
 		if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 			if (isset($_POST['generar_rem'])) {
 				// Generamos una nueva remesa
 				$sms_auto = isset($_POST['sms_auto']) ? 1 : 0;
-				
+
 				// Llamada a la función nuevaRemesa() que ahora devuelve un array con 'success' y 'message'
 				$resultado = $m->nuevaRemesa($_POST['nombre_remesa'], $_POST['telefono_rem'], $_POST['fecha_inc'], $sms_auto);
-				
+
 				// Verificamos si la operación fue exitosa y registramos la acción
 				if ($resultado['success']) {
-					
+
 					// REGISTRAR ACCIÓN todo ok
 					$m->reg_acciones('Generar remesa', $_POST['nombre_remesa'], $_SESSION["id_user_surexport_appreclu"], 'OK');
 				} else {
-					
+
 					// REGISTRAR ACCIÓN en caso de error
 					$m->reg_acciones('Generar remesa', $_POST['nombre_remesa'], $_SESSION["id_user_surexport_appreclu"], 'Error');
 				}
-				
+
 			} elseif (isset($_POST['add_candidato'])) {
 				// Añadimos nuevos candidatos a una remesa ya existente
 				$resultado = $m->anadirCandidatosARemesa(
-					$_POST['id_remesa'], 
-					$_POST['ano_remesa'], 
-					$_POST['nombre_remesa'] ?? '', 
-					$_POST['telefono_rem'], 
-					$_POST['fecha_inc'] ?? '', 
+					$_POST['id_remesa'],
+					$_POST['ano_remesa'],
+					$_POST['nombre_remesa'] ?? '',
+					$_POST['telefono_rem'],
+					$_POST['fecha_inc'] ?? '',
 					$_POST['sms_auto'] ?? ''
 				);
-				
+
 				// Verificamos si la operación fue exitosa y registramos la acción
 				if ($resultado['success']) {
-					
+
 					// REGISTRAR ACCIÓN todo ok
-					$m->reg_acciones('Añadir trab remesa', $_POST['id_remesa'].'/'.$_POST['ano_remesa'], $_SESSION['id_user_surexport_appreclu'], 'OK');
+					$m->reg_acciones('Añadir trab remesa', $_POST['id_remesa'] . '/' . $_POST['ano_remesa'], $_SESSION['id_user_surexport_appreclu'], 'OK');
 				} else {
-					
+
 					// REGISTRAR ACCIÓN en caso de error
-					$m->reg_acciones('Añadir trab remesa', $_POST['id_remesa'].'/'.$_POST['ano_remesa'], $_SESSION['id_user_surexport_appreclu'], 'Error');
+					$m->reg_acciones('Añadir trab remesa', $_POST['id_remesa'] . '/' . $_POST['ano_remesa'], $_SESSION['id_user_surexport_appreclu'], 'Error');
 				}
 			}
 		}
 
 		// Cargamos los datos de trabajadores dados de baja para la vista
 		// $params['datos_trab_baja'] = $m->trabajadores_baja_rem();
-		
+
 		// Asignamos el resultado para mostrarlo en la vista
-		$params['resultado'] = $resultado['message'] ?? ""; 
-	
+		$params['resultado'] = $resultado['message'] ?? "";
+
 		// Requiere la vista 'llamamientos.php' para mostrar los resultados
 		require 'views/llamamientos.php';
 	}
@@ -1145,11 +1172,12 @@ class index{
 
 	// Registros de llamamiento
 
-	public function registros_llama(){
-		include_once("idiomas/".$_SESSION['idioma_surexport_appreclu'].".php");
+	public function registros_llama()
+	{
+		include_once("idiomas/" . $_SESSION['idioma_surexport_appreclu'] . ".php");
 		if (!in_array(7, $_SESSION["permisos_surexport_appreclu"])) {
-		header("Location: admin_cont.php?controller=index&action=error404");
-		}	
+			header("Location: admin_cont.php?controller=index&action=error404");
+		}
 		$m = new sqlsrvModel();
 
 		$txt_pernr = isset($_POST['txt_pernr']) ? $_POST['txt_pernr'] : '';
@@ -1168,17 +1196,18 @@ class index{
 
 
 	// Exportar
-	public function exportar(){
-		include_once("idiomas/".$_SESSION['idioma_surexport_appreclu'].".php");
-			if (!in_array(2, $_SESSION["permisos_surexport_appreclu"])) {
+	public function exportar()
+	{
+		include_once("idiomas/" . $_SESSION['idioma_surexport_appreclu'] . ".php");
+		if (!in_array(2, $_SESSION["permisos_surexport_appreclu"])) {
 			header("Location: admin_cont.php?controller=index&action=error404");
-		}	
+		}
 		$m = new sqlsrvModel();
 		$params['trabajadores_auditoria'] = $m->trabajadoresAuditoria();
 		$params['trabajadores_almacen'] = $m->trabajadoresAlmacen();
 		if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 			if (isset($_POST['form_campo'])) {
-				if ($_POST['sociedad'] != '' and isset($_POST['fincas'])){
+				if ($_POST['sociedad'] != '' and isset($_POST['fincas'])) {
 					$fincas = $m->fincas_agromobile($_POST['sociedad']);
 					$operarios2 = isset($_POST['operarios']) ? $_POST['operarios'] : null;
 
@@ -1188,15 +1217,13 @@ class index{
 					} else {
 						$fecha_fin = $_POST['fecha_fin'];
 					}
-					
+
 					$params['datos_export'] = $m->informePresencia($_POST['fincas'], $fecha_inicio, $fecha_fin, $_POST['sociedad'], $_POST['division'], $operarios2);
-					$operarios = $m->operarios_centro($_POST['sociedad'],$_POST['division']);
-				}else{
+					$operarios = $m->operarios_centro($_POST['sociedad'], $_POST['division']);
+				} else {
 					$params['resultado'] = $lang['index9'];
 				}
-			} 
-			
-			elseif (isset($_POST['form_oficina'])) {
+			} elseif (isset($_POST['form_oficina'])) {
 				if (isset($_POST['ubicacion'])) {
 					$ubicacion = $_POST['ubicacion'];
 				} else {
@@ -1216,14 +1243,12 @@ class index{
 				}
 
 				if (isset($_POST['sede'])) {
-					$sede= $_POST['sede'];
+					$sede = $_POST['sede'];
 				} else {
 					$sede = '';
 				}
-				$params['datos_export_ofi'] = $m->informePresenciaOficina($_POST['fecha_inicio_ofi'], $_POST['fecha_fin_ofi'], $tipo, $pernr , isset($_POST['reg_manual']), $sede, $ubicacion);
-			}
-
-			elseif (isset($_POST['form_almacen'])) {
+				$params['datos_export_ofi'] = $m->informePresenciaOficina($_POST['fecha_inicio_ofi'], $_POST['fecha_fin_ofi'], $tipo, $pernr, isset($_POST['reg_manual']), $sede, $ubicacion);
+			} elseif (isset($_POST['form_almacen'])) {
 				if (isset($_POST['pernr_trab_alm'])) {
 					$pernr = implode('|', $_POST['pernr_trab_alm']);
 				} else {
@@ -1242,11 +1267,12 @@ class index{
 
 	// Registro de las remesas creadas
 
-	public function rem_llama(){
-		include_once("idiomas/".$_SESSION['idioma_surexport_appreclu'].".php");
-			if (!in_array(6, $_SESSION["permisos_surexport_appreclu"])) {
+	public function rem_llama()
+	{
+		include_once("idiomas/" . $_SESSION['idioma_surexport_appreclu'] . ".php");
+		if (!in_array(6, $_SESSION["permisos_surexport_appreclu"])) {
 			header("Location: admin_cont.php?controller=index&action=error404");
-		}	
+		}
 		$m = new sqlsrvModel();
 		$params['remesas'] = $m->Remesas_llama();
 		require 'views/rem_llama.php';
@@ -1255,8 +1281,9 @@ class index{
 
 
 	//Histórico de remesas con sus trabajadores
-	public function view_remesa_llama(){
-		include_once("idiomas/".$_SESSION['idioma_surexport_appreclu'].".php");
+	public function view_remesa_llama()
+	{
+		include_once("idiomas/" . $_SESSION['idioma_surexport_appreclu'] . ".php");
 		if (!in_array(6, $_SESSION["permisos_surexport_appreclu"])) {
 			header("Location: admin_cont.php?controller=index&action=error404");
 		}
@@ -1280,7 +1307,7 @@ class index{
 
 			if (empty($trabajadores)) {
 				$params['resultado'] = 'Debe seleccionar al menos un trabajador';
-				$m->reg_acciones('Respuesta masiva llamamientos', 'Remesa '.$id_remesa.'/'.$ano_remesa, $_SESSION["id_user_surexport_appreclu"], 'Error: Sin trabajadores seleccionados');
+				$m->reg_acciones('Respuesta masiva llamamientos', 'Remesa ' . $id_remesa . '/' . $ano_remesa, $_SESSION["id_user_surexport_appreclu"], 'Error: Sin trabajadores seleccionados');
 			} else {
 				// Procesar justificante si existe
 				$url_just_bbdd = null;
@@ -1329,8 +1356,8 @@ class index{
 
 				$accion_texto = $accion == '1' ? 'Aceptar' : ($accion == '2' ? 'Rechazar' : 'Pendiente');
 				$params['resultado'] = "Respuesta masiva completada: $exitosos exitosos, $errores errores";
-				$m->reg_acciones('Respuesta masiva llamamientos - '.$accion_texto, 'Remesa '.$id_remesa.'/'.$ano_remesa.' - '.$exitosos.' trabajadores', $_SESSION["id_user_surexport_appreclu"], $errores > 0 ? 'Parcial' : 'OK');
-				
+				$m->reg_acciones('Respuesta masiva llamamientos - ' . $accion_texto, 'Remesa ' . $id_remesa . '/' . $ano_remesa . ' - ' . $exitosos . ' trabajadores', $_SESSION["id_user_surexport_appreclu"], $errores > 0 ? 'Parcial' : 'OK');
+
 				// Recargar datos actualizados
 				$params['info_remesas'] = $m->InfoRemesa_llama($_GET['id'], $_GET['ano']);
 				$params['llamamientos_contestables'] = $m->obtenerLlamamientosContestables($_GET['id'], $_GET['ano']);
@@ -1344,10 +1371,10 @@ class index{
 
 			if ($m->EliminarTrabajadorRemesa($pernr, $id_remesa, $ano_remesa)) {
 				$params['resultado'] = 'Trabajador eliminado de la remesa correctamente';
-				$m->reg_acciones('Eliminar trabajador remesa', $pernr." - ".$id_remesa.'/'.$ano_remesa, $_SESSION["id_user_surexport_appreclu"], 'OK');
+				$m->reg_acciones('Eliminar trabajador remesa', $pernr . " - " . $id_remesa . '/' . $ano_remesa, $_SESSION["id_user_surexport_appreclu"], 'OK');
 			} else {
 				$params['resultado'] = 'El trabajador tiene un llamamiento para esta remesa, no se puede eliminar';
-				$m->reg_acciones('Eliminar trabajador remesa', $pernr." - ".$id_remesa.'/'.$ano_remesa, $_SESSION["id_user_surexport_appreclu"], 'Error');
+				$m->reg_acciones('Eliminar trabajador remesa', $pernr . " - " . $id_remesa . '/' . $ano_remesa, $_SESSION["id_user_surexport_appreclu"], 'Error');
 			}
 		}
 
@@ -1358,111 +1385,129 @@ class index{
 
 
 	// AUDITOR
-	public function auditor(){
-		include_once("idiomas/".$_SESSION['idioma_surexport_appreclu'].".php");
+	public function auditor()
+	{
+		include_once("idiomas/" . $_SESSION['idioma_surexport_appreclu'] . ".php");
 		if (!in_array(25, $_SESSION["permisos_surexport_appreclu"])) {
 			header("Location: admin_cont.php?controller=index&action=error404");
 		}
 		$m = new sqlsrvModel();
 		$params['trabajadores_auditoria'] = $m->trabajadoresAuditoria();
-		
-			if (isset($_POST['form_oficina'])) {
-				$params['datos_export_ofi'] = $m->informePresenciaOficina2($_POST);		
-			
-			} elseif (isset($_GET['modificar'])) {
-				$fecha = $_POST['fecha_mod'];
-				$id = $_POST['id'];
-				$estado = 3;
-				$pernr = $_POST['pernr'];
-				$motivo = isset($_POST['comentario']) ? $_POST['comentario'] : NULL;
 
-				// var_dump($_POST);
-				// die;
+		if (isset($_GET['modificar'])) {
+			$fecha = $_POST['fecha_mod'];
+			$id = $_POST['id'];
+			$estado = 3;
+			$pernr = $_POST['pernr'];
+			$motivo = isset($_POST['comentario']) ? $_POST['comentario'] : NULL;
 
-				$params['datos_export_ofi'] = $m->informePresenciaOficina2($_POST);
+			// Convertir fecha al formato compatible con SQL Server
+			$fecha = str_replace('T', ' ', $fecha);
 
-				// Convertir fecha al formato compatible con SQL Server
-				$fecha = str_replace('T', ' ', $fecha);
+			if ($m->validar_registro($id, $fecha, $estado, $motivo, true)) {
+				$_SESSION['resultado_modificacion'] = 'Registro modificado correctamente';
+				$m->reg_acciones('Modificar jornada presencia por RRHH', $id . " " . $pernr, $_SESSION["id_user_surexport_appreclu"], 'OK');
+			} else {
+				$_SESSION['resultado_modificacion'] = 'Error al modificar el registro';
+				$m->reg_acciones('Modificar jornada presencia por RRHH', $id . " " . $pernr, $_SESSION["id_user_surexport_appreclu"], 'ERROR');
+			}
 
-				if ($m->validar_registro($id, $fecha, $estado, $motivo, true)) {
-					$params['resultado'] = 'Registro modificado correctamente';
-					$m->reg_acciones('Modificar jornada presencia por RRHH', $id." ".$pernr, $_SESSION["id_user_surexport_appreclu"], 'OK');
-				} else {
-					$params['resultado'] = 'Error al modificar el registro';
-					$m->reg_acciones('Modificar jornada presencia por RRHH', $id." ".$pernr, $_SESSION["id_user_surexport_appreclu"], 'ERROR');
-				}
+			// Guardar los filtros en sesión para la redirección
+			$_SESSION['filtros_post'] = $_POST;
 
-			} elseif (isset($_POST['fecha_valida'])) {
-				$fecha = $_POST['fecha_valida'];
-				$id = $_POST['id'];
-				$estado = $_POST['estado'];
-				$pernr = $_POST['pernr'];
-				$motivo = isset($_POST['motivo']) ? $_POST['motivo'] : NULL;
+			// Redirigir con POST
+			header("Location: admin_cont.php?controller=index&action=auditor&reload=1");
+			exit();
 
-				// Convertir fecha al formato compatible con SQL Server
-				$fecha = str_replace('T', ' ', $fecha);
+		} elseif (isset($_GET['reload']) && isset($_SESSION['filtros_post'])) {
+			// Restaurar los filtros desde la sesión
+			$_POST = $_SESSION['filtros_post'];
+			unset($_SESSION['filtros_post']);
 
-				if ($m->validar_registro($id, $fecha, $estado, $motivo)) {
-					$params['resultado'] = 'Registro validado correctamente';
-					$m->reg_acciones('Validar jornada presencia', $id." ".$pernr, $_SESSION["id_user_surexport_appreclu"], 'OK');
-				} else {
-					$params['resultado'] = 'Error al validar el registro';
-					$m->reg_acciones('Validar jornada presencia', $id." ".$pernr, $_SESSION["id_user_surexport_appreclu"], 'ERROR');
-				}
-			} elseif (isset($_GET['guardar_nuevos_registros'])) {
-				$ok = true;
-				
-				// Decodificar los datos JSON que llegan como string
-				$registros = json_decode($_POST['registros'], true);
-				
-				if (!$registros) {
-					$params['resultado'] = 'Error al procesar los datos';
-					http_response_code(400);
-				} else {
-					foreach($registros as $registro) {
-						if($m->guardar_nuevo_registro($registro)) {
-							$m->reg_acciones('Registro creado por RRHH', $registro['pernr'], $_SESSION["id_user_surexport_appreclu"], 'OK');
-						} else {
-							$m->reg_acciones('Registro creado por RRHH', $registro['pernr'], $_SESSION["id_user_surexport_appreclu"], 'ERROR');
-							$ok = false;
-						}
-					}
-					
-					if($ok) {
-						$params['resultado'] = 'Registros guardados correctamente';
-						http_response_code(200);
+			// Establecer el resultado si existe
+			if (isset($_SESSION['resultado_modificacion'])) {
+				$params['resultado'] = $_SESSION['resultado_modificacion'];
+				unset($_SESSION['resultado_modificacion']);
+			}
+
+			// Recalcular con los filtros
+			$params['datos_export_ofi'] = $m->informePresenciaOficina2($_POST);
+
+		} elseif (isset($_POST['form_oficina'])) {
+			$params['datos_export_ofi'] = $m->informePresenciaOficina2($_POST);
+
+		} elseif (isset($_POST['fecha_valida'])) {
+			$fecha = $_POST['fecha_valida'];
+			$id = $_POST['id'];
+			$estado = $_POST['estado'];
+			$pernr = $_POST['pernr'];
+			$motivo = isset($_POST['motivo']) ? $_POST['motivo'] : NULL;
+
+			// Convertir fecha al formato compatible con SQL Server
+			$fecha = str_replace('T', ' ', $fecha);
+
+			if ($m->validar_registro($id, $fecha, $estado, $motivo)) {
+				$params['resultado'] = 'Registro validado correctamente';
+				$m->reg_acciones('Validar jornada presencia', $id . " " . $pernr, $_SESSION["id_user_surexport_appreclu"], 'OK');
+			} else {
+				$params['resultado'] = 'Error al validar el registro';
+				$m->reg_acciones('Validar jornada presencia', $id . " " . $pernr, $_SESSION["id_user_surexport_appreclu"], 'ERROR');
+			}
+		} elseif (isset($_GET['guardar_nuevos_registros'])) {
+			$ok = true;
+
+			// Decodificar los datos JSON que llegan como string
+			$registros = json_decode($_POST['registros'], true);
+
+			if (!$registros) {
+				$params['resultado'] = 'Error al procesar los datos';
+				http_response_code(400);
+			} else {
+				foreach ($registros as $registro) {
+					if ($m->guardar_nuevo_registro($registro)) {
+						$m->reg_acciones('Registro creado por RRHH', $registro['pernr'], $_SESSION["id_user_surexport_appreclu"], 'OK');
 					} else {
-						$params['resultado'] = 'Error al guardar los registros';
-						http_response_code(500);
+						$m->reg_acciones('Registro creado por RRHH', $registro['pernr'], $_SESSION["id_user_surexport_appreclu"], 'ERROR');
+						$ok = false;
 					}
+				}
+
+				if ($ok) {
+					$params['resultado'] = 'Registros guardados correctamente';
+					http_response_code(200);
+				} else {
+					$params['resultado'] = 'Error al guardar los registros';
+					http_response_code(500);
 				}
 			}
+		}
 		require 'views/auditor.php';
 	}
-	
+
 
 
 
 	// PRESENCIA
-	public function presencia(){
-		include_once("idiomas/".$_SESSION['idioma_surexport_appreclu'].".php");
+	public function presencia()
+	{
+		include_once("idiomas/" . $_SESSION['idioma_surexport_appreclu'] . ".php");
 		if (!in_array(25, $_SESSION["permisos_surexport_appreclu"])) {
 			header("Location: admin_cont.php?controller=index&action=error404");
 		}
-	
+
 		$m = new sqlsrvModel();
-		
+
 		// Determinar si los valores vienen de POST o GET
 		$tipo = isset($_POST['tipo']) ? $_POST['tipo'] : (isset($_GET['tipo']) ? $_GET['tipo'] : 'presencia');
 		$fecha_inicio = isset($_POST['fecha_inicio']) ? $_POST['fecha_inicio'] : (isset($_GET['fecha_inicio']) ? $_GET['fecha_inicio'] : date('Y-m-d'));
-	
+
 		if ($_SERVER['REQUEST_METHOD'] == 'POST' || $_SERVER['REQUEST_METHOD'] == 'GET') {
 			// Llamar al modelo con los valores correspondientes
 			if (in_array($tipo, ['1A', '1E', '9A'])) {
 				$params['trabajadores_presencia'] = $m->trabajadores_conta($fecha_inicio, $tipo, $_POST['filtroAsistencia'] ?? null, $_POST['buscador'] ?? null);
 			}
 		}
-	
+
 		require 'views/presencia.php';
 	}
 
@@ -1472,15 +1517,16 @@ class index{
 	// RECLUTAMIENTO
 
 	//Mostramos todos los candidatos
-	public function candidatos(){
-		include_once("idiomas/".$_SESSION['idioma_surexport_appreclu'].".php");
+	public function candidatos()
+	{
+		include_once("idiomas/" . $_SESSION['idioma_surexport_appreclu'] . ".php");
 		if (!in_array(9, $_SESSION["permisos_surexport_appreclu"])) {
 			header("Location: admin_cont.php?controller=index&action=error404");
-		}	
+		}
 		$m = new sqlsrvModel();
 		unset($_SESSION['array_candidatos']);
 		//Comprobamos si ha querido eliminar algún candidato
-		if (isset($_GET['elim']) and $_GET['elim']!="") {
+		if (isset($_GET['elim']) and $_GET['elim'] != "") {
 			$params['resultado'] = $m->elimCandidato($_GET['elim']);
 		}
 		$params['candidatos'] = $m->buscarCandidatos();
@@ -1491,17 +1537,18 @@ class index{
 
 
 	//Actualizamos un candidato
-	public function update_candidato(){
-		include_once("idiomas/".$_SESSION['idioma_surexport_appreclu'].".php");
+	public function update_candidato()
+	{
+		include_once("idiomas/" . $_SESSION['idioma_surexport_appreclu'] . ".php");
 		if (!in_array(9, $_SESSION["permisos_surexport_appreclu"])) {
 			header("Location: admin_cont.php?controller=index&action=error404");
-		}	
+		}
 		$m = new sqlsrvModel();
 		if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-			if ($_POST['ID']!="") {
+			if ($_POST['ID'] != "") {
 				if ($m->updateCandidato()) {
 					$params['resultado'] = $lang['index10'];
-				}else{
+				} else {
 					$params['resultado'] = $lang['index11'];
 				}
 			}
@@ -1515,18 +1562,19 @@ class index{
 
 
 	//Insertamos un candidato
-	public function new_candidato(){
-		include_once("idiomas/".$_SESSION['idioma_surexport_appreclu'].".php");
+	public function new_candidato()
+	{
+		include_once("idiomas/" . $_SESSION['idioma_surexport_appreclu'] . ".php");
 		if (!in_array(10, $_SESSION["permisos_surexport_appreclu"])) {
 			header("Location: admin_cont.php?controller=index&action=error404");
-		}	
+		}
 		$m = new sqlsrvModel();
 		if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-			if ($_POST['nombre']!="") {
+			if ($_POST['nombre'] != "") {
 				if ($m->inserCandidato(0)) {
 					$params['resultado'] = $lang['index12'];
-					
-				}else{
+
+				} else {
 					$params['resultado'] = $lang['index13'];
 				}
 			}
@@ -1536,14 +1584,15 @@ class index{
 		require 'views/nuevo_candidato.php';
 	}
 
-	
+
 
 	//Mostramos todos los grupos
-	public function grupos(){
-		include_once("idiomas/".$_SESSION['idioma_surexport_appreclu'].".php");
+	public function grupos()
+	{
+		include_once("idiomas/" . $_SESSION['idioma_surexport_appreclu'] . ".php");
 		if (!in_array(11, $_SESSION["permisos_surexport_appreclu"])) {
 			header("Location: admin_cont.php?controller=index&action=error404");
-		}	
+		}
 		$m = new sqlsrvModel();
 		if (isset($_GET['elim'])) {
 			$params['resultado'] = $m->eliminarGrupo($_GET['elim']);
@@ -1555,30 +1604,31 @@ class index{
 
 
 	//Insertamos un nuevo grupo
-	public function new_grupo(){
-		include_once("idiomas/".$_SESSION['idioma_surexport_appreclu'].".php");
+	public function new_grupo()
+	{
+		include_once("idiomas/" . $_SESSION['idioma_surexport_appreclu'] . ".php");
 		if (!in_array(12, $_SESSION["permisos_surexport_appreclu"])) {
 			header("Location: admin_cont.php?controller=index&action=error404");
-		}	
+		}
 		$m = new sqlsrvModel();
 		$params['nombre'] = "";
 		$params['descrip'] = "";
 		if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 			$params['nombre'] = $_POST['nombre'];
 			$params['descrip'] = $_POST['descrip'];
-			if ($_POST['nombre']!="") {
+			if ($_POST['nombre'] != "") {
 				if ($m->inserGrupo($params['nombre'], $params['descrip'])) {
 					$params['resultado'] = $lang['index14'];
-				}else{
+				} else {
 					$params['resultado'] = $lang['index15'];
 				}
 				$params['grupos'] = $m->Grupos();
 				require 'views/grupos.php';
-			}else{
+			} else {
 				$params['resultado'] = $lang['index16'];
 				require 'views/nuevo_grupo.php';
 			}
-		}else{
+		} else {
 			require 'views/nuevo_grupo.php';
 		}
 	}
@@ -1586,17 +1636,18 @@ class index{
 
 
 	//Actualizamos un grupo
-	public function update_grupo(){
-		include_once("idiomas/".$_SESSION['idioma_surexport_appreclu'].".php");
+	public function update_grupo()
+	{
+		include_once("idiomas/" . $_SESSION['idioma_surexport_appreclu'] . ".php");
 		if (!in_array(12, $_SESSION["permisos_surexport_appreclu"])) {
 			header("Location: admin_cont.php?controller=index&action=error404");
-		}	
+		}
 		$m = new sqlsrvModel();
 		if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-			if ($_POST['nombre']!="") {
+			if ($_POST['nombre'] != "") {
 				if ($m->updateGrupo($_POST['id'], $_POST['nombre'], $_POST['descrip'])) {
 					$params['resultado'] = $lang['index17'];
-				}else{
+				} else {
 					$params['resultado'] = $lang['index18'];
 				}
 			}
@@ -1608,56 +1659,58 @@ class index{
 
 
 	//Histórico de remesas
-	public function remesas(){
-		include_once("idiomas/".$_SESSION['idioma_surexport_appreclu'].".php");
+	public function remesas()
+	{
+		include_once("idiomas/" . $_SESSION['idioma_surexport_appreclu'] . ".php");
 		if (!in_array(13, $_SESSION["permisos_surexport_appreclu"])) {
 			header("Location: admin_cont.php?controller=index&action=error404");
-		}	
+		}
 		unset($_SESSION['array_candidatos']);
 		$m = new sqlsrvModel();
-		$params['remesas'] =$m->Remesas();
+		$params['remesas'] = $m->Remesas();
 		require 'views/remesas.php';
 	}
 
 
 
 	//Mostrar información de una remesa
-	public function view_remesa(){
-		include_once("idiomas/".$_SESSION['idioma_surexport_appreclu'].".php");
+	public function view_remesa()
+	{
+		include_once("idiomas/" . $_SESSION['idioma_surexport_appreclu'] . ".php");
 		if (!in_array(13, $_SESSION["permisos_surexport_appreclu"])) {
 			header("Location: admin_cont.php?controller=index&action=error404");
-		}	
+		}
 		unset($_SESSION['array_candidatos']);
 		$m = new sqlsrvModel();
 		if (isset($_GET['id']) and isset($_GET['ano'])) {
 			//Si hemos pulsado sobre el botón de eliminar el candidato de la remesa, hay que indicar si eliminar o rechazar
-			if (isset($_GET['elim_candidato']) and $_GET['elim_candidato']!="") {
+			if (isset($_GET['elim_candidato']) and $_GET['elim_candidato'] != "") {
 				$params['resultado'] = '
-					<h3>'.$lang['index19'].'</h3>
+					<h3>' . $lang['index19'] . '</h3>
 					<br>
-					<form action="admin_cont.php?controller=index&action=view_remesa&id='.$_GET['id'].'&ano='.$_GET['ano'].'" method="post">
-						<input type="hidden" name="id_can" value="'.$_GET['elim_candidato'].'">
-						<input type="text" name="motivo" class="form-login" placeholder="'.$lang['index20'].'" required>
+					<form action="admin_cont.php?controller=index&action=view_remesa&id=' . $_GET['id'] . '&ano=' . $_GET['ano'] . '" method="post">
+						<input type="hidden" name="id_can" value="' . $_GET['elim_candidato'] . '">
+						<input type="text" name="motivo" class="form-login" placeholder="' . $lang['index20'] . '" required>
 						<br>
-						<input type="submit" class="submit" name="eliminar_can_rem" value="'.$lang['index21'].'">
-						<input type="submit" class="submit" name="rechazar_can_rem" value="'.$lang['rechazar'].'">
+						<input type="submit" class="submit" name="eliminar_can_rem" value="' . $lang['index21'] . '">
+						<input type="submit" class="submit" name="rechazar_can_rem" value="' . $lang['rechazar'] . '">
 					</form>';
 			}
 			//Actualizamos el estado despues de contestar
 			if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-				if ($_POST['id_can']!="") {
+				if ($_POST['id_can'] != "") {
 					if (isset($_POST['eliminar_can_rem'])) {
 						// Hemos seleccionado eliminar candidato
 						$params['resultado'] = $m->elimCandidatoRemesa($_GET['id'], $_GET['ano'], $_POST['id_can']);
-					}elseif (isset($_POST['rechazar_can_rem'])) {
+					} elseif (isset($_POST['rechazar_can_rem'])) {
 						$params['resultado'] = $m->RechazarCandidatoRemesa($_GET['id'], $_GET['ano'], $_POST['id_can'], $_POST['motivo']);
 					}
 				}
 			}
-			$params['user_remesa'] =$m->InfoRemesa($_GET['id'], $_GET['ano']);
+			$params['user_remesa'] = $m->InfoRemesa($_GET['id'], $_GET['ano']);
 			require 'views/remesas.php';
-		}else{
-			$params['remesas'] =$m->Remesas();
+		} else {
+			$params['remesas'] = $m->Remesas();
 			require 'views/remesas.php';
 		}
 	}
@@ -1665,18 +1718,19 @@ class index{
 
 
 	//Generar remesas
-	public function generar_remesa(){
-		include_once("idiomas/".$_SESSION['idioma_surexport_appreclu'].".php");
+	public function generar_remesa()
+	{
+		include_once("idiomas/" . $_SESSION['idioma_surexport_appreclu'] . ".php");
 		if (!in_array(14, $_SESSION["permisos_surexport_appreclu"])) {
 			header("Location: admin_cont.php?controller=index&action=error404");
-		}	
+		}
 		unset($_SESSION['array_candidatos']);
 		$m = new sqlsrvModel();
 		if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 			if (isset($_POST['generar_rem'])) {
 				//Generamos una nueva remesa
 				$m->newRemesa();
-			}elseif (isset($_POST['add_candidato'])) {
+			} elseif (isset($_POST['add_candidato'])) {
 				//Añadimos un nuevo candidato a una remesa ya existente
 				$m->addRemesa();
 			}
@@ -1690,14 +1744,15 @@ class index{
 
 	// DISPOSITIVOS
 	// Mostrar lista de dispositivos
-	public function dispositivos(){
-		include_once("idiomas/".$_SESSION['idioma_surexport_appreclu'].".php");
-			if (!in_array(17, $_SESSION["permisos_surexport_appreclu"])) {
-				header("Location: admin_cont.php?controller=index&action=error404");
-			}	
+	public function dispositivos()
+	{
+		include_once("idiomas/" . $_SESSION['idioma_surexport_appreclu'] . ".php");
+		if (!in_array(17, $_SESSION["permisos_surexport_appreclu"])) {
+			header("Location: admin_cont.php?controller=index&action=error404");
+		}
 		$m = new sqlsrvModel();
 		$params['dispositivos'] = $m->dispositivos();
-		if (isset($_GET['elim']) and $_GET['elim']!="") {
+		if (isset($_GET['elim']) and $_GET['elim'] != "") {
 			$id = $_GET['elim'];
 
 			// Eliminar dispositivo
@@ -1713,18 +1768,19 @@ class index{
 
 
 	// Informacion dispositivos y actualizar estado
-	public function update_dispositivo() {
-		include_once("idiomas/".$_SESSION['idioma_surexport_appreclu'].".php");
-		
+	public function update_dispositivo()
+	{
+		include_once("idiomas/" . $_SESSION['idioma_surexport_appreclu'] . ".php");
+
 		// Verificación de permisos
 		if (!in_array(17, $_SESSION["permisos_surexport_appreclu"])) {
 			header("Location: admin_cont.php?controller=index&action=error404");
 			exit(); // Añadir exit después del redirect
-		}    
-		
+		}
+
 		$m = new sqlsrvModel();
 		$params = array();
-		
+
 		// Validar el ID
 		$id = filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT);
 		if (!$id) {
@@ -1732,37 +1788,38 @@ class index{
 			require 'views/update_dispositivo.php';
 			return;
 		}
-		
+
 		// Procesar POST
 		if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 			if (isset($_POST['activo_dispositivo'])) {
 				$estado = $_POST['activo_dispositivo'];
 				$nombre = $_POST['nombre_dispositivo'];
-				if($m->updateDispositivo($id, $nombre, $estado)) {
+				if ($m->updateDispositivo($id, $nombre, $estado)) {
 					$params['resultado'] = "Dispositivo Actualizado";
 				} else {
 					$params['resultado'] = "Error al actualizar dispositivo";
 				}
 			}
 		}
-		
+
 		// Obtener información actual del dispositivo
 		$params['info_dispositivo'] = $m->infoDispositivo($id);
-		
+
 		require 'views/update_dispositivo.php';
 	}
 
-	
-	
+
+
 	// Nuevo dispositivo
-	public function new_dispositivo(){
-		include_once("idiomas/".$_SESSION['idioma_surexport_appreclu'].".php");
-			if (!in_array(18, $_SESSION["permisos_surexport_appreclu"])) {
-				header("Location: admin_cont.php?controller=index&action=error404");
-			}	
+	public function new_dispositivo()
+	{
+		include_once("idiomas/" . $_SESSION['idioma_surexport_appreclu'] . ".php");
+		if (!in_array(18, $_SESSION["permisos_surexport_appreclu"])) {
+			header("Location: admin_cont.php?controller=index&action=error404");
+		}
 		$m = new sqlsrvModel();
 		$params['sedes'] = $m->sedes();
-		
+
 		//Insertamos el dispositivo configurado
 		if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 			if (isset($_POST['nuevo_dispositivo'])) {
@@ -1785,8 +1842,9 @@ class index{
 
 
 	// Nueva ubicación
-	public function new_ubicacion(){
-		include_once("idiomas/".$_SESSION['idioma_surexport_appreclu'].".php");
+	public function new_ubicacion()
+	{
+		include_once("idiomas/" . $_SESSION['idioma_surexport_appreclu'] . ".php");
 		$m = new sqlsrvModel();
 
 		$params['ubicaciones'] = $m->ubicaciones();
@@ -1814,39 +1872,42 @@ class index{
 
 	// TESA
 	// Mostrar Usuarios de TESA
-	public function tesa_usuarios(){
-		include_once("idiomas/".$_SESSION['idioma_surexport_appreclu'].".php");
-			if (!in_array(29, $_SESSION["permisos_surexport_appreclu"])) {
-				header("Location: admin_cont.php?controller=index&action=error404");
-			}	
-		
-			if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['newusu_tesa'])) {
-				// Recoger variables del formulario de nuevo usuario para insertarlos en TESA
-			}
+	public function tesa_usuarios()
+	{
+		include_once("idiomas/" . $_SESSION['idioma_surexport_appreclu'] . ".php");
+		if (!in_array(29, $_SESSION["permisos_surexport_appreclu"])) {
+			header("Location: admin_cont.php?controller=index&action=error404");
+		}
+
+		if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['newusu_tesa'])) {
+			// Recoger variables del formulario de nuevo usuario para insertarlos en TESA
+		}
 		require 'views/tesa_usuarios.php';
 	}
 
 
 
 	// Estado puertas
-	public function estado_puertas(){
-		include_once("idiomas/".$_SESSION['idioma_surexport_appreclu'].".php");
-			if (!in_array(24, $_SESSION["permisos_surexport_appreclu"])) {
-				header("Location: admin_cont.php?controller=index&action=error404");
-			}	
-		
+	public function estado_puertas()
+	{
+		include_once("idiomas/" . $_SESSION['idioma_surexport_appreclu'] . ".php");
+		if (!in_array(24, $_SESSION["permisos_surexport_appreclu"])) {
+			header("Location: admin_cont.php?controller=index&action=error404");
+		}
+
 		require 'views/estado_puertas.php';
 	}
 
 
 
 	// Estado puertas
-	public function tesa_update_usu(){
-		include_once("idiomas/".$_SESSION['idioma_surexport_appreclu'].".php");
-			if (!in_array(29, $_SESSION["permisos_surexport_appreclu"])) {
-				header("Location: admin_cont.php?controller=index&action=error404");
-			}	
-			
+	public function tesa_update_usu()
+	{
+		include_once("idiomas/" . $_SESSION['idioma_surexport_appreclu'] . ".php");
+		if (!in_array(29, $_SESSION["permisos_surexport_appreclu"])) {
+			header("Location: admin_cont.php?controller=index&action=error404");
+		}
+
 		$externalId = isset($_GET['id']) ? $_GET['id'] : null;
 		$m = new sqlsrvModel();
 		$params['info_usu'] = $m->tesa_info_usu($_GET['id']);
@@ -1861,103 +1922,10 @@ class index{
 
 
 
-	// USUARIOS
-	//Mostramos todos los usuarios
-	public function usuarios(){
-		include_once("idiomas/".$_SESSION['idioma_surexport_appreclu'].".php");
-		if (!in_array(15, $_SESSION["permisos_surexport_appreclu"])) {
-			header("Location: admin_cont.php?controller=index&action=error404");
-		}	
-		$m = new sqlsrvModel();
-		if (isset($_GET['elim'])) {
-			$params['resultado'] = $m->eliminarUser($_GET['elim']);
-		}
-		$params['usuarios'] = $m->Usuarios();
-		require 'views/usuarios.php';
-	}
-
-
-
-	//Insertamos un nuevo usuario
-	public function new_usuario(){
-		include_once("idiomas/".$_SESSION['idioma_surexport_appreclu'].".php");
-		if (!in_array(15, $_SESSION["permisos_surexport_appreclu"])) {
-			header("Location: admin_cont.php?controller=index&action=error404");
-		}	
-		$m = new sqlsrvModel();
-		$params['nombre'] = "";
-		$params['apellidos'] = "";
-		$params['usr_login'] = "";
-		if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-			$params['nombre'] = $_POST['nombre'];
-			$params['apellidos'] = $_POST['apellidos'];
-			$params['usr_login'] = $_POST['usr_login'];
-			$params['usr_pass'] = $_POST['usr_pass'];
-			$params['usr_pass_rep'] = $_POST['usr_pass_rep'];
-			$params['tipo_usuario'] = $_POST['tipo_usuario'];
-			//Comprobamos que todos los datos están rellenos
-			if ($_POST['nombre']!="" and $_POST['apellidos']!="" and $_POST['usr_login']!="" and $_POST['tipo_usuario']!="" and $params['usr_pass']!="" and $params['usr_pass_rep']!="" and $_POST['permisos']!="" and $_POST['telefono']!="") {
-				//Comprobamos que las dos contraseñas introducidas coinciden para evitar errores en la insercción e insertamos el usuario
-				if ($params['usr_pass']==$params['usr_pass_rep']) {
-					$params['resultado'] = $m->inserUsuario($params['nombre'], $params['apellidos'], $params['usr_login'], $params['usr_pass'], $params['tipo_usuario'], $_POST['permisos'], $_POST['telefono']);
-					$params['usuarios'] = $m->Usuarios();
-					require 'views/usuarios.php';
-				}else{
-					$params['resultado'] = $lang['index22'];
-					require 'views/nuevo_usu.php';
-				}	
-			}else{
-				$params['resultado'] = $lang['index23'];
-				require 'views/nuevo_usu.php';
-			}
-		}else{
-			require 'views/nuevo_usu.php';
-		}
-		
-	}
-
-
-
-	//actualizamos el usuario
-	public function update_usu(){
-		include_once("idiomas/".$_SESSION['idioma_surexport_appreclu'].".php");
-		if (!in_array(15, $_SESSION["permisos_surexport_appreclu"])) {
-			header("Location: admin_cont.php?controller=index&action=error404");
-		}	
-		$m = new sqlsrvModel();
-
-
-		if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-			//Comprobamos si lo que queremos es actualizar, generar contraseña o activar un usuario que ha sido eliminado
-			if (isset($_POST['datos'])) {
-				if ($_POST['nombre']!="" and $_POST['apellidos']!="" and $_POST['tipo_usuario']!="" and $_POST['id_usu']!="" and $_POST['departamento']!="" and $_POST['telefono']!="") {
-					$params['resultado'] = $m->updateUsuario($_POST['id_usu'], $_POST['nombre'], $_POST['apellidos'], $_POST['tipo_usuario'], $_POST['departamento'], $_POST['telefono']);
-				} else {
-					$params['resultado'] = "Error al modificar los datos del usuario";
-				}
-			} elseif (isset($_POST['permisos'])) {
-				if ($m->updateUsuarioPermisos($_POST['id_usu'], $_POST['permisos'])) {
-					$params['resultado'] = "Permisos actualizados correctamente";
-				} else {
-					$params['resultado'] = "Error al actualizar los permisos del usuario";
-				}
-			}
-		}
-
-		if(isset($_GET['renew_pass'])){
-			$params['resultado'] = $m->renewPass($_GET['id']);
-		}
-
-		$params['info_user'] = $m->infoUsuario($_GET['id']);
-		$params['permisos'] = explode(',', $params['info_user']['permisos']);
-		require 'views/update_usu.php';
-	}
-
-
-
 	//Editar perfil del usuario propio desde su web
-	public function miperfil(){
-		include_once("idiomas/".$_SESSION['idioma_surexport_appreclu'].".php");
+	public function miperfil()
+	{
+		include_once("idiomas/" . $_SESSION['idioma_surexport_appreclu'] . ".php");
 		$m = new sqlsrvModel();
 		if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 			if (isset($_POST['departamento'])) {
@@ -1972,7 +1940,7 @@ class index{
 				}
 			}
 		}
-		
+
 		$params['datos_usu'] = $m->datos_usu($_SESSION["id_user_surexport_appreclu"]);
 
 		require 'views/miperfil.php';
@@ -1981,37 +1949,39 @@ class index{
 
 
 	// Gestion del Horario laboral
-	public function horario(){
-		include_once("idiomas/".$_SESSION['idioma_surexport_appreclu'].".php");
+	public function horario()
+	{
+		include_once("idiomas/" . $_SESSION['idioma_surexport_appreclu'] . ".php");
 		if (!in_array(30, $_SESSION["permisos_surexport_appreclu"])) {
 			header("Location: admin_cont.php?controller=index&action=error404");
-		}	
+		}
 		$m = new sqlsrvModel();
 
 		$params['grupos_horario'] = $m->grupos_horario();
 
 		if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-		if (isset($_POST['nuevo_grupo']) && $_POST['nuevo_grupo'] == '1') {
-			$nombre_grupo = trim($_POST['nombre_grupo']);
-			$descripcion = trim($_POST['descripcion_grupo']);
-			$franjas_json = isset($_POST['franjas_json']) ? $_POST['franjas_json'] : '[]';
-			$grupo_predeterminado = (isset($_POST['grupo_predeterminado']) && $_POST['grupo_predeterminado'] == '1') ? 1 : 0;
-			$anio_configuracion = isset($_POST['anio_configuracion']) ? intval($_POST['anio_configuracion']) : date('Y');
-			$fecha_hoy = date('Y-m-d\TH:i:s');
+			if (isset($_POST['nuevo_grupo']) && $_POST['nuevo_grupo'] == '1') {
+				$nombre_grupo = trim($_POST['nombre_grupo']);
+				$descripcion = trim($_POST['descripcion_grupo']);
+				$franjas_json = isset($_POST['franjas_json']) ? $_POST['franjas_json'] : '[]';
+				$grupo_predeterminado = (isset($_POST['grupo_predeterminado']) && $_POST['grupo_predeterminado'] == '1') ? 1 : 0;
+				$anio_configuracion = isset($_POST['anio_configuracion']) ? intval($_POST['anio_configuracion']) : date('Y');
+				$fecha_hoy = date('Y-m-d\TH:i:s');
 
-			// Validar datos básicos
-			if (empty($nombre_grupo)) {
-				$params['resultado'] = 'El nombre del grupo es obligatorio';
-			} else {
-				if ($m->nuevo_grupo_horario($nombre_grupo, $descripcion, $franjas_json, $grupo_predeterminado, $anio_configuracion, $fecha_hoy)) {
-					$params['resultado'] = 'Grupo de horario creado correctamente';
-					// Recargar la lista de grupos
-					$params['grupos_horario'] = $m->grupos_horario();
+				// Validar datos básicos
+				if (empty($nombre_grupo)) {
+					$params['resultado'] = 'El nombre del grupo es obligatorio';
 				} else {
-					$params['resultado'] = 'Error al crear el grupo de horario';
+					if ($m->nuevo_grupo_horario($nombre_grupo, $descripcion, $franjas_json, $grupo_predeterminado, $anio_configuracion, $fecha_hoy)) {
+						$params['resultado'] = 'Grupo de horario creado correctamente';
+						// Recargar la lista de grupos
+						$params['grupos_horario'] = $m->grupos_horario();
+					} else {
+						$params['resultado'] = 'Error al crear el grupo de horario';
+					}
 				}
 			}
-		}			if (isset($_POST['editar_grupo']) && $_POST['editar_grupo'] == '1') {
+			if (isset($_POST['editar_grupo']) && $_POST['editar_grupo'] == '1') {
 				$grupo_id = intval($_POST['grupo_id']);
 				$nombre_grupo = trim($_POST['nombre_grupo']);
 				$descripcion = trim($_POST['descripcion_grupo']);
@@ -2032,47 +2002,45 @@ class index{
 						$params['resultado'] = 'Error al actualizar el grupo de horario';
 					}
 				}
-		}
-	}
-	
-	// Procesar eliminación de grupo
-	if (isset($_GET['eliminar']) && is_numeric($_GET['eliminar'])) {
-		$grupo_id = intval($_GET['eliminar']);
-
-		// Verificar si es el grupo predeterminado
-		$grupo_info = $m->obtenerGrupoHorarioPorId($grupo_id);
-		if ($grupo_info && $grupo_info['grupo_predeterminado'] == 1) {
-			// Usar sesión para el mensaje y redirigir
-			$anio = $grupo_info['anio_configuracion'];
-			$_SESSION['mensaje_horario'] = 'No se puede eliminar el grupo predeterminado del año ' . $anio;
-			$_SESSION['tipo_mensaje_horario'] = 'error';
-		} else {
-			if ($m->eliminar_grupo_horario($grupo_id)) {
-				$_SESSION['mensaje_horario'] = 'Grupo de horario eliminado correctamente';
-				$_SESSION['tipo_mensaje_horario'] = 'success';
-			} else {
-				$_SESSION['mensaje_horario'] = 'Error al eliminar el grupo de horario. Puede que esté siendo utilizado.';
-				$_SESSION['tipo_mensaje_horario'] = 'error';
 			}
 		}
-		
-		// Redirigir para limpiar la URL
-		header('Location: admin_cont.php?controller=horarios&action=horario');
-		exit();
-	}
-	
-	// Mostrar mensaje de sesión si existe
-	if (isset($_SESSION['mensaje_horario'])) {
-		$params['resultado'] = $_SESSION['mensaje_horario'];
-		$params['tipo_resultado'] = $_SESSION['tipo_mensaje_horario'];
-		unset($_SESSION['mensaje_horario']);
-		unset($_SESSION['tipo_mensaje_horario']);
-	}
 
-	require 'views/horario.php';
-}
+		// Procesar eliminación de grupo
+		if (isset($_GET['eliminar']) && is_numeric($_GET['eliminar'])) {
+			$grupo_id = intval($_GET['eliminar']);
+
+			// Verificar si es el grupo predeterminado
+			$grupo_info = $m->obtenerGrupoHorarioPorId($grupo_id);
+			if ($grupo_info && $grupo_info['grupo_predeterminado'] == 1) {
+				// Usar sesión para el mensaje y redirigir
+				$anio = $grupo_info['anio_configuracion'];
+				$_SESSION['mensaje_horario'] = 'No se puede eliminar el grupo predeterminado del año ' . $anio;
+				$_SESSION['tipo_mensaje_horario'] = 'error';
+			} else {
+				if ($m->eliminar_grupo_horario($grupo_id)) {
+					$_SESSION['mensaje_horario'] = 'Grupo de horario eliminado correctamente';
+					$_SESSION['tipo_mensaje_horario'] = 'success';
+				} else {
+					$_SESSION['mensaje_horario'] = 'Error al eliminar el grupo de horario. Puede que esté siendo utilizado.';
+					$_SESSION['tipo_mensaje_horario'] = 'error';
+				}
+			}
+
+			// Redirigir para limpiar la URL
+			header('Location: admin_cont.php?controller=horarios&action=horario');
+			exit();
+		}
+
+		// Mostrar mensaje de sesión si existe
+		if (isset($_SESSION['mensaje_horario'])) {
+			$params['resultado'] = $_SESSION['mensaje_horario'];
+			$params['tipo_resultado'] = $_SESSION['tipo_mensaje_horario'];
+			unset($_SESSION['mensaje_horario']);
+			unset($_SESSION['tipo_mensaje_horario']);
+		}
+
+		require 'views/horario.php';
+	}
 
 }
 ?>
-
-
