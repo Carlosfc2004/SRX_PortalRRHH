@@ -210,18 +210,20 @@ if (isset($params['info_trabajador']) && is_array($params['info_trabajador'])) {
 								<div class="col-md-3">
 									<label class="form-label"><b><?php echo $lang['pais_nac']; ?></b></label>
 									<?php
-										$desc_pais_na = isset($params['info_trabajador']['GBLND']) ? $params['info_trabajador']['GBLND'] : '';
+										$pais_na = isset($params['info_trabajador']['GBLND']) ? $params['info_trabajador']['GBLND'] : '';
+										$description_pais = isset($params['info_trabajador']['LANDX']) ? $params['info_trabajador']['LANDX'] : '';
 									?>
 									<input type="text" name="pais_nac" id="pais_nac" class="form-control"
-										value="<?php echo $desc_pais_na; ?>" readonly>
+										value="<?php echo $pais_na. ' - ' . $description_pais; ?>" readonly>
 								</div>
 								<div class="col-md-2">
 									<label class="form-label"><b><?php echo $lang['nacionalidad']; ?></b></label>
 									<?php
-									$nacionalidad = isset($params['info_trabajador']['NATIO']) ? $params['info_trabajador']['NATIO'] : '';
+										$nacionalidad = isset($params['info_trabajador']['NATIO']) ? $params['info_trabajador']['NATIO'] : '';
+										$description_nacionalidad = isset($params['info_trabajador']['NATIO_T005T']) ? $params['info_trabajador']['NATIO_T005T'] : '';
 									?>
 									<input type="text" name="nacionalidad" id="nacionalidad" class="form-control"
-										value="<?php echo $nacionalidad; ?>" readonly>
+										value="<?php echo $nacionalidad. ' - ' . $description_nacionalidad; ?>" readonly>
 								</div>
 							</div>
 
@@ -880,7 +882,7 @@ if (isset($params['info_trabajador']) && is_array($params['info_trabajador'])) {
 											document.getElementById('provincia').value = data.DESC_REGION || '';
 											document.getElementById('municipio').value = data.POBLACION || '';
 											document.getElementById('cp').value = data.COD_POSTAL || '';
-											document.getElementById('tipo').value = (data.SIGLAS_VP || '') /*+ (data.DESC_SIGLAS_VP ? ' - ' + data.DESC_SIGLAS_VP : '')*/;
+											document.getElementById('tipo').value = (data.SIGLAS_VP || '') + (data.DESC_SIGLAS_VP ? ' - ' + data.DESC_SIGLAS_VP : '');
 											document.getElementById('calle').value = data.CALLE_NUMERO || '';
 											document.getElementById('numero').value = data.N_EDIFICIO || '';
 											document.getElementById('clase').value = data.DESC_CLASE_DIRECCION || '';
