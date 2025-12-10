@@ -2042,5 +2042,16 @@ class index
 		require 'views/horario.php';
 	}
 
+
+	// Organigrama
+	public function organigrama()
+	{
+		include_once("idiomas/" . $_SESSION['idioma_surexport_appreclu'] . ".php");
+		if (!in_array(31, $_SESSION["permisos_surexport_appreclu"])) {
+			header("Location: admin_cont.php?controller=index&action=error404");
+		}
+
+		require 'views/organigrama.php';
+	}
 }
 ?>

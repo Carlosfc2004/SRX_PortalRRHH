@@ -645,59 +645,6 @@ class sqlsrvModel
 
 
 
-    //Mostramos el listado de Trabajadores de SAP
-    // public function buscarTrabajadoresSap($txt_pernr, $txt_nombre, $sociedad, $baja)
-    // {
-    //     $conn = $this->conectarDatasphere();
-
-    //     // Verificar si se busca por trabajadores no activos.
-    //     $sql = "SELECT TOP (1000) 
-    //                 PERNR,
-    //                 SNAME_CALC,
-    //                 ZZWERKS,
-    //                 STAT2,
-    //                 BEGDA_MEDIDA,
-    //                 ENDDA_MEDIDA,
-    //                 VORNA,
-    //                 NACHN,
-    //                 NACH2,
-    //                 PERID
-    //             FROM [RRHH_SP_personas_activas] WHERE 1=1 ";
-
-    //     // Aplicar los filtros solo si hay valores no vacíos
-    //     if ($txt_pernr != '') {
-    //         $sql .= "AND PERNR LIKE '%" . $txt_pernr . "%' ";
-    //     }
-    //     if ($txt_nombre != '') {
-    //         $sql .= "AND SNAME_CALC LIKE '%" . $txt_nombre . "%' ";
-    //     }
-    //     if ($sociedad != '') {
-    //         $sql .= "AND ZZWERKS = '" . $sociedad . "' ";
-    //     }
-    //     if ($baja != '') {
-    //         $sql .= "AND STAT2 = '" . $baja . "' ";
-    //     }
-    //     if ($baja == '') {
-    //         $sql .= "ORDER BY ZZWERKS ";
-    //     }
-
-    //     // echo $sql;
-    //     // die;
-
-    //     // Ejecutar la consulta SQL
-    //     $consulta = sqlsrv_query($conn, $sql);
-    //     if ($consulta === false) {
-    //         die("SQL Error: " . print_r(sqlsrv_errors(), true));
-    //     }
-
-    //     // Recoger los resultados
-    //     $resultado = array();
-    //     while ($row = sqlsrv_fetch_array($consulta, SQLSRV_FETCH_ASSOC)) {
-    //         $resultado[] = $row;
-    //     }
-
-    //     return $resultado;
-    // }
 
     public function buscarTrabajadoresSap($txt_pernr, $txt_nombre, $sociedad, $baja)
     {
