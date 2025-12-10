@@ -382,6 +382,8 @@
                 echo '<i class="bi bi-calendar2-check"></i>';
               }elseif ($value['id_hijo']==30) {
                 echo '<i class="bi bi-clock-fill"></i>';
+              }elseif ($value['id_hijo']==31) { //Organigrama
+                echo '<i class="bi bi-diagram-3-fill"></i>';
               }
               ?>
               <!-- Título -->
