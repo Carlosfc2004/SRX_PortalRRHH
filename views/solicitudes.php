@@ -1,4 +1,6 @@
 <?php
+// var_dump($params['dias_disponibles_por_anio']);
+// die;
 include("header.php");
 
 ?>
@@ -162,17 +164,27 @@ include("header.php");
                 <form action="" method="post" id="exportar"
                     style='display: inline-block; margin-left: 15px; margin-bottom: 20px;'>
                     <input type="hidden" name="filtros_sol" value="1">
-                    <input type="hidden" name="fecha_inicio" value="<?php echo isset($_POST['fecha_inicio']) ? $_POST['fecha_inicio'] : ''; ?>">
-                    <input type="hidden" name="fecha_fin" value="<?php echo isset($_POST['fecha_fin']) ? $_POST['fecha_fin'] : ''; ?>">
-                    <input type="hidden" name="pernr_nom_sol" value="<?php echo isset($_POST['pernr_nom_sol']) ? implode(',', $_POST['pernr_nom_sol']) : ''; ?>">
-                    <input type="hidden" name="tipo_ausencia" value="<?php echo isset($_POST['tipo_ausencia']) ? $_POST['tipo_ausencia'] : ''; ?>">
-                    <input type="hidden" name="estado" value="<?php echo isset($_POST['estado']) ? $_POST['estado'] : ''; ?>">
-                    <input type="hidden" name="justificante" value="<?php echo (isset($_POST['justificante']) && $_POST['justificante'] == 'on') ? 'on' : ''; ?>">
-                    <button type="button" target="_blank" onclick="document.getElementById('exportar').action='exportar.php?solicitudes_pdf'; document.getElementById('exportar').target='_blank'; document.getElementById('exportar').submit();" style="background-color: white; margin-right: 60px;">
+                    <input type="hidden" name="fecha_inicio"
+                        value="<?php echo isset($_POST['fecha_inicio']) ? $_POST['fecha_inicio'] : ''; ?>">
+                    <input type="hidden" name="fecha_fin"
+                        value="<?php echo isset($_POST['fecha_fin']) ? $_POST['fecha_fin'] : ''; ?>">
+                    <input type="hidden" name="pernr_nom_sol"
+                        value="<?php echo isset($_POST['pernr_nom_sol']) ? implode(',', $_POST['pernr_nom_sol']) : ''; ?>">
+                    <input type="hidden" name="tipo_ausencia"
+                        value="<?php echo isset($_POST['tipo_ausencia']) ? $_POST['tipo_ausencia'] : ''; ?>">
+                    <input type="hidden" name="estado"
+                        value="<?php echo isset($_POST['estado']) ? $_POST['estado'] : ''; ?>">
+                    <input type="hidden" name="justificante"
+                        value="<?php echo (isset($_POST['justificante']) && $_POST['justificante'] == 'on') ? 'on' : ''; ?>">
+                    <button type="button" target="_blank"
+                        onclick="document.getElementById('exportar').action='exportar.php?solicitudes_pdf'; document.getElementById('exportar').target='_blank'; document.getElementById('exportar').submit();"
+                        style="background-color: white; margin-right: 60px;">
                         <img src="img/pdf.png" style="max-width: 100px; width: 50px;">
                     </button>
 
-                    <button type="button" target="_blank" onclick="document.getElementById('exportar').action='exportar.php?solicitudes_excel'; document.getElementById('exportar').submit();" style="background-color: white;">
+                    <button type="button" target="_blank"
+                        onclick="document.getElementById('exportar').action='exportar.php?solicitudes_excel'; document.getElementById('exportar').submit();"
+                        style="background-color: white;">
                         <img src="img/xls.png" style="max-width: 100px; width: 50px;">
                     </button>
                 </form>
@@ -311,140 +323,57 @@ include("header.php");
                         ?>
                     </tbody>
                 </table>
-
-                <?php
-                // Mostrar contadores solo si se filtró por UNA sola persona
-                $selectedValues = isset($_POST['pernr_nom_sol']) ? (array) $_POST['pernr_nom_sol'] : [];
-                if (count($selectedValues) === 1 && !empty($params['solicitudes_pendientes'])) {
-                    // Agrupar por tipo y año
-                    $datosPorTipoYAnio = [
-                        'vacaciones' => [],
-                        'festivo_local' => [],
-                        'asuntos_propios' => []
-                    ];
-                    $totalGeneral = 0;
-
-                    foreach ($params['solicitudes_pendientes'] as $solicitud) {
-                        $anio = $solicitud['anio_origen'] ?? date('Y');
-                        $dias = ($solicitud['total_dias'] ?? 0);
-                        $totalGeneral += $dias;
-
-                        switch ($solicitud['tipo']) {
-                            case '1': // Vacaciones
-                                if (!isset($datosPorTipoYAnio['vacaciones'][$anio])) {
-                                    $datosPorTipoYAnio['vacaciones'][$anio] = 0;
-                                }
-                                $datosPorTipoYAnio['vacaciones'][$anio] += $dias;
-                                break;
-                            case '3': // Festivo local
-                                if (!isset($datosPorTipoYAnio['festivo_local'][$anio])) {
-                                    $datosPorTipoYAnio['festivo_local'][$anio] = 0;
-                                }
-                                $datosPorTipoYAnio['festivo_local'][$anio] += $dias;
-                                break;
-                            case '4': // Asuntos propios
-                                if (!isset($datosPorTipoYAnio['asuntos_propios'][$anio])) {
-                                    $datosPorTipoYAnio['asuntos_propios'][$anio] = 0;
-                                }
-                                $datosPorTipoYAnio['asuntos_propios'][$anio] += $dias;
-                                break;
-                        }
-                    }
-
-                    // Ordenar años de manera descendente para cada tipo
-                    krsort($datosPorTipoYAnio['vacaciones']);
-                    krsort($datosPorTipoYAnio['festivo_local']);
-                    krsort($datosPorTipoYAnio['asuntos_propios']);
-
-                    // Calcular totales por tipo
-                    $totalVacaciones = array_sum($datosPorTipoYAnio['vacaciones']);
-                    $totalFestivoLocal = array_sum($datosPorTipoYAnio['festivo_local']);
-                    $totalAsuntosPropios = array_sum($datosPorTipoYAnio['asuntos_propios']);
-                    ?>
-                    <h5 class="card-title">Resumen de días solicitados</h5>
-                    <div class="row text-center">
-                        <!-- Vacaciones -->
-                        <div class="col-md-4 mb-3">
-                            <div class="p-3 border rounded bg-light">
-                                <i class="bi bi-calendar-check" style="font-size: 2rem; color: #0d6efd;"></i>
-                                <h6 class="mt-2 mb-1">Vacaciones</h6>
-                                <?php foreach ($datosPorTipoYAnio['vacaciones'] as $anio => $dias) { ?>
-                                    <div class="mb-1">
-                                        <span class="badge bg-primary" style="font-size: 0.9rem;">
-                                            <?php echo $anio; ?>: <?php echo $dias; ?> días
-                                        </span>
-                                    </div>
-                                <?php } ?>
-                                <?php if (empty($datosPorTipoYAnio['vacaciones'])) { ?>
-                                    <div class="mb-1">
-                                        <span class="text-muted" style="font-size: 0.9rem;">Sin registros</span>
-                                    </div>
-                                <?php } ?>
-                                <hr class="my-2">
-                                <h4 class="mb-0 text-primary"><?php echo $totalVacaciones; ?></h4>
-                                <small class="text-muted">días total</small>
-                            </div>
-                        </div>
-                        <!-- Festivo Local -->
-                        <div class="col-md-4 mb-3">
-                            <div class="p-3 border rounded bg-light">
-                                <i class="bi bi-star" style="font-size: 2rem; color: #ffc107;"></i>
-                                <h6 class="mt-2 mb-1">Festivo local</h6>
-                                <?php foreach ($datosPorTipoYAnio['festivo_local'] as $anio => $dias) { ?>
-                                    <div class="mb-1">
-                                        <span class="badge bg-warning text-dark" style="font-size: 0.9rem;">
-                                            <?php echo $anio; ?>: <?php echo $dias; ?> días
-                                        </span>
-                                    </div>
-                                <?php } ?>
-                                <?php if (empty($datosPorTipoYAnio['festivo_local'])) { ?>
-                                    <div class="mb-1">
-                                        <span class="text-muted" style="font-size: 0.9rem;">Sin registros</span>
-                                    </div>
-                                <?php } ?>
-                                <hr class="my-2">
-                                <h4 class="mb-0 text-warning"><?php echo $totalFestivoLocal; ?></h4>
-                                <small class="text-muted">días total</small>
-                            </div>
-                        </div>
-                        <!-- Asuntos Propios -->
-                        <div class="col-md-4 mb-3">
-                            <div class="p-3 border rounded bg-light">
-                                <i class="bi bi-briefcase" style="font-size: 2rem; color: #198754;"></i>
-                                <h6 class="mt-2 mb-1">Asuntos propios</h6>
-                                <?php foreach ($datosPorTipoYAnio['asuntos_propios'] as $anio => $dias) { ?>
-                                    <div class="mb-1">
-                                        <span class="badge bg-success" style="font-size: 0.9rem;">
-                                            <?php echo $anio; ?>: <?php echo $dias; ?> días
-                                        </span>
-                                    </div>
-                                <?php } ?>
-                                <?php if (empty($datosPorTipoYAnio['asuntos_propios'])) { ?>
-                                    <div class="mb-1">
-                                        <span class="text-muted" style="font-size: 0.9rem;">Sin registros</span>
-                                    </div>
-                                <?php } ?>
-                                <hr class="my-2">
-                                <h4 class="mb-0 text-success"><?php echo $totalAsuntosPropios; ?></h4>
-                                <small class="text-muted">días total</small>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="row mt-3">
-                        <div class="col-12 text-center">
-                            <span class="badge bg-primary" style="font-size: 1.2rem; padding: 10px 20px;">
-                                <i class="bi bi-calendar-check"></i> Total general: <?php echo $totalGeneral; ?> días
-                            </span>
-                            <div class="mt-2">
-                                <small class="text-muted">Basado en los registros filtrados actualmente</small>
-                            </div>
-                        </div>
-                    </div>
-                    <?php
-                }
-                ?>
             </div>
         </div>
+
+        <?php
+        // Mostrar selector de año y área de resultados solo si se filtró por UNA sola persona
+        $selectedValues = isset($_POST['pernr_nom_sol']) ? (array) $_POST['pernr_nom_sol'] : [];
+        if (count($selectedValues) === 1 && !empty($params['solicitudes_pendientes']) && isset($params['pernr_seleccionado'])) {
+            ?>
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Resumen de días solicitados</h5>
+
+                    <!-- Selector de año -->
+                    <div class="row mb-3">
+                        <div class="col-md-3">
+                            <label for="anio_selector" class="form-label"><b>Selecciona el año</b></label>
+                            <select class="form-select" id="anio_selector"
+                                data-pernr="<?php echo $params['pernr_seleccionado']; ?>">
+                                <option value="">-- Selecciona un año --</option>
+                                <?php
+                                // Generar opciones desde 2025 hasta actual mas 1
+                                $anio_actual = date('Y');
+                                for ($year = 2025; $year <= $anio_actual + 1; $year++) {
+                                    $selected = ($year == $anio_actual) ? 'selected' : '';
+                                    echo "<option value='$year' $selected>$year</option>";
+                                }
+                                ?>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Área de resultados -->
+                    <div id="resultado_dias_disponibles" class="row text-center mb-3" style="display: none;">
+                        <!-- Aquí se cargarán las tarjetas dinámicamente -->
+                    </div>
+
+                    <!-- Mensaje de carga -->
+                    <div id="loading_dias_disponibles" style="display: none;">
+                        <div class="text-center">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Cargando...</span>
+                            </div>
+                            <p class="mt-2">Cargando datos...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <?php
+        }
+        ?>
+
 
         <?php
     } else {
@@ -586,7 +515,7 @@ include("header.php");
                                         </div>
                                         <div class="col-md-6 mb-3">
                                             <label class="form-label"><b>Superior</b></label>
-                                            <input type="text" class="form-control" value="${solicitud.nombre_superior || ''}" disabled>
+                                            <input type="text" class="form-control" value="${(solicitud.nombre_superior && solicitud.nombre_superior.trim()) ? solicitud.nombre_superior : (solicitud.pernr_s || '')}" disabled>
                                         </div>
                                     </div>
                                     <div class="row">
@@ -787,7 +716,155 @@ include("header.php");
     }
 
     // Llama a la función con un retraso de 2 segundos
-    // setTimeout(redirigir, 2000);
+    setTimeout(redirigir, 2000);
+
+    // Función para cargar días disponibles por año
+    function cargarDiasDisponiblesPorAnio(pernr, anio) {
+        const loadingDiv = document.getElementById('loading_dias_disponibles');
+        const resultadoDiv = document.getElementById('resultado_dias_disponibles');
+
+        // Mostrar spinner y ocultar resultados
+        loadingDiv.style.display = 'block';
+        resultadoDiv.style.display = 'none';
+        resultadoDiv.innerHTML = '';
+
+        // Realizar petición AJAX
+        fetch(`auto.php?obtener_dias_disponibles_por_anio&pernr=${pernr}&anio=${anio}`)
+            .then(response => response.json())
+            .then(result => {
+                if (result.success) {
+                    const data = result.data;
+
+                    // Construir HTML para las tarjetas
+                    let html = '';
+
+                    // Tarjeta de Vacaciones
+                    html += `
+                        <div class="col-md-3 mb-2">
+                            <div class="p-2 border rounded" style="background-color: #0d6efdff; color: white;">
+                                <i class="bi bi-star" style="font-size: 1.2rem;"></i>
+                                <h6 class="mt-1 mb-2" style="font-weight: bold; font-size: 0.85rem;">Vacaciones ${anio}</h6>
+                                <div class="row">
+                                    <div class="col-6">
+                                        <div class="p-1 rounded" style="background-color: rgba(255,255,255,0.2);">
+                                            <small style="opacity: 0.9; font-size: 0.7rem;">Gastados</small>
+                                            <h5 class="mb-0" style="font-weight: bold; font-size: 1.1rem;">${data.vacaciones.dias_gastados}</h5>
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="p-1 rounded" style="background-color: rgba(255,255,255,0.2);">
+                                            <small style="opacity: 0.9; font-size: 0.7rem;">Disponibles</small>
+                                            <h5 class="mb-0" style="font-weight: bold; font-size: 1.1rem;">${data.vacaciones.dias_disponibles}</h5>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+
+                    // Tarjeta de Festivo Local
+                    html += `
+                        <div class="col-md-3 mb-2">
+                            <div class="p-2 border rounded" style="background-color: #ffc107; color: white;">
+                                <i class="bi bi-star" style="font-size: 1.2rem;"></i>
+                                <h6 class="mt-1 mb-2" style="font-weight: bold; font-size: 0.85rem;">Festivo Local ${anio}</h6>
+                                <div class="row">
+                                    <div class="col-6">
+                                        <div class="p-1 rounded" style="background-color: rgba(255,255,255,0.2);">
+                                            <small style="opacity: 0.9; font-size: 0.7rem;">Gastados</small>
+                                            <h5 class="mb-0" style="font-weight: bold; font-size: 1.1rem;">${data.festivo_local.gastados}</h5>
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="p-1 rounded" style="background-color: rgba(255,255,255,0.2);">
+                                            <small style="opacity: 0.9; font-size: 0.7rem;">Disponibles</small>
+                                            <h5 class="mb-0" style="font-weight: bold; font-size: 1.1rem;">${data.festivo_local.restantes}</h5>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+
+                    // Tarjeta de Asuntos Propios
+                    html += `
+                        <div class="col-md-3 mb-2">
+                            <div class="p-2 border rounded" style="background-color: #198754; color: white;">
+                                <i class="bi bi-briefcase" style="font-size: 1.2rem;"></i>
+                                <h6 class="mt-1 mb-2" style="font-weight: bold; font-size: 0.85rem;">Asuntos Propios ${anio}</h6>
+                                <div class="row">
+                                    <div class="col-6">
+                                        <div class="p-1 rounded" style="background-color: rgba(255,255,255,0.2);">
+                                            <small style="opacity: 0.9; font-size: 0.7rem;">Gastados</small>
+                                            <h5 class="mb-0" style="font-weight: bold; font-size: 1.1rem;">${data.asuntos_propios.gastados}</h5>
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="p-1 rounded" style="background-color: rgba(255,255,255,0.2);">
+                                            <small style="opacity: 0.9; font-size: 0.7rem;">Disponibles</small>
+                                            <h5 class="mb-0" style="font-weight: bold; font-size: 1.1rem;">${data.asuntos_propios.restantes}</h5>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+
+                    // Insertar HTML y mostrar resultados
+                    resultadoDiv.innerHTML = html;
+                    resultadoDiv.style.display = 'flex';
+                    loadingDiv.style.display = 'none';
+                } else {
+                    // Error en la respuesta
+                    resultadoDiv.innerHTML = `
+                        <div class="col-12">
+                            <div class="alert alert-danger" role="alert">
+                                Error: ${result.error || 'No se pudieron cargar los datos'}
+                            </div>
+                        </div>
+                    `;
+                    resultadoDiv.style.display = 'block';
+                    loadingDiv.style.display = 'none';
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                resultadoDiv.innerHTML = `
+                    <div class="col-12">
+                        <div class="alert alert-danger" role="alert">
+                            Error al cargar los días disponibles
+                        </div>
+                    </div>
+                `;
+                resultadoDiv.style.display = 'block';
+                loadingDiv.style.display = 'none';
+            });
+    }
+
+    // Event listener para el selector de año
+    const anioSelectorInit = document.getElementById('anio_selector');
+    if (anioSelectorInit) {
+        // Cargar datos automáticamente si hay un año preseleccionado
+        const anioInicial = anioSelectorInit.value;
+        const pernr = anioSelectorInit.getAttribute('data-pernr');
+        if (anioInicial && pernr) {
+            cargarDiasDisponiblesPorAnio(pernr, anioInicial);
+        }
+
+        // Listener para cambios en el selector
+        anioSelectorInit.addEventListener('change', function () {
+            const anio = this.value;
+            const pernr = this.getAttribute('data-pernr');
+
+            if (anio && pernr) {
+                cargarDiasDisponiblesPorAnio(pernr, anio);
+            } else {
+                // Ocultar resultados si no hay año seleccionado
+                document.getElementById('resultado_dias_disponibles').style.display = 'none';
+                document.getElementById('loading_dias_disponibles').style.display = 'none';
+            }
+        });
+    }
 </script>
 
 

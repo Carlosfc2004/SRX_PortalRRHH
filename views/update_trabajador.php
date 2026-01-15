@@ -220,7 +220,7 @@ if (isset($params['info_trabajador']) && is_array($params['info_trabajador'])) {
 									<label class="form-label"><b><?php echo $lang['nacionalidad']; ?></b></label>
 									<?php
 										$nacionalidad = isset($params['info_trabajador']['NATIO']) ? $params['info_trabajador']['NATIO'] : '';
-										$description_nacionalidad = isset($params['info_trabajador']['NATIO_T005T']) ? $params['info_trabajador']['NATIO_T005T'] : '';
+										$description_nacionalidad = isset($params['info_trabajador']['NATIO_DESC']) ? $params['info_trabajador']['NATIO_DESC'] : '';
 									?>
 									<input type="text" name="nacionalidad" id="nacionalidad" class="form-control"
 										value="<?php echo $nacionalidad. ' - ' . $description_nacionalidad; ?>" readonly>

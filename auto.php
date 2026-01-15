@@ -57,6 +57,53 @@ if (isset($_GET['obtener_detalle_solicitud']) && !empty($_GET['id_solicitud'])) 
 	}
 	exit;
 }
+
+// AJAX: Obtener días disponibles por año para un trabajador
+if (isset($_GET['obtener_dias_disponibles_por_anio']) && !empty($_GET['pernr']) && !empty($_GET['anio'])) {
+	header('Content-Type: application/json; charset=utf-8');
+
+	$pernr = $_GET['pernr'];
+	$anio = $_GET['anio'];
+
+	try {
+		// Obtener días disponibles de vacaciones
+		$dias_vacaciones = $m->getDiasDisponiblesVacaciones($pernr, $anio);
+		$dias_vacaciones = $dias_vacaciones ?: ['dias_gastados' => 0, 'dias_totales' => 0];
+
+		// Obtener días disponibles de festivo local
+		$dias_festivo_local = $m->getDiasDisponiblesAusencias($pernr, '3', 'anual', $anio);
+		$dias_festivo_local = $dias_festivo_local ?: ['gastados' => 0, 'restantes' => 0];
+
+		// Obtener días disponibles de asuntos propios
+		$dias_asuntos_propios = $m->getDiasDisponiblesAusencias($pernr, '4', 'anual', $anio);
+		$dias_asuntos_propios = $dias_asuntos_propios ?: ['gastados' => 0, 'restantes' => 0];
+
+		echo json_encode(array(
+			'success' => true,
+			'data' => array(
+				'vacaciones' => array(
+					'dias_gastados' => $dias_vacaciones['dias_gastados'] ?? 0,
+					'dias_totales' => $dias_vacaciones['dias_totales'] ?? 0,
+					'dias_disponibles' => ($dias_vacaciones['dias_totales'] ?? 0) - ($dias_vacaciones['dias_gastados'] ?? 0)
+				),
+				'festivo_local' => array(
+					'gastados' => $dias_festivo_local['gastados'] ?? 0,
+					'restantes' => $dias_festivo_local['restantes'] ?? 0
+				),
+				'asuntos_propios' => array(
+					'gastados' => $dias_asuntos_propios['gastados'] ?? 0,
+					'restantes' => $dias_asuntos_propios['restantes'] ?? 0
+				)
+			)
+		));
+	} catch (Exception $e) {
+		echo json_encode(array(
+			'success' => false,
+			'error' => 'Error al obtener los días disponibles: ' . $e->getMessage()
+		));
+	}
+	exit;
+}
 ?>
 
 <?php

@@ -1046,6 +1046,11 @@ class index
 		// Usar la función optimizada para la lista
 		$params['solicitudes_pendientes'] = $m->solicitudes_lista($fecha_solic, $fecha_solic2, $pernr, $tipo_ausencia, $estado, $justificante);
 
+		// Solo guardar el pernr seleccionado si hay filtro de una sola persona
+		if (is_array($pernr) && count($pernr) === 1 && !empty($params['solicitudes_pendientes'])) {
+			$params['pernr_seleccionado'] = $pernr[0];
+		}
+
 		require 'views/solicitudes.php';
 	}
 
