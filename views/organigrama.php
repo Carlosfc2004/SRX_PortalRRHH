@@ -1,10 +1,7 @@
 <?php 
-include_once 'header.php';
+include_once './views/header.php';
 ?>
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Surexport | Global Presence (Optimized)</title>
+
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -218,7 +215,7 @@ include_once 'header.php';
         /* ===== FLOATING HEADER ===== */
         .floating-header {
             position: fixed;
-            /* top: 20px; */
+            top: 20px;
             left: 50%;
             transform: translateX(-50%);
             z-index: 1000;
@@ -686,14 +683,14 @@ include_once 'header.php';
 
         .org-modal-body {
             flex: 1;
-            overflow-y: auto;
-            overflow-x: auto;
+            overflow: auto;
             padding: 28px 32px;
             min-height: 300px;
         }
 
         .org-modal-body::-webkit-scrollbar {
             width: 8px;
+            height: 8px;
         }
 
         .org-modal-body::-webkit-scrollbar-track {
@@ -704,6 +701,10 @@ include_once 'header.php';
         .org-modal-body::-webkit-scrollbar-thumb {
             background: #cbd5e1;
             border-radius: 4px;
+        }
+
+        .org-modal-body::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
         }
 
         /* Search in modal */
@@ -730,14 +731,59 @@ include_once 'header.php';
             box-shadow: 0 0 0 4px var(--primary-glow);
         }
 
-        /* ===== ORG TREE MODERN ===== */
+        /* ===== ORGANIGRAMA JERÁRQUICO HORIZONTAL ===== */
         .org-tree {
             display: flex;
             flex-direction: column;
             align-items: center;
-            padding: 20px;
+            padding: 40px 20px;
+            min-width: 100%;
         }
 
+        /* Nivel horizontal genérico */
+        .org-level {
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            gap: 20px;
+            width: 100%;
+            position: relative;
+            padding-top: 40px;
+        }
+
+        .org-level::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: calc(100% - 100px);
+            max-width: 90%;
+            height: 3px;
+            background: var(--primary);
+        }
+
+        /* Nodo genérico */
+        .org-node {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+            min-width: 200px;
+        }
+
+        .org-node::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 3px;
+            height: 40px;
+            background: var(--primary);
+        }
+
+        /* Nodo raíz - País */
         .tree-root {
             padding: 20px 40px;
             background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
@@ -761,213 +807,277 @@ include_once 'header.php';
             opacity: 0.9;
         }
 
+        /* Conector vertical */
         .tree-connector {
             width: 3px;
             height: 40px;
-            background: linear-gradient(180deg, var(--primary), #e2e8f0);
+            background: var(--primary);
         }
 
-        .tree-level {
-            display: flex;
-            justify-content: center;
-            gap: 20px;
-            flex-wrap: wrap;
-            position: relative;
-            padding-top: 30px;
+        .tree-connector.dark {
+            background: #334155;
         }
 
-        .tree-level::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 10%;
-            width: 80%;
-            height: 3px;
-            background: #e2e8f0;
-            border-radius: 2px;
+        .tree-connector.blue {
+            background: var(--accent);
         }
 
-        .tree-node {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            min-width: 220px;
-            position: relative;
+        .tree-connector.yellow {
+            background: var(--warning);
         }
 
-        .tree-node::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            width: 3px;
-            height: 30px;
-            background: #e2e8f0;
+        /* Nodo de Director General */
+        .tree-director-general {
+            padding: 20px 32px;
+            background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+            color: white;
+            border-radius: var(--radius-lg);
+            text-align: center;
+            box-shadow: 0 8px 32px rgba(30, 41, 59, 0.4);
+            min-width: 260px;
         }
 
-        .node-card {
-            margin-top: 30px;
-            padding: 18px 24px;
+        .tree-director-general h3 {
+            font-size: 0.9rem;
+            font-weight: 700;
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .tree-director-general .director-name {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--accent);
+        }
+
+        .tree-director-general .director-count {
+            font-size: 0.7rem;
+            opacity: 0.7;
+            margin-top: 4px;
+        }
+
+        /* Bandera de nacionalidad */
+        .director-flag {
+            font-size: 1.1em;
+            margin-right: 2px;
+        }
+
+        .tree-director-general.clickable {
+            cursor: pointer;
+        }
+
+        .tree-director-general.clickable:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 40px rgba(30, 41, 59, 0.5);
+        }
+
+        .click-hint-dg {
+            font-size: 0.65rem;
+            opacity: 0.6;
+            margin-top: 6px;
+        }
+
+        /* Tarjeta de Dirección (CCO, CFO, etc.) */
+        .direction-card {
+            padding: 16px 20px;
             background: white;
-            border: 2px solid #e2e8f0;
+            border: 2px solid var(--primary);
             border-radius: var(--radius-md);
             text-align: center;
-            cursor: pointer;
-            min-width: 200px;
-            position: relative;
-            will-change: transform;
-            transition: transform 0.15s ease-out, border-color 0.15s ease-out;
+            min-width: 220px;
+            max-width: 280px;
+            box-shadow: 0 4px 15px var(--primary-glow);
+            transition: all 0.2s ease;
+            margin-top: 40px;
         }
 
-        .node-card::before {
-            content: '';
-            position: absolute;
-            left: -2px;
-            top: -2px;
-            bottom: -2px;
-            width: 5px;
-            border-radius: var(--radius-md) 0 0 var(--radius-md);
-            transition: var(--transition-normal);
-        }
-
-        .node-card.direction::before { background: var(--primary); }
-        .node-card.area::before { background: var(--accent); }
-
-        .node-card:hover {
-            border-color: var(--primary);
+        .direction-card:hover {
             transform: translateY(-3px);
+            box-shadow: 0 8px 25px var(--primary-glow);
         }
 
-        .node-card h4 {
+        .direction-card h4 {
+            font-size: 0.7rem;
+            font-weight: 700;
+            color: var(--primary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+            line-height: 1.3;
+        }
+
+        .direction-card .director-name {
             font-size: 0.85rem;
             font-weight: 600;
             color: var(--text-primary);
-            margin-bottom: 8px;
-            line-height: 1.4;
+            margin-bottom: 6px;
         }
 
-        .node-card .badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            padding: 6px 14px;
-            background: #f1f5f9;
-            border-radius: 100px;
-            font-size: 0.75rem;
-            font-weight: 600;
-            color: var(--text-secondary);
+        .direction-card .director-name.clickable {
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: 6px;
+            transition: all 0.2s ease;
         }
 
-        .toggle-icon {
-            transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        .direction-card .director-name.clickable:hover {
+            background: var(--primary-glow);
             color: var(--primary);
         }
 
-        .toggle-icon.open {
-            transform: rotate(180deg);
-        }
-
-        .tree-children {
-            display: grid;
-            grid-template-rows: 0fr;
-            transition: grid-template-rows 0.4s ease;
-        }
-
-        .tree-children.open {
-            grid-template-rows: 1fr;
-            margin-top: 16px;
-        }
-
-        .tree-children-inner {
-            overflow: hidden;
-        }
-
-        .tree-sublevel {
-            display: flex;
-            justify-content: center;
-            gap: 16px;
-            flex-wrap: wrap;
-            padding-top: 20px;
-            position: relative;
-        }
-
-        .tree-sublevel::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 15%;
-            width: 70%;
-            height: 3px;
-            background: var(--accent);
-            border-radius: 2px;
-        }
-
-        .tree-subnode {
-            position: relative;
-        }
-
-        .tree-subnode::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 3px;
-            height: 20px;
-            background: var(--accent);
-        }
-
-        .tree-subnode .node-card {
-            margin-top: 20px;
-            min-width: 180px;
-        }
-
-        .tree-depts {
-            display: grid;
-            grid-template-rows: 0fr;
-            transition: grid-template-rows 0.4s ease;
-        }
-
-        .tree-depts.open {
-            grid-template-rows: 1fr;
-            margin-top: 12px;
-        }
-
-        .tree-depts-inner {
-            overflow: hidden;
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            gap: 10px;
-            padding: 16px;
-            background: #f8fafc;
-            border-radius: var(--radius-md);
-        }
-
-        .dept-chip {
-            padding: 10px 18px;
-            background: white;
-            border: 1px solid #e2e8f0;
-            border-left: 4px solid var(--warning);
-            border-radius: var(--radius-sm);
+        .direction-card .director-name .view-profile {
             font-size: 0.75rem;
+            opacity: 0.7;
+        }
+
+        .direction-card h4 {
             cursor: pointer;
-            transition: var(--transition-normal);
         }
 
-        .dept-chip:hover {
-            border-color: var(--warning);
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(245, 158, 11, 0.15);
+        .direction-card .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            background: var(--primary);
+            border-radius: 100px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: white;
+            cursor: pointer;
         }
 
-        .dept-chip .name {
+        .direction-card .badge:hover {
+            background: var(--primary-dark);
+        }
+
+        /* Tarjeta de Área */
+        .area-card {
+            padding: 14px 18px;
+            background: white;
+            border: 2px solid var(--accent);
+            border-radius: var(--radius-md);
+            text-align: center;
+            min-width: 180px;
+            max-width: 240px;
+            box-shadow: 0 4px 15px var(--accent-glow);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            margin-top: 40px;
+        }
+
+        .area-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px var(--accent-glow);
+        }
+
+        .area-card h4 {
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: var(--accent);
+            margin-bottom: 6px;
+            line-height: 1.3;
+        }
+
+        .area-card .responsible-name {
+            font-size: 0.8rem;
             font-weight: 600;
             color: var(--text-primary);
+            margin-bottom: 4px;
         }
 
-        .dept-chip .count {
-            color: var(--text-tertiary);
+        .area-card .badge {
+            display: inline-block;
+            padding: 3px 10px;
+            background: var(--accent);
+            border-radius: 100px;
+            font-size: 0.65rem;
+            font-weight: 600;
+            color: white;
+        }
+
+        /* Tarjeta de Departamento */
+        .dept-card {
+            padding: 12px 16px;
+            background: white;
+            border: 2px solid var(--warning);
+            border-radius: var(--radius-sm);
+            text-align: center;
+            min-width: 150px;
+            max-width: 200px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            margin-top: 40px;
+        }
+
+        .dept-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 15px rgba(245, 158, 11, 0.2);
+        }
+
+        .dept-card h5 {
             font-size: 0.7rem;
+            font-weight: 600;
+            color: var(--warning);
+            margin-bottom: 4px;
+            line-height: 1.3;
+        }
+
+        .dept-card .responsible-name {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 3px;
+        }
+
+        .dept-card .count {
+            font-size: 0.65rem;
+            color: var(--text-tertiary);
+        }
+
+        /* Líneas de conexión para niveles */
+        .org-level.areas::before {
+            background: var(--accent);
+        }
+
+        .org-level.depts::before {
+            background: var(--warning);
+        }
+
+        .org-node.area::before {
+            background: var(--accent);
+        }
+
+        .org-node.dept::before {
+            background: var(--warning);
+        }
+
+        /* Contenedor scrollable para niveles con muchos elementos */
+        .level-scroll-container {
+            width: 100%;
+            overflow-x: auto;
+            padding-bottom: 10px;
+        }
+
+        .level-scroll-container::-webkit-scrollbar {
+            height: 6px;
+        }
+
+        .level-scroll-container::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 3px;
+        }
+
+        .level-scroll-container::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 3px;
+        }
+
+        .level-scroll-content {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            min-width: max-content;
+            padding: 0 20px;
         }
 
         /* ===== WORKERS MODAL ===== */
@@ -1361,6 +1471,25 @@ include_once 'header.php';
             margin-bottom: 20px;
         }
 
+        /* Upload state compacto cuando hay datos cargados */
+        .upload-state.compact {
+            padding: 20px;
+        }
+
+        .upload-state.compact .icon {
+            font-size: 2rem;
+            margin-bottom: 8px;
+        }
+
+        .upload-state.compact h4 {
+            font-size: 0.9rem;
+        }
+
+        .upload-state.compact p {
+            font-size: 0.75rem;
+            margin-bottom: 12px;
+        }
+
         .upload-btn {
             padding: 14px 28px;
             background: var(--primary);
@@ -1378,6 +1507,17 @@ include_once 'header.php';
             background: var(--primary-dark);
             transform: translateY(-2px);
             box-shadow: 0 8px 25px var(--primary-glow);
+        }
+
+        /* Separador entre upload y lista de países */
+        #country-list {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid var(--glass-border);
+        }
+
+        #country-list:empty {
+            display: none;
         }
 
         /* Sheet Selector */
@@ -1756,7 +1896,7 @@ include_once 'header.php';
             }
         }
     </style>
-</head>
+
 <body>
     <!-- Fullscreen Map -->
     <div id="fullscreen-map"></div>
@@ -1765,7 +1905,7 @@ include_once 'header.php';
     <div class="watermark">Dpt IT Surexport</div>
 
     <!-- Floating Header -->
-    <header class="floating-header">
+    <header class="floating-header mt-5">
         <img src="https://surexport.es/es/wp-content/themes/SurExport/images/logo-home.png" alt="Surexport" class="logo-img" id="logo-img" onerror="this.style.display='none'; document.getElementById('logo-fallback').style.display='block';">
         <div class="logo-text" id="logo-fallback">SUREXPORT</div>
         <div class="divider"></div>
@@ -1791,7 +1931,7 @@ include_once 'header.php';
             <h3>Países</h3>
             <button class="panel-toggle" onclick="togglePanel(event)">◀</button>
         </div>
-        <div class="panel-content" id="country-list">
+        <div class="panel-content">
             <div class="upload-state" id="upload-state">
                 <div class="icon">📂</div>
                 <h4>Cargar datos</h4>
@@ -1809,6 +1949,8 @@ include_once 'header.php';
                 <p id="sheet-file-name">archivo.xlsx</p>
                 <div class="sheet-buttons" id="sheet-buttons"></div>
             </div>
+            <!-- Lista de países (se llenará dinámicamente) -->
+            <div id="country-list"></div>
         </div>
     </div>
 
@@ -2091,6 +2233,41 @@ include_once 'header.php';
             return n ? (nacionalidadFlags[n.toLowerCase()] || '🏳️') : '🏳️';
         }
 
+        // Bandera de persona (nacionalidad con fallback a país)
+        function getPersonFlag(empleado) {
+            if (!empleado) return '';
+            if (empleado.NACIONALIDAD && empleado.NACIONALIDAD.trim()) {
+                const flag = getNationalityFlag(empleado.NACIONALIDAD);
+                if (flag && flag !== '🏳️') return flag;
+            }
+            if (empleado.PAIS) {
+                return getFlag(empleado.PAIS);
+            }
+            return '';
+        }
+
+        // Nombre corto (Nombre Apellido)
+        function getNombreCorto(nombreCompleto) {
+            if (!nombreCompleto) return '';
+            const partes = nombreCompleto.split(',');
+            if (partes.length >= 2) {
+                const apellidos = partes[0].trim();
+                const nombre = partes[1].trim().split(' ')[0];
+                return `${nombre} ${apellidos.split(' ')[0]}`;
+            }
+            return nombreCompleto;
+        }
+
+        // Buscar jefe por RESPONSABLE (quien reporta a un jefe específico)
+        function findJefePorResponsable(empleadosGrupo, nombreJefeSuperior) {
+            if (!nombreJefeSuperior) return null;
+            const apellidoJefe = nombreJefeSuperior.split(',')[0].trim().split(' ')[0].toUpperCase();
+            return empleadosGrupo.find(e => {
+                const responsable = (e.RESPONSABLE || '').toUpperCase();
+                return responsable.includes(apellidoJefe);
+            });
+        }
+
         // ============================================
         // PANEL TOGGLE
         // ============================================
@@ -2275,9 +2452,15 @@ include_once 'header.php';
                 console.log(`Excel cargado: ${empleados.length} registros desde "${sheetName}"`);
                 console.log('Columnas:', Object.keys(empleados[0] || {}));
 
-                // Ocultar selector y mostrar datos
+                // Ocultar selector pero mantener botón de carga visible
                 document.getElementById('sheet-selector').style.display = 'none';
-                document.getElementById('upload-state').style.display = 'none';
+
+                // Actualizar el mensaje de carga para indicar que hay datos cargados
+                const uploadState = document.getElementById('upload-state');
+                uploadState.style.display = 'flex';
+                uploadState.classList.add('compact');
+                uploadState.querySelector('h4').textContent = '✅ Datos cargados';
+                uploadState.querySelector('p').textContent = `${empleados.length} empleados cargados. Puedes cargar otro archivo:`;
 
                 initApp();
             } catch (error) {
@@ -2307,9 +2490,15 @@ include_once 'header.php';
                 console.log(`Total combinado: ${empleados.length} registros de ${currentWorkbook.SheetNames.length} hojas`);
                 console.log('Columnas normalizadas:', Object.keys(empleados[0] || {}));
 
-                // Ocultar selector y mostrar datos
+                // Ocultar selector pero mantener botón de carga visible
                 document.getElementById('sheet-selector').style.display = 'none';
-                document.getElementById('upload-state').style.display = 'none';
+
+                // Actualizar el mensaje de carga para indicar que hay datos cargados
+                const uploadState = document.getElementById('upload-state');
+                uploadState.style.display = 'flex';
+                uploadState.classList.add('compact');
+                uploadState.querySelector('h4').textContent = '✅ Datos cargados';
+                uploadState.querySelector('p').textContent = `${empleados.length} empleados de ${currentWorkbook.SheetNames.length} hojas. Puedes cargar otro archivo:`;
 
                 initApp();
             } catch (error) {
@@ -2332,13 +2521,38 @@ include_once 'header.php';
         }
 
         function loadJSON() {
+            // Intentar cargar el archivo Excel por defecto
+            fetch('./organigrama_trabajadores.xlsx')
+                .then(r => r.ok ? r.arrayBuffer() : Promise.reject())
+                .then(arrayBuffer => {
+                    try {
+                        const data = new Uint8Array(arrayBuffer);
+                        currentWorkbook = XLSX.read(data, { type: 'array' });
+
+                        // Cargar todas las hojas automáticamente
+                        if (currentWorkbook.SheetNames.length > 0) {
+                            loadAllSheets();
+                            console.log('Archivo Excel cargado automáticamente: organigrama_trabajadores.xlsx (todas las hojas)');
+                        }
+                    } catch (error) {
+                        console.error('Error procesando Excel por defecto:', error);
+                        tryLoadJSON();
+                    }
+                })
+                .catch(() => {
+                    console.log('No se encontró organigrama_trabajadores.xlsx, intentando con JSON...');
+                    tryLoadJSON();
+                });
+        }
+
+        function tryLoadJSON() {
             fetch('./datos_empresa.json')
                 .then(r => r.ok ? r.json() : Promise.reject())
                 .then(data => {
                     empleados = data;
                     initApp();
                 })
-                .catch(() => console.log('Usar carga manual - selecciona un archivo JSON'));
+                .catch(() => console.log('Usar carga manual - selecciona un archivo JSON o Excel'));
         }
 
         function initApp() {
@@ -2577,7 +2791,6 @@ include_once 'header.php';
             const paisEmpleados = empleados.filter(e => getPaisEfectivo(e) === pais);
             const dirs = [...new Set(paisEmpleados.map(e => e['DIRECCIÓN']).filter(d => d))];
             const areas = [...new Set(paisEmpleados.map(e => e['ÁREA']).filter(a => a && a.trim()))];
-            const deptos = [...new Set(paisEmpleados.map(e => e.DEPARTAMENTO).filter(d => d))];
 
             document.getElementById('org-stats').innerHTML = `
                 <div class="stat"><div class="stat-value">${paisEmpleados.length}</div><div class="stat-label">Empleados</div></div>
@@ -2585,6 +2798,19 @@ include_once 'header.php';
                 <div class="stat"><div class="stat-value">${areas.length}</div><div class="stat-label">Áreas</div></div>
             `;
 
+            // Buscar Director General - por PUESTO REVISADO (sin /) o FUNCIÓN/NIVEL
+            const directorGeneral = paisEmpleados.find(e => {
+                const puesto = (e['PUESTO REVISADO'] || '').toUpperCase();
+                return (puesto === 'DIRECTOR GENERAL' ||
+                       (puesto.includes('DIRECTOR GENERAL') && !puesto.includes('/'))) ||
+                       (e['FUNCIÓN/NIVEL'] === 'DIRECCIÓN GENERAL' &&
+                        (!e.RESPONSABLE || e.RESPONSABLE === '/' || e.RESPONSABLE === ''));
+            });
+
+            const nombreDG = directorGeneral ? directorGeneral['NOMBRE PERSONAL'] : '';
+            console.log('País:', pais, '| DG:', nombreDG);
+
+            // Agrupar por dirección
             const porDir = {};
             paisEmpleados.forEach(e => {
                 const dir = e['DIRECCIÓN'] || 'SIN DIRECCIÓN';
@@ -2592,87 +2818,210 @@ include_once 'header.php';
                 porDir[dir].push(e);
             });
 
-            let html = `
+            // Crear mapa de directores para cada dirección (por RESPONSABLE = DG)
+            const mapaDirectores = {};
+            Object.keys(porDir).forEach(dir => {
+                if (dir !== 'DIRECCIÓN GENERAL' && dir !== 'SIN DIRECCIÓN') {
+                    const director = findJefePorResponsable(porDir[dir], nombreDG);
+                    if (director) {
+                        mapaDirectores[dir] = director;
+                        console.log(`Director de ${dir}:`, director['NOMBRE PERSONAL']);
+                    }
+                }
+            });
+
+            // === CONSTRUIR ORGANIGRAMA POR NIVELES ===
+            let html = '';
+
+            // NIVEL 1: País
+            html += `
                 <div class="tree-root">
                     <h3>${getFlag(pais)} ${pais}</h3>
                     <span>${paisEmpleados.length} empleados</span>
                 </div>
                 <div class="tree-connector"></div>
-                <div class="tree-level">
             `;
 
-            Object.keys(porDir).sort().forEach((dir, idx) => {
-                const empDir = porDir[dir];
-                const dirId = `dir-${idx}`;
+            // NIVEL 2: Dirección General (clickable si existe director)
+            const dgNombre = directorGeneral ? getNombreCorto(directorGeneral['NOMBRE PERSONAL']) : 'Sin asignar';
+            const dgFlag = directorGeneral ? getPersonFlag(directorGeneral) : '';
+            const dgData = directorGeneral ? JSON.stringify(directorGeneral).replace(/'/g, "\\'").replace(/"/g, '&quot;') : '';
 
-                const porArea = {};
-                empDir.forEach(e => {
-                    const area = e['ÁREA'] && e['ÁREA'].trim() ? e['ÁREA'] : 'SIN ÁREA';
-                    if (!porArea[area]) porArea[area] = [];
-                    porArea[area].push(e);
-                });
+            html += `
+                <div class="tree-director-general ${directorGeneral ? 'clickable' : ''}"
+                     ${directorGeneral ? `onclick="showEmployee(${dgData})"` : ''}>
+                    <h3>Dirección General</h3>
+                    <div class="director-name">${dgFlag ? `<span class="director-flag">${dgFlag}</span> ` : ''}${dgNombre}</div>
+                    ${directorGeneral ? '<div class="click-hint-dg">Click para ver perfil</div>' : ''}
+                </div>
+                <div class="tree-connector dark"></div>
+            `;
 
-                html += `
-                    <div class="tree-node stagger" style="animation-delay: ${Math.min(idx * 0.03, 0.12)}s">
-                        <div class="node-card direction" onclick="toggleChildren('${dirId}')">
-                            <h4>${dir}</h4>
-                            <span class="badge">${empDir.length} <span class="toggle-icon" id="icon-${dirId}">▼</span></span>
-                        </div>
-                        <div class="tree-children" id="${dirId}">
-                            <div class="tree-children-inner">
-                                <div class="tree-sublevel">
-                `;
+            // NIVEL 3: Direcciones principales (horizontal)
+            const direcciones = Object.keys(porDir)
+                .filter(d => d !== 'DIRECCIÓN GENERAL' && d !== 'SIN DIRECCIÓN')
+                .sort();
 
-                Object.keys(porArea).sort().forEach((area, aIdx) => {
-                    const empArea = porArea[area];
-                    const areaId = `${dirId}-area-${aIdx}`;
+            if (direcciones.length > 0) {
+                html += `<div class="level-scroll-container"><div class="org-level"><div class="level-scroll-content">`;
 
-                    const porDepto = {};
-                    empArea.forEach(e => {
-                        const dept = e.DEPARTAMENTO || 'SIN DEPARTAMENTO';
-                        if (!porDepto[dept]) porDepto[dept] = [];
-                        porDepto[dept].push(e);
-                    });
+                direcciones.forEach(dir => {
+                    const directorDeDir = mapaDirectores[dir];
+                    const directorNombre = directorDeDir ? getNombreCorto(directorDeDir['NOMBRE PERSONAL']) : '';
+                    const directorFlag = directorDeDir ? getPersonFlag(directorDeDir) : '';
+                    const empCount = porDir[dir].length;
+                    const dirData = directorDeDir ? JSON.stringify(directorDeDir).replace(/'/g, "\\'").replace(/"/g, '&quot;') : '';
 
                     html += `
-                        <div class="tree-subnode">
-                            <div class="node-card area" onclick="toggleDepts(event, '${areaId}')">
-                                <h4>${area}</h4>
-                                <span class="badge">${empArea.length} <span class="toggle-icon" id="icon-${areaId}">▼</span></span>
+                        <div class="org-node">
+                            <div class="direction-card">
+                                <h4 onclick="showAreasDeDir('${pais}', '${dir.replace(/'/g, "\\'")}')">${dir}</h4>
+                                ${directorNombre ? `
+                                <div class="director-name clickable"
+                                     onclick="event.stopPropagation(); showEmployee(${dirData})">
+                                    ${directorFlag ? `<span class="director-flag">${directorFlag}</span> ` : ''}${directorNombre}
+                                    <span class="view-profile">👤</span>
+                                </div>` : ''}
+                                <span class="badge" onclick="showAreasDeDir('${pais}', '${dir.replace(/'/g, "\\'")}')">${empCount} empleados →</span>
                             </div>
-                            <div class="tree-depts" id="${areaId}">
-                                <div class="tree-depts-inner">
+                        </div>
                     `;
-
-                    Object.keys(porDepto).sort().forEach(dept => {
-                        const empDepto = porDepto[dept];
-                        html += `
-                            <div class="dept-chip" onclick="event.stopPropagation(); showWorkers('${pais}', '${dir.replace(/'/g, "\\'")}', '${area.replace(/'/g, "\\'")}', '${dept.replace(/'/g, "\\'")}')">
-                                <div class="name">${dept === 'SIN DEPARTAMENTO' ? 'Sin departamento' : dept}</div>
-                                <div class="count">${empDepto.length} personas</div>
-                            </div>
-                        `;
-                    });
-
-                    html += `</div></div></div>`;
                 });
 
-                html += `</div></div></div></div>`;
-            });
+                html += `</div></div></div>`;
+            }
 
-            html += '</div>';
             document.getElementById('org-tree').innerHTML = html;
         }
 
-        function toggleChildren(id) {
-            document.getElementById(id).classList.toggle('open');
-            document.getElementById('icon-' + id).classList.toggle('open');
+        // Mostrar áreas de una dirección específica
+        function showAreasDeDir(pais, direccion) {
+            const paisEmpleados = empleados.filter(e => getPaisEfectivo(e) === pais && e['DIRECCIÓN'] === direccion);
+
+            // Buscar el director de esta dirección (para saber quién es el jefe de las áreas)
+            const directorDir = paisEmpleados.find(e => {
+                const responsable = (e.RESPONSABLE || '').toUpperCase();
+                // El director de la dirección es quien reporta al DG
+                return responsable.includes('MORALES') || responsable.includes('MORANT');
+            });
+            const nombreDirectorDir = directorDir ? directorDir['NOMBRE PERSONAL'] : '';
+
+            // Agrupar por área
+            const porArea = {};
+            paisEmpleados.forEach(e => {
+                const area = e['ÁREA'] && e['ÁREA'].trim() ? e['ÁREA'] : 'SIN ÁREA';
+                if (!porArea[area]) porArea[area] = [];
+                porArea[area].push(e);
+            });
+
+            let html = `
+                <div style="margin-bottom: 20px;">
+                    <button onclick="renderOrganigrama('${pais}')" style="padding: 10px 20px; background: var(--primary); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">
+                        ← Volver al organigrama
+                    </button>
+                </div>
+                <div class="tree-root" style="background: linear-gradient(135deg, var(--primary), var(--primary-dark));">
+                    <h3>${direccion}</h3>
+                    <span>${paisEmpleados.length} empleados</span>
+                </div>
+                <div class="tree-connector"></div>
+            `;
+
+            // Nivel de Áreas - buscar jefe de cada área (quien reporta al director de la dirección)
+            const areasOrdenadas = Object.keys(porArea).sort();
+            if (areasOrdenadas.length > 0) {
+                html += `<div class="level-scroll-container"><div class="org-level areas"><div class="level-scroll-content">`;
+
+                areasOrdenadas.forEach(area => {
+                    const empArea = porArea[area];
+                    const responsable = findJefePorResponsable(empArea, nombreDirectorDir);
+                    const responsableNombre = responsable ? getNombreCorto(responsable['NOMBRE PERSONAL']) : '';
+                    const responsableFlag = responsable ? getPersonFlag(responsable) : '';
+
+                    html += `
+                        <div class="org-node area">
+                            <div class="area-card" onclick="showDeptosDeArea('${pais}', '${direccion.replace(/'/g, "\\'")}', '${area.replace(/'/g, "\\'")}')">
+                                <h4>${area}</h4>
+                                ${responsableNombre ? `<div class="responsible-name">${responsableFlag ? `<span class="director-flag">${responsableFlag}</span> ` : ''}${responsableNombre}</div>` : ''}
+                                <span class="badge">${empArea.length}</span>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                html += `</div></div></div>`;
+            }
+
+            document.getElementById('org-tree').innerHTML = html;
         }
 
-        function toggleDepts(e, id) {
-            e.stopPropagation();
-            document.getElementById(id).classList.toggle('open');
-            document.getElementById('icon-' + id).classList.toggle('open');
+        // Mostrar departamentos de un área específica
+        function showDeptosDeArea(pais, direccion, area) {
+            const areaEmpleados = empleados.filter(e =>
+                getPaisEfectivo(e) === pais &&
+                e['DIRECCIÓN'] === direccion &&
+                (e['ÁREA'] === area || (area === 'SIN ÁREA' && (!e['ÁREA'] || !e['ÁREA'].trim())))
+            );
+
+            // Buscar el jefe de esta área (para saber quién es el jefe de los departamentos)
+            const jefeArea = areaEmpleados.find(e => {
+                const responsable = (e.RESPONSABLE || '').toUpperCase();
+                // Buscar quien reporta al director de la dirección
+                return responsable.includes('REDONDO') || responsable.includes('GUANCHE') ||
+                       responsable.includes('JIMENEZ') || responsable.includes('PEREZ');
+            });
+            const nombreJefeArea = jefeArea ? jefeArea['NOMBRE PERSONAL'] : '';
+
+            // Agrupar por departamento
+            const porDepto = {};
+            areaEmpleados.forEach(e => {
+                const dept = e.DEPARTAMENTO || 'SIN DEPARTAMENTO';
+                if (!porDepto[dept]) porDepto[dept] = [];
+                porDepto[dept].push(e);
+            });
+
+            let html = `
+                <div style="margin-bottom: 20px; display: flex; gap: 10px;">
+                    <button onclick="renderOrganigrama('${pais}')" style="padding: 10px 20px; background: #64748b; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">
+                        ← Organigrama
+                    </button>
+                    <button onclick="showAreasDeDir('${pais}', '${direccion.replace(/'/g, "\\'")}')" style="padding: 10px 20px; background: var(--primary); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">
+                        ← ${direccion.substring(0, 20)}...
+                    </button>
+                </div>
+                <div class="tree-root" style="background: linear-gradient(135deg, var(--accent), #0284c7);">
+                    <h3>${area}</h3>
+                    <span>${areaEmpleados.length} empleados</span>
+                </div>
+                <div class="tree-connector blue"></div>
+            `;
+
+            // Nivel de Departamentos - buscar jefe de cada depto (quien reporta al jefe del área)
+            const deptosOrdenados = Object.keys(porDepto).sort();
+            if (deptosOrdenados.length > 0) {
+                html += `<div class="level-scroll-container"><div class="org-level depts"><div class="level-scroll-content">`;
+
+                deptosOrdenados.forEach(dept => {
+                    const empDepto = porDepto[dept];
+                    const responsable = findJefePorResponsable(empDepto, nombreJefeArea);
+                    const responsableNombre = responsable ? getNombreCorto(responsable['NOMBRE PERSONAL']) : '';
+                    const responsableFlag = responsable ? getPersonFlag(responsable) : '';
+
+                    html += `
+                        <div class="org-node dept">
+                            <div class="dept-card" onclick="showWorkers('${pais}', '${direccion.replace(/'/g, "\\'")}', '${area.replace(/'/g, "\\'")}', '${dept.replace(/'/g, "\\'")}')">
+                                <h5>${dept === 'SIN DEPARTAMENTO' ? 'Sin departamento' : dept}</h5>
+                                ${responsableNombre ? `<div class="responsible-name">${responsableFlag ? `<span class="director-flag">${responsableFlag}</span> ` : ''}${responsableNombre}</div>` : ''}
+                                <div class="count">${empDepto.length} personas</div>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                html += `</div></div></div>`;
+            }
+
+            document.getElementById('org-tree').innerHTML = html;
         }
 
         // ============================================
@@ -2750,7 +3099,13 @@ include_once 'header.php';
             document.getElementById('card-direccion').textContent = e['DIRECCIÓN'] || '-';
             document.getElementById('card-area').textContent = e['ÁREA'] || '-';
             document.getElementById('card-dept').textContent = e.DEPARTAMENTO || '-';
-            document.getElementById('card-fecha').textContent = e['FECHA INCORPORACIÓN'] ? e['FECHA INCORPORACIÓN'].substring(0, 10) : '-';
+            // Manejar fecha que puede ser string o no existir
+            let fecha = e['FECHA INCORPORACIÓN'];
+            if (fecha && typeof fecha === 'string' && fecha !== 'NaT') {
+                document.getElementById('card-fecha').textContent = fecha.substring(0, 10);
+            } else {
+                document.getElementById('card-fecha').textContent = '-';
+            }
             document.getElementById('card-responsable').textContent = e.RESPONSABLE || '-';
             document.getElementById('card-nivel').textContent = e['FUNCIÓN/NIVEL'] || '-';
 
@@ -2847,6 +3202,7 @@ include_once 'header.php';
 </html>
 
 
+
 <?php 
-include_once 'footer.php';
+include_once './views/footer.php';
 ?>

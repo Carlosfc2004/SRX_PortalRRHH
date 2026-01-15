@@ -1,6 +1,4 @@
 <?php
-var_dump($datos);
-die;
 include_once("../config.php");
 require_once("../models/sqlsrvModel.php");
 

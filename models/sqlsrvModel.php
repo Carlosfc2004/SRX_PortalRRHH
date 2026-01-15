@@ -947,6 +947,58 @@ class sqlsrvModel
         return $resultado;
     }
 
+    // Función para obtener días disponibles de vacaciones por año
+    public function getDiasDisponiblesVacaciones($pernr, $anio_solicitud)
+    {
+        $conn = $this->conectarEmpleado();
+
+        if (!$conn) {
+            error_log("Error de conexión en getDiasDisponiblesVacaciones");
+            return null;
+        }
+
+        // Usar parámetros preparados para evitar inyección SQL
+        $sql = "EXEC [dbo].[sp_DiasDisponiblesVacaciones_años_proporcion2] @pernr = ?, @anio_solicitud = ?";
+        $params = array($pernr, $anio_solicitud);
+
+        $consulta = sqlsrv_query($conn, $sql, $params);
+
+        if ($consulta === FALSE) {
+            $errors = sqlsrv_errors();
+            return null;
+        }
+
+        $resultado = sqlsrv_fetch_array($consulta, SQLSRV_FETCH_ASSOC);
+
+        return $resultado;
+    }
+
+    // Función para obtener días disponibles de ausencias por período y año
+    public function getDiasDisponiblesAusencias($pernr, $id_ausencia, $periodo, $anio)
+    {
+        $conn = $this->conectarEmpleado();
+
+        if (!$conn) {
+            error_log("Error de conexión en getDiasDisponiblesAusencias");
+            return null;
+        }
+
+        // Usar parámetros preparados para evitar inyección SQL
+        $sql = "EXEC [dbo].[sp_contar_solicitudes_periodo_new] @pernr = ?, @id_ausencia = ?, @periodo = ?, @anio = ?";
+        $params = array($pernr, $id_ausencia, $periodo, $anio);
+
+        $consulta = sqlsrv_query($conn, $sql, $params);
+
+        if ($consulta === FALSE) {
+            $errors = sqlsrv_errors();
+            error_log("Error al ejecutar sp_contar_solicitudes_periodo_new: " . print_r($errors, true));
+            return null;
+        }
+
+        $resultado = sqlsrv_fetch_array($consulta, SQLSRV_FETCH_ASSOC);
+
+        return $resultado;
+    }
 
 
     // Función para calcular días laborables considerando el grupo horario del trabajador
@@ -972,92 +1024,108 @@ class sqlsrvModel
             return $this->calcularDiasLaborablesSimple($fecha_desde, $fecha_hasta);
         }
 
-        // 1. Buscar el grupo horario asignado al trabajador en las fechas de la solicitud
-        $sql_grupo = "SELECT TOP 1 gh.grupo_horario_id, gh.fecha_inicio, gh.fecha_fin
-                      FROM webphp_trabajadores_grupos_horario gh
-                      WHERE gh.pernr = ?
-                        AND (
-                            (gh.fecha_inicio <= ? AND gh.fecha_fin >= ?)
-                            OR (gh.fecha_inicio <= ? AND gh.fecha_fin >= ?)
-                            OR (gh.fecha_inicio >= ? AND gh.fecha_fin <= ?)
-                        )
-                      ORDER BY gh.fecha_asignacion DESC";
+        // Detectar si el rango abarca múltiples años
+        $anio_inicio = (int) $fecha_desde->format('Y');
+        $anio_fin = (int) $fecha_hasta->format('Y');
+        $anios_involucrados = range($anio_inicio, $anio_fin);
 
-        $params_grupo = [
-            $pernr,
-            $fecha_desde->format('Y-m-d'),
-            $fecha_desde->format('Y-m-d'),
-            $fecha_hasta->format('Y-m-d'),
-            $fecha_hasta->format('Y-m-d'),
-            $fecha_desde->format('Y-m-d'),
-            $fecha_hasta->format('Y-m-d')
-        ];
+        // Array para almacenar todos los grupos horarios por año
+        $grupos_horarios = [];
 
-        $consulta_grupo = sqlsrv_query($conn, $sql_grupo, $params_grupo);
+        // 1. Para cada año involucrado, buscar el grupo horario correspondiente
+        foreach ($anios_involucrados as $anio) {
+            // Calcular el inicio y fin del año dentro del rango de fechas solicitado
+            $inicio_anio = max($fecha_desde, new DateTime("$anio-01-01"));
+            $fin_anio = min($fecha_hasta, new DateTime("$anio-12-31"));
 
-        if ($consulta_grupo === false) {
-            error_log("Error al obtener grupo horario para pernr $pernr: " . print_r(sqlsrv_errors(), true));
-            sqlsrv_close($conn);
-            return $this->calcularDiasLaborablesSimple($fecha_desde, $fecha_hasta);
-        }
+            // Buscar el grupo horario asignado al trabajador para este año específico
+            $sql_grupo = "SELECT gh.grupo_horario_id, gh.fecha_inicio, gh.fecha_fin
+                          FROM webphp_trabajadores_grupos_horario gh
+                          WHERE gh.pernr = ?
+                            AND (
+                                (gh.fecha_inicio <= ? AND gh.fecha_fin >= ?)
+                                OR (gh.fecha_inicio <= ? AND gh.fecha_fin >= ?)
+                                OR (gh.fecha_inicio >= ? AND gh.fecha_fin <= ?)
+                            )
+                          ORDER BY gh.fecha_asignacion DESC";
 
-        $grupo_asignado = sqlsrv_fetch_array($consulta_grupo, SQLSRV_FETCH_ASSOC);
-        $grupo_horario_id = null;
+            $params_grupo = [
+                $pernr,
+                $inicio_anio->format('Y-m-d'),
+                $inicio_anio->format('Y-m-d'),
+                $fin_anio->format('Y-m-d'),
+                $fin_anio->format('Y-m-d'),
+                $inicio_anio->format('Y-m-d'),
+                $fin_anio->format('Y-m-d')
+            ];
 
-        // Si tiene grupo asignado, usar ese; si no, buscar el grupo predeterminado
-        if ($grupo_asignado) {
-            $grupo_horario_id = $grupo_asignado['grupo_horario_id'];
-        } else {
-            // Buscar grupo predeterminado
-            $sql_predeterminado = "SELECT TOP 1 id FROM webphp_grupos_horarios WHERE grupo_predeterminado = 1 AND anio_configuracion = YEAR('" . $fecha_desde->format('Y-m-d') . "')";
-            $consulta_predeterminado = sqlsrv_query($conn, $sql_predeterminado);
+            $consulta_grupo = sqlsrv_query($conn, $sql_grupo, $params_grupo);
 
-            if ($consulta_predeterminado === false) {
-                error_log("Error al obtener grupo predeterminado: " . print_r(sqlsrv_errors(), true));
-                sqlsrv_close($conn);
-                return $this->calcularDiasLaborablesSimple($fecha_desde, $fecha_hasta);
+            if ($consulta_grupo === false) {
+                error_log("Error al obtener grupo horario para pernr $pernr en año $anio: " . print_r(sqlsrv_errors(), true));
+                continue;
             }
 
-            $grupo_predeterminado = sqlsrv_fetch_array($consulta_predeterminado, SQLSRV_FETCH_ASSOC);
-            if ($grupo_predeterminado) {
-                $grupo_horario_id = $grupo_predeterminado['id'];
+            // Verificar si hay grupo asignado para este año
+            $tiene_grupo_asignado = false;
+            while ($grupo_asignado = sqlsrv_fetch_array($consulta_grupo, SQLSRV_FETCH_ASSOC)) {
+                $grupos_horarios[] = $grupo_asignado['grupo_horario_id'];
+                $tiene_grupo_asignado = true;
+            }
+
+            // Si no tiene grupo asignado para este año, buscar grupo predeterminado
+            if (!$tiene_grupo_asignado) {
+                $sql_predeterminado = "SELECT TOP 1 id FROM webphp_grupos_horarios WHERE grupo_predeterminado = 1 AND anio_configuracion = ?";
+                $consulta_predeterminado = sqlsrv_query($conn, $sql_predeterminado, [$anio]);
+
+                if ($consulta_predeterminado === false) {
+                    error_log("Error al obtener grupo predeterminado para año $anio: " . print_r(sqlsrv_errors(), true));
+                    continue;
+                }
+
+                $grupo_predeterminado = sqlsrv_fetch_array($consulta_predeterminado, SQLSRV_FETCH_ASSOC);
+                if ($grupo_predeterminado) {
+                    $grupos_horarios[] = $grupo_predeterminado['id'];
+                }
             }
         }
 
-        if (!$grupo_horario_id) {
-            // ADVERTENCIA: No se encontró ni grupo asignado ni grupo predeterminado
-            error_log("ADVERTENCIA: No se encontró grupo horario para pernr $pernr y tampoco existe grupo predeterminado. Usando cálculo simple (L-V). Por favor, configure un grupo predeterminado en webphp_grupos_horarios.");
+        if (empty($grupos_horarios)) {
+            error_log("ADVERTENCIA: No se encontró grupo horario para pernr $pernr. Usando cálculo simple (L-V).");
             sqlsrv_close($conn);
             return $this->calcularDiasLaborablesSimple($fecha_desde, $fecha_hasta);
         }
 
-        // 2. Obtener la configuración del grupo horario (franjas_json)
-        $sql_config = "SELECT franjas_json FROM webphp_grupos_horarios WHERE id = ?";
-        $consulta_config = sqlsrv_query($conn, $sql_config, [$grupo_horario_id]);
+        // 2. Obtener todas las configuraciones de grupos horarios
+        $todas_franjas = [];
+        foreach ($grupos_horarios as $grupo_id) {
+            $sql_config = "SELECT franjas_json FROM webphp_grupos_horarios WHERE id = ?";
+            $consulta_config = sqlsrv_query($conn, $sql_config, [$grupo_id]);
 
-        if ($consulta_config === false) {
-            error_log("Error al obtener configuración de grupo: " . print_r(sqlsrv_errors(), true));
-            sqlsrv_close($conn);
-            return $this->calcularDiasLaborablesSimple($fecha_desde, $fecha_hasta);
+            if ($consulta_config === false) {
+                error_log("Error al obtener configuración de grupo $grupo_id: " . print_r(sqlsrv_errors(), true));
+                continue;
+            }
+
+            $config = sqlsrv_fetch_array($consulta_config, SQLSRV_FETCH_ASSOC);
+
+            if ($config && $config['franjas_json']) {
+                $franjas = json_decode($config['franjas_json'], true);
+                if ($franjas && is_array($franjas)) {
+                    $todas_franjas = array_merge($todas_franjas, $franjas);
+                }
+            }
         }
 
-        $config = sqlsrv_fetch_array($consulta_config, SQLSRV_FETCH_ASSOC);
         sqlsrv_close($conn);
 
-        if (!$config || !$config['franjas_json']) {
-            return $this->calcularDiasLaborablesSimple($fecha_desde, $fecha_hasta);
-        }
-
-        // 3. Decodificar el JSON de franjas
-        $franjas = json_decode($config['franjas_json'], true);
-
-        if (!$franjas || !is_array($franjas)) {
+        if (empty($todas_franjas)) {
             return $this->calcularDiasLaborablesSimple($fecha_desde, $fecha_hasta);
         }
 
         // 4. Crear un mapa de fechas festivas
         $festivos = [];
-        foreach ($franjas as $franja) {
+        foreach ($todas_franjas as $franja) {
             if (
                 isset($franja['tipo_jornada']) &&
                 (strpos($franja['tipo_jornada'], 'festivo') !== false)
@@ -1074,7 +1142,7 @@ class sqlsrvModel
 
         // 5. Crear un mapa de días laborables por fecha
         $dias_laborables_por_fecha = [];
-        foreach ($franjas as $franja) {
+        foreach ($todas_franjas as $franja) {
             // Ignorar festivos en este recorrido
             if (
                 isset($franja['tipo_jornada']) &&
@@ -2183,7 +2251,7 @@ class sqlsrvModel
 
         // Ejecutar procedimiento almacenado
         $conn = $this->ConectarAppReclutamiento();
-        $sql = "EXEC [dbo].[sp_CalcularResumenJornada_pernr_new] ?, ?, ?, ?";
+        $sql = "EXEC [dbo].[sp_CalcularResumenJornada_pernr] ?, ?, ?, ?";
 
         $params = [
             [$fecha_ini, SQLSRV_PARAM_IN],
@@ -3162,7 +3230,7 @@ class sqlsrvModel
 
             // Contenido mensaje
             $mail->isHTML(true); // Formato del correo HTML
-            $mail->Subject = 'Surexport';
+            $mail->Subject = 'Llamamiento Surexport S.L.';
             $mail->Body = $mensaje;
 
             // Intentar enviar el correo
@@ -3683,7 +3751,7 @@ class sqlsrvModel
                     er.estado_remesa, 
                     wrl.fecha_incorporacion,
                     wrl.sms_auto
-                ORDER BY wrl.id_remesa DESC, YEAR(wrl.fecha_remesa) DESC;";
+                ORDER BY YEAR(wrl.fecha_remesa) DESC, wrl.id_remesa DESC;";
 
         // echo $sql;
         // die;
@@ -3864,7 +3932,7 @@ class sqlsrvModel
         $id_remesa = ($row && !is_null($row['id_remesa'])) ? $row['id_remesa'] + 1 : 1;
 
         // Insertar la nueva remesa
-        $insert_result = $this->insertarRemesa($conn, $id_remesa, $nombre, $telefono, $fecha_ini, $sms);
+        $insert_result = $this->insertarRemesa($conn, $id_remesa, $nombre, $telefono, $fecha_ini, $sms, $ano_remesa);
 
         sqlsrv_close($conn);
 
@@ -3879,11 +3947,16 @@ class sqlsrvModel
 
 
     // Insertar la nueva remesa, añadir el trabajador a la remesa y añadir el registro de llamamiento SMS
-    public function insertarRemesa($conn, $id_remesa, $nombre_remesa, $telefono, $fecha_ini, $sms)
+    public function insertarRemesa($conn, $id_remesa, $nombre_remesa, $telefono, $fecha_ini, $sms, $ano_remesa = null)
     {
+        // Si no se proporciona el año, usar el año actual
+        if ($ano_remesa === null) {
+            $ano_remesa = date('Y');
+        }
+
         // Obtener la fecha de la remesa existente
-        $sql_fecha = "SELECT fecha_remesa FROM webphp_remesas_llamamientos WHERE id_remesa = ? AND (elim <> '1' OR elim IS NULL)";
-        $params_fecha = [$id_remesa];
+        $sql_fecha = "SELECT fecha_remesa FROM webphp_remesas_llamamientos WHERE id_remesa = ? AND YEAR(fecha_remesa) = ? AND (elim <> '1' OR elim IS NULL)";
+        $params_fecha = [$id_remesa, $ano_remesa];
         $consulta_fecha = $this->ejecutarConsulta($conn, $sql_fecha, $params_fecha);
         $row_fecha = sqlsrv_fetch_array($consulta_fecha, SQLSRV_FETCH_ASSOC);
 
@@ -3893,14 +3966,12 @@ class sqlsrvModel
                 ? $row_fecha['fecha_remesa']->format('Y-m-d')
                 : $row_fecha['fecha_remesa'];
         } else {
-            $fecha_remesa = date('Y-m-d');
+            // Si no existe la remesa, crear fecha con el año especificado
+            $fecha_remesa = $date = date('Y-m-d');
         }
 
         // Fecha y hora actual para el registro
         $fecha_registro = date('Y-m-d H:i:s');
-
-        // Obtener el año de la remesa directamente de la fecha formateada
-        $ano_remesa = date('Y', strtotime($fecha_remesa));
 
         // Para cada trabajador en el array
         foreach ($_POST['user_remesas'] as $pernr) {
@@ -3973,16 +4044,15 @@ class sqlsrvModel
     {
         $conn = $this->ConectarAppReclutamiento();
 
-        if (empty($nombre_remesa)) {
-            $sql = "SELECT nombre_remesa, fecha_incorporacion, sms_auto FROM webphp_remesas_llamamientos WHERE id_remesa = ? AND (elim <> '1' OR elim IS NULL)";
-            $consulta = $this->ejecutarConsulta($conn, $sql, [$id_remesa]);
-            $row = sqlsrv_fetch_array($consulta, SQLSRV_FETCH_ASSOC);
-            $nombre_remesa = $row['nombre_remesa'];
-            $fecha_ini = $row['fecha_incorporacion'];
-            $sms = $row['sms_auto'];
-        }
+        $sql = "SELECT nombre_remesa, fecha_incorporacion, sms_auto FROM webphp_remesas_llamamientos WHERE id_remesa = ? AND YEAR(fecha_remesa) = ? AND (elim <> '1' OR elim IS NULL)";
+        $consulta = $this->ejecutarConsulta($conn, $sql, [$id_remesa, $ano_remesa]);
+        $row = sqlsrv_fetch_array($consulta, SQLSRV_FETCH_ASSOC);
+        $nombre_remesa = $row['nombre_remesa'];
+        $fecha_ini = $row['fecha_incorporacion'];
+        $sms = $row['sms_auto'];
 
-        $insert_result = $this->insertarRemesa($conn, $id_remesa, $nombre_remesa, $telefono, $fecha_ini, $sms);
+
+        $insert_result = $this->insertarRemesa($conn, $id_remesa, $nombre_remesa, $telefono, $fecha_ini, $sms, $ano_remesa);
 
         sqlsrv_close($conn);
 

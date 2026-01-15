@@ -1316,49 +1316,82 @@ try {
         $nombreDelDocumento = "Presencia_Oficina_".$_POST['fecha_inicio_ofi']."_".$_POST['fecha_fin_ofi'].".xlsx";
     }
 
+	// Devuelve una etiqueta legible para el dispositivo (según user agent)
+	function obtenerTipoDispositivoExport($dispositivo)
+	{
+		if (empty($dispositivo)) {
+			return '';
+		}
+
+		$ua = strtolower($dispositivo);
+
+		if (strpos($ua, 'android') !== false) {
+			return 'Movil';
+		}
+		if (strpos($ua, 'web manual') !== false || strpos($ua, 'manual') !== false) {
+			return 'Web';
+		}
+		if (strpos($ua, 'windows') !== false || strpos($ua, 'linux') !== false || strpos($ua, 'macintosh') !== false) {
+			return 'PC';
+		}
+		if (strpos($ua, 'iphone') !== false || strpos($ua, 'ipad') !== false) {
+			return 'Movil';
+		}
+
+		return 'Tablet';
+	}
+
     // Definimos columnas ancho fijo para hoja 1
-    foreach (['A'=>15, 'B'=>40, 'C'=>17, 'D'=>15, 'E'=>15, 'F'=>15, 'G'=>18, 'H'=>18, 'I'=>18, 'J'=>18, 'K'=>18] as $col => $width) {
+    foreach (['A'=>15, 'B'=>40, 'C'=>17, 'D'=>15, 'E'=>40, 'F'=>15, 'G'=>40, 'H'=>18, 'I'=>18, 'J'=>18, 'K'=>18, 'L'=>18, 'M'=>18] as $col => $width) {
         $sheet1->getColumnDimension($col)->setWidth($width);
     }
 
     // Cabecera hoja 1
-    $sheet1->getStyle('A1:K1')->getFont()->setBold(true);
-    $sheet1->getStyle('A1:K1')->getFill()->setFillType("solid")->getStartColor()->setARGB('FFE5E5E5');
+	$sheet1->getStyle('E:E')->getAlignment()->setWrapText(true);
+	$sheet1->getStyle('G:G')->getAlignment()->setWrapText(true);
+    $sheet1->getStyle('A1:M1')->getFont()->setBold(true);
+    $sheet1->getStyle('A1:M1')->getFill()->setFillType("solid")->getStartColor()->setARGB('FFE5E5E5');
     $sheet1->setCellValue('A1', 'Cod. Trab');
     $sheet1->setCellValue('B1', 'Nombre y apellidos');
     $sheet1->setCellValue('C1', 'Fecha');
     $sheet1->setCellValue('D1', 'Inicio Jornada');
-    $sheet1->setCellValue('E1', 'Fin Jornada');
-    $sheet1->setCellValue('F1', 'Desayuno');
-    $sheet1->setCellValue('G1', 'Almuerzo');
-    $sheet1->setCellValue('H1', 'Otros');
-    $sheet1->setCellValue('I1', 'Descanso Total');
-    $sheet1->setCellValue('J1', 'Horas trabajadas');
-    $sheet1->setCellValue('K1', 'Horas Totales');
+	$sheet1->setCellValue('E1', 'Localización');
+    $sheet1->setCellValue('F1', 'Fin Jornada');
+	$sheet1->setCellValue('G1', 'Localización');
+    $sheet1->setCellValue('H1', 'Desayuno');
+    $sheet1->setCellValue('I1', 'Almuerzo');
+    $sheet1->setCellValue('J1', 'Otros');
+    $sheet1->setCellValue('K1', 'Descanso Total');
+    $sheet1->setCellValue('L1', 'Horas trabajadas');
+    $sheet1->setCellValue('M1', 'Horas Totales');
 
     // Crear segunda hoja para formato base 100
     $sheet2 = $documento->createSheet();
     $sheet2->setTitle("INFORME PRESENCIA BASE 100");
 
     // Columnas para hoja 2 igual que hoja 1
-    foreach (['A'=>15, 'B'=>40, 'C'=>17, 'D'=>15, 'E'=>15, 'F'=>15, 'G'=>18, 'H'=>18, 'I'=>18, 'J'=>18, 'K'=>18] as $col => $width) {
+    foreach (['A'=>15, 'B'=>40, 'C'=>17, 'D'=>15, 'E'=>40, 'F'=>15, 'G'=>40, 'H'=>18, 'I'=>18, 'J'=>18, 'K'=>18, 'L'=>18, 'M'=>18] as $col => $width) {
         $sheet2->getColumnDimension($col)->setWidth($width);
     }
 
     // Cabecera hoja 2
-    $sheet2->getStyle('A1:K1')->getFont()->setBold(true);
-    $sheet2->getStyle('A1:K1')->getFill()->setFillType("solid")->getStartColor()->setARGB('FFDDEEFF');
+	$sheet2->getStyle('E:E')->getAlignment()->setWrapText(true);
+	$sheet2->getStyle('G:G')->getAlignment()->setWrapText(true);
+    $sheet2->getStyle('A1:M1')->getFont()->setBold(true);
+    $sheet2->getStyle('A1:M1')->getFill()->setFillType("solid")->getStartColor()->setARGB('FFDDEEFF');
     $sheet2->setCellValue('A1', 'Cod. Trab');
     $sheet2->setCellValue('B1', 'Nombre y apellidos');
     $sheet2->setCellValue('C1', 'Fecha');
     $sheet2->setCellValue('D1', 'Inicio Jornada');
-    $sheet2->setCellValue('E1', 'Fin Jornada');
-    $sheet2->setCellValue('F1', 'Desayuno');
-    $sheet2->setCellValue('G1', 'Almuerzo');
-    $sheet2->setCellValue('H1', 'Otros');
-    $sheet2->setCellValue('I1', 'Descanso Total');
-    $sheet2->setCellValue('J1', 'Horas trabajadas');
-    $sheet2->setCellValue('K1', 'Horas Totales');
+	$sheet2->setCellValue('E1', 'Localización');
+    $sheet2->setCellValue('F1', 'Fin Jornada');
+    $sheet2->setCellValue('G1', 'Localización');
+    $sheet2->setCellValue('H1', 'Desayuno');
+    $sheet2->setCellValue('I1', 'Almuerzo');
+    $sheet2->setCellValue('J1', 'Otros');
+    $sheet2->setCellValue('K1', 'Descanso Total');
+    $sheet2->setCellValue('L1', 'Horas trabajadas');
+    $sheet2->setCellValue('M1', 'Horas Totales');
 
     // Función para convertir hh:mm o hh:mm:ss a decimal base 100
     function tiempo_a_decimal_base100($tiempo_str) {
@@ -1420,20 +1453,44 @@ try {
 			}
 			$sheet1->getStyle('D' . $i)->getNumberFormat()->setFormatCode('mm-dd hh:mm:ss');
 
+			// Localización entrada
+			$localizacion_entrada = $resultado['localizacion_entrada'];
+			// Quitar la parte de precisión si existe
+			if (strpos($localizacion_entrada, '|') !== false) {
+				$localizacion_entrada = trim(explode('|', $localizacion_entrada)[0]);
+			}
+			$tipoDispositivoEntrada = obtenerTipoDispositivoExport($resultado['dispositivo_entrada'] ?? '');
+			if ($localizacion_entrada !== '' && $tipoDispositivoEntrada !== '') {
+				$localizacion_entrada .= ' | ' . $tipoDispositivoEntrada;
+			}
+			$sheet1->setCellValue('E' . $i, $localizacion_entrada);
+
 			// Salida jornada
 			if (isset($resultado['ultima_salida']) && $resultado['ultima_salida'] instanceof DateTime) {
-				$sheet1->setCellValue('E' . $i, $resultado['ultima_salida']->format('m-d H:i:s'));
+				$sheet1->setCellValue('F' . $i, $resultado['ultima_salida']->format('m-d H:i:s'));
 			} else {
-				$sheet1->setCellValue('E' . $i, 'N/A');
+				$sheet1->setCellValue('F' . $i, 'N/A');
 			}
-			$sheet1->getStyle('E' . $i)->getNumberFormat()->setFormatCode('mm-dd hh:mm:ss');
+			$sheet1->getStyle('F' . $i)->getNumberFormat()->setFormatCode('mm-dd hh:mm:ss');
+			
+			// Localización salida
+			$localizacion_salida = $resultado['localizacion_salida'];
+			// Quitar la parte de precisión si existe
+			if (strpos($localizacion_salida, '|') !== false) {
+				$localizacion_salida = trim(explode('|', $localizacion_salida)[0]);
+			}
+			$tipoDispositivoSalida = obtenerTipoDispositivoExport($resultado['dispositivo_salida'] ?? '');
+			if ($localizacion_salida !== '' && $tipoDispositivoSalida !== '') {
+				$localizacion_salida .= ' | ' . $tipoDispositivoSalida;
+			}
+			$sheet1->setCellValue('G' . $i, $localizacion_salida);
 
-			$sheet1->setCellValue('F' . $i, $resultado['horas_desayuno']);
-			$sheet1->setCellValue('G' . $i, $resultado['horas_almuerzo']);
-			$sheet1->setCellValue('H' . $i, $resultado['horas_otros']);
-			$sheet1->setCellValue('I' . $i, $resultado['horas_descanso']);
-			$sheet1->setCellValue('J' . $i, $resultado['horas_producido']);
-			$sheet1->setCellValue('K' . $i, $resultado['horas_totales']);
+			$sheet1->setCellValue('H' . $i, $resultado['horas_desayuno']);
+			$sheet1->setCellValue('I' . $i, $resultado['horas_almuerzo']);
+			$sheet1->setCellValue('J' . $i, $resultado['horas_otros']);
+			$sheet1->setCellValue('K' . $i, $resultado['horas_descanso']);
+			$sheet1->setCellValue('L' . $i, $resultado['horas_producido']);
+			$sheet1->setCellValue('M' . $i, $resultado['horas_totales']);
 
 			// Hoja 2 valores convertidos a base 100
 			$sheet2->setCellValue('A' . $j, $resultado['pernr']);
@@ -1454,35 +1511,59 @@ try {
 			}
 			$sheet2->getStyle('D' . $j)->getNumberFormat()->setFormatCode('mm-dd hh:mm:ss');
 
+			// Localización entrada
+			$localizacion_entrada_2 = $resultado['localizacion_entrada'];
+			// Quitar la parte de precisión si existe
+			if (strpos($localizacion_entrada_2, '|') !== false) {
+				$localizacion_entrada_2 = trim(explode('|', $localizacion_entrada_2)[0]);
+			}
+			$tipoDispositivoEntrada2 = obtenerTipoDispositivoExport($resultado['dispositivo_entrada'] ?? '');
+			if ($localizacion_entrada_2 !== '' && $tipoDispositivoEntrada2 !== '') {
+				$localizacion_entrada_2 .= ' | ' . $tipoDispositivoEntrada2;
+			}
+			$sheet2->setCellValue('E' . $j, $localizacion_entrada_2);
+
 			// Salida jornada
 			if (isset($resultado['ultima_salida']) && $resultado['ultima_salida'] instanceof DateTime) {
-				$sheet2->setCellValue('E' . $j, $resultado['ultima_salida']->format('m-d H:i:s'));
+				$sheet2->setCellValue('F' . $j, $resultado['ultima_salida']->format('m-d H:i:s'));
 			} else {
-				$sheet2->setCellValue('E' . $j, 'N/A');
+				$sheet2->setCellValue('F' . $j, 'N/A');
 			}
-			$sheet2->getStyle('E' . $j)->getNumberFormat()->setFormatCode('mm-dd hh:mm:ss');
+			$sheet2->getStyle('F' . $j)->getNumberFormat()->setFormatCode('mm-dd hh:mm:ss');
+			
+			// Localización salida
+			$localizacion_salida_2 = $resultado['localizacion_salida'];
+			// Quitar la parte de precisión si existe
+			if (strpos($localizacion_salida_2, '|') !== false) {
+				$localizacion_salida_2 = trim(explode('|', $localizacion_salida_2)[0]);
+			}
+			$tipoDispositivoSalida2 = obtenerTipoDispositivoExport($resultado['dispositivo_salida'] ?? '');
+			if ($localizacion_salida_2 !== '' && $tipoDispositivoSalida2 !== '') {
+				$localizacion_salida_2 .= ' | ' . $tipoDispositivoSalida2;
+			}
+			$sheet2->setCellValue('G' . $j, $localizacion_salida_2);
 
 			// Convertir las horas a decimal base 100 para las otras columnas
-			$sheet2->setCellValue('F' . $j, tiempo_a_decimal_base100($resultado['horas_desayuno']));
-			$sheet2->setCellValue('G' . $j, tiempo_a_decimal_base100($resultado['horas_almuerzo']));
-			$sheet2->setCellValue('H' . $j, tiempo_a_decimal_base100($resultado['horas_otros']));
-			$sheet2->setCellValue('I' . $j, tiempo_a_decimal_base100($resultado['horas_descanso']));
-			$sheet2->setCellValue('J' . $j, tiempo_a_decimal_base100($resultado['horas_producido']));
-			$sheet2->setCellValue('K' . $j, tiempo_a_decimal_base100($resultado['horas_totales']));
+			$sheet2->setCellValue('H' . $j, tiempo_a_decimal_base100($resultado['horas_desayuno']));
+			$sheet2->setCellValue('I' . $j, tiempo_a_decimal_base100($resultado['horas_almuerzo']));
+			$sheet2->setCellValue('J' . $j, tiempo_a_decimal_base100($resultado['horas_otros']));
+			$sheet2->setCellValue('K' . $j, tiempo_a_decimal_base100($resultado['horas_descanso']));
+			$sheet2->setCellValue('L' . $j, tiempo_a_decimal_base100($resultado['horas_producido']));
+			$sheet2->setCellValue('M' . $j, tiempo_a_decimal_base100($resultado['horas_totales']));
 
             $i++;
             $j++;
         }
 
         // Bordes hoja 1
-        $sheet1->getStyle('A1:K' . ($i - 1))->getBorders()->getAllBorders()->setBorderStyle("thin");
-        $sheet1->getStyle('A1:K' . ($i - 1))->getAlignment()->setHorizontal('center');
-        $sheet1->getStyle('A1:K' . ($i - 1))->getAlignment()->setVertical('center');
+        $sheet1->getStyle('A1:M' . ($i - 1))->getBorders()->getAllBorders()->setBorderStyle("thin");
+        $sheet1->getStyle('A1:M' . ($i - 1))->getAlignment()->setHorizontal('center');
+        $sheet1->getStyle('A1:M' . ($i - 1))->getAlignment()->setVertical('center');
 
         // Bordes hoja 2
-        $sheet2->getStyle('A1:K' . ($j - 1))->getBorders()->getAllBorders()->setBorderStyle("thin");
-        $sheet2->getStyle('A1:K' . ($j - 1))->getAlignment()->setHorizontal('center');
-        $sheet2->getStyle('A1:K' . ($j - 1))->getAlignment()->setVertical('center');
+        $sheet2->getStyle('A1:M' . ($j - 1))->getBorders()->getAllBorders()->setBorderStyle("thin");
+        $sheet2->getStyle('A1:M' . ($j - 1))->getAlignment()->setHorizontal('center');
+        $sheet2->getStyle('A1:M' . ($j - 1))->getAlignment()->setVertical('center');
 
     } else {
         // Si no hay datos, poner mensaje en ambas hojas
