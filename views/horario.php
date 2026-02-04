@@ -319,6 +319,12 @@ include_once("header.php");
                                     <small class="text-muted">Las franjas solo podrán configurarse para este año</small>
                                 </div>
                                 <div class="mb-3">
+                                    <label for="max_dias_vacaciones" class="form-label fw-bold">Días máximos de vacaciones</label>
+                                    <input type="number" class="form-control" id="max_dias_vacaciones"
+                                        name="max_dias_vacaciones" min="0" step="1" placeholder="Ej: 22" required>
+                                    <small class="text-muted">Configure el máximo de días de vacaciones para este grupo</small>
+                                </div>
+                                <div class="mb-3">
                                     <label class="form-label fw-bold">Franjas horarias anuales</label>
                                     <div id="franjas-horarias-lista"></div>
                                     <button type="button" class="btn btn-primary btn-sm mt-2" id="btn-add-franja"
@@ -2321,6 +2327,12 @@ include_once("header.php");
                                         ${campoAnio}
                                     </div>
                                     <div class="mb-3">
+                                        <label for="max_dias_vacaciones_editar" class="form-label fw-bold">Días máximos de vacaciones</label>
+                                        <input type="number" class="form-control" id="max_dias_vacaciones_editar"
+                                            name="max_dias_vacaciones" min="0" step="1" value="" placeholder="Ej: 30">
+                                        <small class="text-muted">Configure el máximo de días de vacaciones para este grupo</small>
+                                    </div>
+                                    <div class="mb-3">
                                         <label class="form-label fw-bold">Franjas horarias anuales</label>
                                         <div id="franjas-horarias-lista-editar"></div>
                                         <button type="button" class="btn btn-primary btn-sm mt-2"
@@ -2494,6 +2506,11 @@ include_once("header.php");
                 franjas = JSON.parse(grupoData.franjas_json);
             } catch (e) {
                 franjas = [];
+            }
+
+            // Cargar el valor de max_dias_vacaciones desde grupoData
+            if (grupoData.max_dias_vacaciones !== null && grupoData.max_dias_vacaciones !== undefined) {
+                document.getElementById('max_dias_vacaciones_editar').value = grupoData.max_dias_vacaciones;
             }
 
             if (Array.isArray(franjas)) {

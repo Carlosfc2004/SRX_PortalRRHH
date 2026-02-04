@@ -345,9 +345,8 @@ include("header.php");
                                 <?php
                                 // Generar opciones desde 2025 hasta actual mas 1
                                 $anio_actual = date('Y');
-                                for ($year = 2025; $year <= $anio_actual + 1; $year++) {
-                                    $selected = ($year == $anio_actual) ? 'selected' : '';
-                                    echo "<option value='$year' $selected>$year</option>";
+                                for ($year = 2025; $year <= $anio_actual; $year++) {
+                                    echo "<option value='$year'>$year</option>";
                                 }
                                 ?>
                             </select>
@@ -372,10 +371,6 @@ include("header.php");
             </div>
             <?php
         }
-        ?>
-
-
-        <?php
     } else {
         if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['filtros_sol'])) {
             if (isset($_POST['filtros_sol'])) {
@@ -757,6 +752,12 @@ include("header.php");
                                             <h5 class="mb-0" style="font-weight: bold; font-size: 1.1rem;">${data.vacaciones.dias_disponibles}</h5>
                                         </div>
                                     </div>
+                                    <div class="col-12 mt-2">
+                                        <div class="p-1 rounded" style="background-color: rgba(255,255,255,0.2);">
+                                            <small style="opacity: 0.9; font-size: 0.7rem;">Liquidación</small>
+                                            <h5 class="mb-0" style="font-weight: bold; font-size: 1.1rem;">${data.vacaciones.dias_liquidacion_redondeados}</h5>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -844,13 +845,6 @@ include("header.php");
     // Event listener para el selector de año
     const anioSelectorInit = document.getElementById('anio_selector');
     if (anioSelectorInit) {
-        // Cargar datos automáticamente si hay un año preseleccionado
-        const anioInicial = anioSelectorInit.value;
-        const pernr = anioSelectorInit.getAttribute('data-pernr');
-        if (anioInicial && pernr) {
-            cargarDiasDisponiblesPorAnio(pernr, anioInicial);
-        }
-
         // Listener para cambios en el selector
         anioSelectorInit.addEventListener('change', function () {
             const anio = this.value;

@@ -26,23 +26,23 @@
 
 	class ConfigProduccion{
 		static public $bdsrx_hostname = "172.21.0.38";
-		// static public $bdsrx_nombre   = "SistemaProduccion";
-		// static public $bdsrx_usuario  = "app_portal_rrhh";
-		// static public $bdsrx_clave    = "Tl16gyHIEz96";
-		static public $bdsrx_nombre   = "SistemaProduccion_test";
-		static public $bdsrx_usuario  = "app_portal_rrhh_test";
-		static public $bdsrx_clave    = "7cF45dzvDvq0";
+		static public $bdsrx_nombre   = "SistemaProduccion";
+		static public $bdsrx_usuario  = "app_portal_rrhh";
+		static public $bdsrx_clave    = "Tl16gyHIEz96";
+		// static public $bdsrx_nombre   = "SistemaProduccion_test";
+		// static public $bdsrx_usuario  = "app_portal_rrhh_test";
+		// static public $bdsrx_clave    = "7cF45dzvDvq0";
 	}
 
 
 	class ConfigMante{
 		static public $bdsrx_hostname = "172.21.0.38";
-		// static public $bdsrx_nombre   = "SistemaMantenimiento";
-		// static public $bdsrx_usuario  = "app_portal_rrhh";
-		// static public $bdsrx_clave    = "Tl16gyHIEz96";
-		static public $bdsrx_nombre   = "SistemaMantenimiento_test2";
-		static public $bdsrx_usuario  = "app_portal_rrhh_test";
-		static public $bdsrx_clave    = "7cF45dzvDvq0";
+		static public $bdsrx_nombre   = "SistemaMantenimiento";
+		static public $bdsrx_usuario  = "app_portal_rrhh";
+		static public $bdsrx_clave    = "Tl16gyHIEz96";
+		// static public $bdsrx_nombre   = "SistemaMantenimiento_test2";
+		// static public $bdsrx_usuario  = "app_portal_rrhh_test";
+		// static public $bdsrx_clave    = "7cF45dzvDvq0";
 	}
 
 
@@ -70,8 +70,8 @@
 
 	class ConfigAgromobile{
 		// static public $bdsrx_hostname = "192.168.200.202";
-		// static public $bdsrx_nombre   = "SUREXPORT_AGROMOBILE";
-		static public $bdsrx_nombre   = "SUREXPORT_AGROMOBILE_TEST";
+		static public $bdsrx_nombre   = "SUREXPORT_AGROMOBILE";
+		// static public $bdsrx_nombre   = "SUREXPORT_AGROMOBILE_TEST";
 	}
 
 
@@ -88,7 +88,6 @@
 
 
 //Configuración conexiones, APIs
-
 	class ConfigApiMulesoft{
 		// QA
 		// static public $api_url 			 = "https://e-personal-api-lew5o5.a8uuoc.deu-c1.cloudhub.io/api";

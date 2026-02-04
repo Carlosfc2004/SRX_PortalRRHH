@@ -68,7 +68,7 @@ if (isset($_GET['obtener_dias_disponibles_por_anio']) && !empty($_GET['pernr']) 
 	try {
 		// Obtener días disponibles de vacaciones
 		$dias_vacaciones = $m->getDiasDisponiblesVacaciones($pernr, $anio);
-		$dias_vacaciones = $dias_vacaciones ?: ['dias_gastados' => 0, 'dias_totales' => 0];
+		$dias_vacaciones = $dias_vacaciones ?: ['dias_gastados' => 0, 'dias_totales' => 0, 'dias_liquidacion_redondeados' => 0];
 
 		// Obtener días disponibles de festivo local
 		$dias_festivo_local = $m->getDiasDisponiblesAusencias($pernr, '3', 'anual', $anio);
@@ -84,6 +84,7 @@ if (isset($_GET['obtener_dias_disponibles_por_anio']) && !empty($_GET['pernr']) 
 				'vacaciones' => array(
 					'dias_gastados' => $dias_vacaciones['dias_gastados'] ?? 0,
 					'dias_totales' => $dias_vacaciones['dias_totales'] ?? 0,
+					'dias_liquidacion_redondeados' => $dias_vacaciones['dias_liquidacion_redondeados'] ?? 0,
 					'dias_disponibles' => ($dias_vacaciones['dias_totales'] ?? 0) - ($dias_vacaciones['dias_gastados'] ?? 0)
 				),
 				'festivo_local' => array(
@@ -114,14 +115,14 @@ if (isset($_GET['load_fincas_soc']) and $_GET['load_fincas_soc'] != '') {
 	$fincas = $m->fincas_agromobile($_GET['load_fincas_soc'], $_GET['division']);
 	?>
 	<p style="font-weight: bold;"><?php echo $lang['auto1']; ?></p>
-	<input type="checkbox" id="option-all" class="form-check-input" onchange="checkAll(this)" checked>
+	<input type="checkbox" id="option-all" class="form-check-input" onchange="checkAll(this)">
 	<label for="option-all"><?php echo $lang['auto2']; ?></label>
 	<br><br>
 	<div class="row">
 		<?php
 		foreach ($fincas as $result) {
 			echo '<div class="col-md-3 mb-2">
-						<input type="checkbox" name="fincas[]" value="' . $result['ZZCODFI'] . '" class="form-check-input" checked> ' . $result['DESFI'] . '
+						<input type="checkbox" name="fincas[]" value="' . $result['ZZCODFI'] . '" class="form-check-input"> ' . $result['DESFI'] . '
 					</div>';
 		}
 		echo "</div>";
