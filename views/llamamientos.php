@@ -410,7 +410,11 @@ include_once("header.php");
 				{ 
 					'data': 'PERNR',
 					'render': function (data, type, row) {
-						const movilValido = row.MOVIL && row.MOVIL.trim() !== '' && /^\d{9}$/.test(row.MOVIL);
+						// Eliminamos todos los espacios en el móvil
+						const movilLimpio = row.MOVIL ? row.MOVIL.replace(/\s+/g, '') : '';
+						// Validación
+						const movilValido = movilLimpio !== '' && /^\d{9}$/.test(movilLimpio);
+						
 						const prefijoValido = row.PREFIJO && row.PREFIJO.trim() !== '';
 						
 						return movilValido && prefijoValido

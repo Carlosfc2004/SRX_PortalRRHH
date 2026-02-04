@@ -260,6 +260,7 @@ include_once("header.php");
                                                             }
 
                                                             echo trim($mensaje);
+                                                            echo "<br><a href='./cartas/llama" . $resultado['NUM_ENVIO'] . "rrhh.php?pernr=" . md5($resultado['PERNR']) . "' target='_blank'> MÁS INFO</a>";
                                                         } else {
                                                             echo "No hay mensaje disponible.";
                                                         }

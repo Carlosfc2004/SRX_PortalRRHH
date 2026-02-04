@@ -1,7 +1,4 @@
 <?php
-// var_dump($params['trabajadores_auditoria']);
-// var_dump($params['datos_export_ofi']);
-// die;
 include_once("header.php");
 ?>
 
@@ -987,7 +984,7 @@ include_once("header.php");
                                     value='<?php echo isset($_POST['campo3_6']) ? htmlspecialchars($_POST['campo3_6']) : ''; ?>'>
 
                                 <button type="button" target="_blank"
-                                    onclick="document.getElementById('exportar').action='exportar.php?informe_presencia_ofi_audi_pdf'; document.getElementById('exportar').target='_blank'; document.getElementById('exportar').submit();"
+                                    onclick="document.getElementById('exportar').action='exportar.php?informe_presencia_ofi_audi_pdf_new'; document.getElementById('exportar').target='_blank'; document.getElementById('exportar').submit();"
                                     style="background-color: white; margin-right: 60px;">
                                     <img src="img/pdf.png" style="max-width: 100px; width: 50px;">
                                 </button>

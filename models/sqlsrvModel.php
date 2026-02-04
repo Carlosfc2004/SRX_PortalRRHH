@@ -958,7 +958,7 @@ class sqlsrvModel
         }
 
         // Usar parámetros preparados para evitar inyección SQL
-        $sql = "EXEC [dbo].[sp_DiasDisponiblesVacaciones_años_proporcion2] @pernr = ?, @anio_solicitud = ?";
+        $sql = "EXEC [dbo].[sp_DiasLiquidacionVacaciones] @pernr = ?, @anio_solicitud = ?";
         $params = array($pernr, $anio_solicitud);
 
         $consulta = sqlsrv_query($conn, $sql, $params);
@@ -984,14 +984,14 @@ class sqlsrvModel
         }
 
         // Usar parámetros preparados para evitar inyección SQL
-        $sql = "EXEC [dbo].[sp_contar_solicitudes_periodo_new] @pernr = ?, @id_ausencia = ?, @periodo = ?, @anio = ?";
-        $params = array($pernr, $id_ausencia, $periodo, $anio);
+        $sql = "EXEC [dbo].[sp_contar_solicitudes_periodo] @pernr = '$pernr', @id_ausencia = '$id_ausencia', @periodo = '$periodo', @anio = '$anio'";
+        $params = array();
 
         $consulta = sqlsrv_query($conn, $sql, $params);
 
         if ($consulta === FALSE) {
             $errors = sqlsrv_errors();
-            error_log("Error al ejecutar sp_contar_solicitudes_periodo_new: " . print_r($errors, true));
+            error_log("Error al ejecutar sp_contar_solicitudes_periodo: " . print_r($errors, true));
             return null;
         }
 
@@ -3331,7 +3331,7 @@ class sqlsrvModel
         $sql = "OPEN SYMMETRIC KEY ClaveSimétricaPA_REG 
                 DECRYPTION BY CERTIFICATE CertificadoPA_REG;
 
-                SELECT 
+                SELECT TOP 1000
                     a.[ID],
                     a.[FECHA_REGISTRO],
                     a.[PERNR],
@@ -3976,12 +3976,13 @@ class sqlsrvModel
         // Para cada trabajador en el array
         foreach ($_POST['user_remesas'] as $pernr) {
             // Obtener datos del trabajador
-            $sql_trabajador = "SELECT [PERNR]
-                                    ,MAX([MOVIL]) AS MOVIL
-                                    ,MAX([PRE_TELF]) AS PREFIJO
+            $sql_trabajador = "SELECT TOP 1
+                                    PERNR,
+                                    MOVIL,
+                                    PRE_TELF AS PREFIJO
                                 FROM [" . ConfigMuleSoft::$bdsrx_nombre . "].[dbo].[PA0105]
                                 WHERE PERNR = ?
-                                GROUP BY PERNR";
+                                ORDER BY FECHA_IN DESC, ID DESC";
             $params_trabajador = [$pernr];
             $consulta_trabajador = $this->ejecutarConsulta($conn, $sql_trabajador, $params_trabajador);
             $datos_trabajador = sqlsrv_fetch_array($consulta_trabajador, SQLSRV_FETCH_ASSOC);
@@ -4749,8 +4750,6 @@ class sqlsrvModel
                       ,d.[activo]
                       ,u.[sede] 
                       ,u.[nombre] AS nombre_ubi
-                      ,u.latitud
-                      ,u.longitud
                 FROM [webphp_dispositivos] d
                 LEFT JOIN 
                     [webphp_ubicaciones_dispo] u
@@ -5453,9 +5452,9 @@ class sqlsrvModel
     public function grupos_horario()
     {
         $conn = $this->ConectarAppReclutamiento();
-        $sql = "SELECT id, nombre_grupo, descripcion_grupo, franjas_json, grupo_predeterminado, 
-                       fecha_creacion, anio_configuracion
-                FROM webphp_grupos_horarios 
+        $sql = "SELECT id, nombre_grupo, descripcion_grupo, franjas_json, grupo_predeterminado,
+                       fecha_creacion, anio_configuracion, max_dias_vacaciones
+                FROM webphp_grupos_horarios
                 ORDER BY grupo_predeterminado DESC, id DESC";
         $consulta = sqlsrv_query($conn, $sql);
         $resultado = array();
@@ -5468,7 +5467,7 @@ class sqlsrvModel
     }
 
 
-    public function nuevo_grupo_horario($nombre_grupo, $descripcion, $franjas_json, $grupo_predeterminado, $anio_configuracion, $fecha_creacion)
+    public function nuevo_grupo_horario($nombre_grupo, $descripcion, $franjas_json, $grupo_predeterminado, $anio_configuracion, $max_dias_vacaciones, $fecha_creacion)
     {
         $conn = $this->ConectarAppReclutamiento();
 
@@ -5479,8 +5478,9 @@ class sqlsrvModel
             sqlsrv_query($conn, $tsql_reset, $params_reset);
         }
 
-        $tsql = "INSERT INTO webphp_grupos_horarios (nombre_grupo, descripcion_grupo, franjas_json, grupo_predeterminado, anio_configuracion, fecha_creacion)
-                 VALUES ('$nombre_grupo', '$descripcion', '$franjas_json', $grupo_predeterminado, $anio_configuracion, '$fecha_creacion')";
+        $max_dias_sql = $max_dias_vacaciones !== null ? $max_dias_vacaciones : 'NULL';
+        $tsql = "INSERT INTO webphp_grupos_horarios (nombre_grupo, descripcion_grupo, franjas_json, grupo_predeterminado, anio_configuracion, max_dias_vacaciones, fecha_creacion)
+                 VALUES ('$nombre_grupo', '$descripcion', '$franjas_json', $grupo_predeterminado, $anio_configuracion, $max_dias_sql, '$fecha_creacion')";
 
 
         $insertfila = sqlsrv_query($conn, $tsql);
@@ -5512,7 +5512,7 @@ class sqlsrvModel
     }
 
     // Función para editar un grupo de horario existente
-    public function editar_grupo_horario($id, $nombre_grupo, $descripcion, $franjas_json, $grupo_predeterminado)
+    public function editar_grupo_horario($id, $nombre_grupo, $descripcion, $franjas_json, $grupo_predeterminado, $max_dias_vacaciones)
     {
         $conn = $this->ConectarAppReclutamiento();
 
@@ -5537,7 +5537,8 @@ class sqlsrvModel
                  SET nombre_grupo = ?,
                      descripcion_grupo = ?,
                      franjas_json = ?,
-                     grupo_predeterminado = ?
+                     grupo_predeterminado = ?,
+                     max_dias_vacaciones = ?
                  WHERE id = ?";
 
         $params = array(
@@ -5545,6 +5546,7 @@ class sqlsrvModel
             $descripcion,
             $franjas_json,
             $grupo_predeterminado,
+            $max_dias_vacaciones,
             $id
         );
 

@@ -802,9 +802,6 @@ class index
 					//Actualización en último registo de PA0001 ----- David Pinilla
 					$resultadoPA0001 = $m->update_nfc_pa0001($_GET['id'], $_POST['nfc']);
 
-
-
-
 					$correcto = 0;
 					$error = 0;
 
@@ -1262,8 +1259,8 @@ class index
 				$params['datos_export_alm'] = $m->informePresenciaAlmacen($_POST['fecha_inicio_alm'], $_POST['fecha_fin_alm'], $pernr, $_POST['puertaTesa']);
 			}
 		}
-		$params['sociedad'] = $m->Sociedades();
-		$params['sedes'] = $m->sedes();
+		// $params['sociedad'] = $m->Sociedades();
+		// $params['sedes'] = $m->sedes();
 		$params['puertas'] = $m->puertas_tesa();
 		require 'views/exportar.php';
 	}
@@ -1440,6 +1437,7 @@ class index
 
 		} elseif (isset($_POST['form_oficina'])) {
 			$params['datos_export_ofi'] = $m->informePresenciaOficina2($_POST);
+			$m->reg_acciones('Auditoría de presencia', 'Busqueda / '. $_POST['fecha_inicio_ofi'] . " - " . $_POST['fecha_fin_ofi'], $_SESSION["id_user_surexport_appreclu"], 'OK');
 
 		} elseif (isset($_POST['fecha_valida'])) {
 			$fecha = $_POST['fecha_valida'];
@@ -1971,13 +1969,14 @@ class index
 				$franjas_json = isset($_POST['franjas_json']) ? $_POST['franjas_json'] : '[]';
 				$grupo_predeterminado = (isset($_POST['grupo_predeterminado']) && $_POST['grupo_predeterminado'] == '1') ? 1 : 0;
 				$anio_configuracion = isset($_POST['anio_configuracion']) ? intval($_POST['anio_configuracion']) : date('Y');
+				$max_dias_vacaciones = isset($_POST['max_dias_vacaciones']) && $_POST['max_dias_vacaciones'] !== '' ? intval($_POST['max_dias_vacaciones']) : null;
 				$fecha_hoy = date('Y-m-d\TH:i:s');
 
 				// Validar datos básicos
 				if (empty($nombre_grupo)) {
 					$params['resultado'] = 'El nombre del grupo es obligatorio';
 				} else {
-					if ($m->nuevo_grupo_horario($nombre_grupo, $descripcion, $franjas_json, $grupo_predeterminado, $anio_configuracion, $fecha_hoy)) {
+					if ($m->nuevo_grupo_horario($nombre_grupo, $descripcion, $franjas_json, $grupo_predeterminado, $anio_configuracion, $max_dias_vacaciones, $fecha_hoy)) {
 						$params['resultado'] = 'Grupo de horario creado correctamente';
 						// Recargar la lista de grupos
 						$params['grupos_horario'] = $m->grupos_horario();
@@ -1992,6 +1991,7 @@ class index
 				$descripcion = trim($_POST['descripcion_grupo']);
 				$franjas_json = isset($_POST['franjas_json']) ? $_POST['franjas_json'] : '[]';
 				$grupo_predeterminado = (isset($_POST['grupo_predeterminado']) && $_POST['grupo_predeterminado'] == '1') ? 1 : 0;
+				$max_dias_vacaciones = isset($_POST['max_dias_vacaciones']) && $_POST['max_dias_vacaciones'] !== '' ? intval($_POST['max_dias_vacaciones']) : null;
 
 				// Validar datos básicos
 				if (empty($nombre_grupo)) {
@@ -1999,7 +1999,7 @@ class index
 				} elseif ($grupo_id <= 0) {
 					$params['resultado'] = 'ID de grupo inválido';
 				} else {
-					if ($m->editar_grupo_horario($grupo_id, $nombre_grupo, $descripcion, $franjas_json, $grupo_predeterminado)) {
+					if ($m->editar_grupo_horario($grupo_id, $nombre_grupo, $descripcion, $franjas_json, $grupo_predeterminado, $max_dias_vacaciones)) {
 						$params['resultado'] = 'Grupo de horario actualizado correctamente';
 						// Recargar la lista de grupos
 						$params['grupos_horario'] = $m->grupos_horario();
