@@ -985,4 +985,90 @@ if (isset($_GET['load_fincas_soc']) and $_GET['load_fincas_soc'] != '') {
 		}
 		exit;
 	}
+
+		// Endpoint para obtener documentos de un trabajador desde SAP
+		if (isset($_GET['obtener_documentos_trabajador']) && !empty($_GET['pernr'])) {
+			header('Content-Type: application/json; charset=utf-8');
+			$pernr = $_GET['pernr'];
+			require_once __DIR__ . '/core/SAPSoapConnector.php';
+			$sap = new SAPSoapConnector();
+			$docs = $sap->docList($pernr);
+			echo json_encode([
+				'success' => true,
+				'data' => $docs
+			]);
+			exit;
+		}
+
+		// Descargar/previsualizar documento
+		if (isset($_GET['descargar_documento']) && !empty($_GET['doknr'])) {
+			header('Content-Type: application/json; charset=utf-8');
+			require_once __DIR__ . '/core/SAPSoapConnector.php';
+			$sap = new SAPSoapConnector();
+			$result = $sap->docGet($_GET['doknr']);
+
+			if (empty($result) || (isset($result['E_SUBRC']) && $result['E_SUBRC'] != '0')) {
+				echo json_encode(['success' => false, 'message' => $result['E_MESSAGE'] ?? 'Error al obtener documento']);
+			} else {
+				echo json_encode(['success' => true, 'data' => [
+					'content'  => $result['E_CONTENT']  ?? '',
+					'filename' => $result['E_FILENAME']  ?? 'documento',
+					'mimetype' => $result['E_MIMETYPE']  ?? 'application/octet-stream',
+					'filesize' => $result['E_FILESIZE']  ?? 0,
+				]]);
+			}
+			exit;
+		}
+
+		// Eliminar documento
+		if (isset($_GET['eliminar_documento']) && !empty($_GET['doknr'])) {
+			header('Content-Type: application/json; charset=utf-8');
+			require_once __DIR__ . '/core/SAPSoapConnector.php';
+			$sap = new SAPSoapConnector();
+			$result = $sap->docDelete($_GET['doknr']);
+
+			echo json_encode([
+				'success' => isset($result['E_SUBRC']) && $result['E_SUBRC'] == '0',
+				'message' => $result['E_MESSAGE'] ?? 'Documento eliminado'
+			]);
+			exit;
+		}
+
+		// Subir documento
+		if (isset($_GET['subir_documento'])) {
+			header('Content-Type: application/json; charset=utf-8');
+			require_once __DIR__ . '/core/SAPSoapConnector.php';
+
+			$pernr       = $_POST['pernr']       ?? '';
+			$filename    = $_POST['filename']    ?? '';
+			$description = $_POST['description'] ?? '';
+			$content     = $_POST['content']     ?? '';
+			$created_by  = $_POST['nombre-user-surexport-appreclu']  ?? '';
+
+			if (empty($pernr) || empty($filename) || empty($content)) {
+				echo json_encode(['success' => false, 'message' => 'Faltan datos obligatorios']);
+				exit;
+			}
+
+			$pernr  = str_pad($pernr, 8, '0', STR_PAD_LEFT);
+			$sap    = new SAPSoapConnector();
+			$result = $sap->docUpload($pernr, $filename, $description, $content, $created_by);
+
+			if (empty($result)) {
+				echo json_encode(['success' => false, 'message' => 'Sin respuesta de SAP']);
+			} elseif (($result['E_SUBRC'] ?? '1') == '0') {
+				echo json_encode([
+					'success' => true,
+					'message' => $result['E_MESSAGE'] ?? 'Documento subido correctamente',
+					'doknr'   => $result['E_DOKNR']   ?? ''
+				]);
+			} else {
+				echo json_encode([
+					'success' => false,
+					'message' => $result['E_MESSAGE'] ?? 'Error al subir el documento'
+				]);
+			}
+			exit;
+		}
 	?>
+	

@@ -699,15 +699,14 @@ class sqlsrvModel
     {
         $conn = $this->conectarDatasphere();
 
-        // Consulta SQL con parámetros
-        $sql = "EXEC [dbo].[RRHH_SP_PA0002]
-                @PERNR = N'$PERNR';";
-
-        // Usar parámetros para prevenir inyección de SQL
-        $consulta = sqlsrv_query($conn, $sql);
+        // Consulta SQL con parámetros preparados
+        $sql = "EXEC [dbo].[RRHH_SP_PA0002] @PERNR = ?";
+        
+        // Preparar y ejecutar con parámetros
+        $params = array($PERNR);
+        $consulta = sqlsrv_query($conn, $sql, $params);
 
         if ($consulta === FALSE) {
-            echo $sql; // Imprimir la consulta para depuración
             die($this->FormatErrors(sqlsrv_errors())); // Manejo de errores
         } else {
             // Verificar el número de filas
@@ -6599,6 +6598,24 @@ class sqlsrvModel
         }
 
         return true;
+    }
+
+    // Obtener documentos de un trabajador por su ID
+    public function obtener_documentos_trabajador($id_trabajador) 
+    {
+        $conn = $this->ConectarAppReclutamiento();
+        $documentos = [];
+        $tsql = "SELECT id, pernr, nombre_archivo, descripcion, creado_por, fecha_creacion
+                FROM documentos_trabajador
+                WHERE pernr = ?";
+        $params = array($id_trabajador);
+        $stmt = sqlsrv_query($conn, $tsql, $params);
+        if ($stmt) {
+            while ($row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
+                $documentos[] = $row;
+            }
+        }
+        return $documentos;
     }
 
 }

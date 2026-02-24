@@ -133,6 +133,13 @@ if (isset($params['info_trabajador']) && is_array($params['info_trabajador'])) {
 							</button>
 						</li>
 
+						<li class="nav-item flex-fill" role="presentation">
+							<button class="nav-link" data-bs-toggle="tab" data-bs-target="#gestion-documental">
+								<i class="bi bi-paperclip"></i>
+								<?php echo $lang['pestaña_11']; ?>
+							</button>
+						</li>
+
 					</ul>
 
 
@@ -2652,6 +2659,457 @@ if (isset($params['info_trabajador']) && is_array($params['info_trabajador'])) {
 								</tbody>
 							</table>
 						</div>
+
+						
+						<!-- PESTAÑA 11 DOCUMENTOS -->
+						<div class="tab-pane fade pt-2" id="gestion-documental">
+
+							<!-- Toolbar -->
+							<div class="d-flex justify-content-between align-items-center mb-3 mt-2">
+								<span class="small text-muted" id="doc-count-worker"></span>
+								<button type="submit" form="userForm" class="btn btn-primary" onclick="DocumentosWorkerPage.abrirSubir()">
+									<i class="bi bi-cloud-arrow-up me-1"></i><?php echo $lang['doc_subir']; ?>
+								</button>
+							</div>
+
+							<!-- Loader -->
+							<div id="loader-documentos" class="text-center" style="padding: 40px;">
+								<div class="spinner-border text-primary" role="status">
+									<span class="visually-hidden"><?php echo $lang['doc_cargando']; ?></span>
+								</div>
+								<p class="mt-3"><?php echo $lang['doc_cargando']; ?></p>
+							</div>
+
+							<!-- Tabla (inicialmente oculta) -->
+							<div id="tabla-documentos-container" style="display: none;">
+								<table class="table" id="tabla_documentos">
+									<thead>
+										<tr>
+											<div class="col-12">
+												<th class="col-2"><?php echo $lang['doc_n_documento']; ?></th>
+												<th class="col-2"><?php echo $lang['doc_nombre_archivo']; ?></th>
+												<th class="col-2"><?php echo $lang['doc_descripcion']; ?></th>
+												<th class="col-3"><?php echo $lang['doc_creado_por']; ?></th>
+												<th class="col-3"><?php echo $lang['doc_acciones']; ?></th>
+											</div>
+										</tr>
+									</thead>
+									<tbody id="tbody-documentos-worker">
+										<!-- Los datos se cargarán dinámicamente -->
+									</tbody>
+								</table>
+							</div>
+
+
+							<!-- Modal previsualizar documento -->
+							<div class="modal fade" id="modalPreviewDocWorker" tabindex="-1" aria-hidden="true">
+								<div class="modal-dialog modal-xl modal-dialog-centered">
+									<div class="modal-content">
+										<div class="modal-header py-2">
+											<h6 class="modal-title"><i class="bi bi-eye me-2"></i><span id="preview_title_worker"><?php echo $lang['doc_descripcion']; ?></span></h6>
+											<div class="ms-auto d-flex align-items-center gap-2">
+												<button class="btn btn-sm btn-outline-primary" id="btn-preview-download-worker">
+													<i class="bi bi-download me-1"></i><?php echo $lang['doc_descargar_arch']; ?>
+												</button>
+												<button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+											</div>
+										</div>
+										<div class="modal-body p-0" style="height:75vh; overflow:hidden;">
+											<div id="preview_loading_worker" class="d-flex justify-content-center align-items-center h-100">
+												<div class="text-center">
+													<div class="spinner-border text-primary mb-2" role="status"></div>
+													<div class="text-muted small"><?php echo $lang['doc_previsualizando']; ?></div>
+												</div>
+											</div>
+											<iframe id="preview_iframe_worker" class="d-none" style="width:100%;height:100%;border:none;"></iframe>
+											<div id="preview_image_wrap_worker" class="d-none d-flex justify-content-center align-items-center h-100 bg-dark bg-opacity-10" style="overflow:auto;">
+												<img id="preview_image_worker" style="max-width:100%;max-height:100%;object-fit:contain;">
+											</div>
+											<div id="preview_unsupported_worker" class="d-none d-flex flex-column justify-content-center align-items-center h-100">
+												<i class="bi bi-file-earmark-x display-1 text-muted"></i>
+												<p class="mt-3 text-muted"><?php echo $lang['doc_no_preview']; ?></p>
+												<button class="btn btn-primary" id="btn-preview-dl-fallback-worker">
+													<i class="bi bi-download me-1"></i><?php echo $lang['doc_descargar_arch']; ?>
+												</button>
+											</div>
+										</div>
+									</div>
+								</div>
+							</div>
+
+							<!-- Modal subir documento -->
+							<div class="modal fade" id="modalSubirDocWorker" tabindex="-1" aria-hidden="true">
+								<div class="modal-dialog">
+									<div class="modal-content">
+										<div class="modal-header">
+											<h5 class="modal-title"><i class="bi bi-cloud-arrow-up me-2"></i><?php echo $lang['doc_subir']; ?></h5>
+											<button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+										</div>
+										<div class="modal-body">
+											<div class="mb-3">
+												<label class="form-label"><?php echo $lang['doc_empleado_pernr']; ?></label>
+												<input type="text" class="form-control" id="upload_pernr_worker" readonly>
+											</div>
+											<div class="mb-3">
+												<label class="form-label"><?php echo $lang['doc_archivo']; ?></label>
+												<input type="file" class="form-control" id="upload_file_worker" onchange="DocumentosWorkerPage.onFileSelected()">
+												<div class="form-text" id="upload_file_info_worker"></div>
+											</div>
+											<div class="mb-3">
+												<label class="form-label"><?php echo $lang['doc_descripcion']; ?></label>
+												<input type="text" class="form-control" id="upload_desc_worker" maxlength="40" placeholder="<?php echo $lang['doc_descripcion']; ?>">
+											</div>
+										</div>
+										<div class="modal-footer">
+											<button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><?php echo $lang['doc_cancelar']; ?></button>
+											<button type="submit" form="userForm" class="btn btn-primary" id="btn-upload-worker" onclick="DocumentosWorkerPage.subirDocumento()" disabled>
+												<i class="bi bi-cloud-arrow-up me-1"></i><?php echo $lang['doc_subir_btn']; ?>
+											</button>
+										</div>
+										</div>
+									</div>
+								</div>
+							</div>
+
+							<!-- Modal confirmar eliminacion -->
+							<div class="modal fade" id="modalDeleteDocWorker" tabindex="-1" aria-hidden="true">
+								<div class="modal-dialog modal-sm">
+									<div class="modal-content">
+										<div class="modal-header bg-danger text-white">
+											<h5 class="modal-title"><i class="bi bi-trash me-2"></i><?php echo $lang['doc_eliminar_titulo']; ?></h5>
+											<button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+										</div>
+										<div class="modal-body">
+											<p><?php echo $lang['doc_eliminar_msg']; ?></p>
+											<p class="fw-bold" id="delete_doc_info_worker"></p>
+											<p class="text-danger small"><?php echo $lang['doc_eliminar_aviso']; ?></p>
+										</div>
+										<div class="modal-footer">
+											<button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><?php echo $lang['doc_cancelar']; ?></button>
+											<button type="button" class="btn btn-danger" onclick="DocumentosWorkerPage.confirmarEliminar()">
+												<i class="bi bi-trash me-1"></i><?php echo $lang['doc_eliminar_titulo']; ?>
+											</button>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+
+						<script>
+							let datosDocumentosCargados = false;
+
+							// Función para cargar los documentos del trabajador
+							function cargarDatosDocumentos() {
+								if (datosDocumentosCargados || !trabajadorId) return;
+								fetch(`auto.php?obtener_documentos_trabajador=1&pernr=${trabajadorId}`)
+									.then(response => response.json())
+									.then(result => {
+										document.getElementById('loader-documentos').style.display = 'none';
+										if (result.success && result.data && result.data.length > 0) {
+											DocumentosWorkerPage.docs = result.data;
+											DocumentosWorkerPage.renderTable();
+											document.getElementById('tabla-documentos-container').style.display = 'block';
+										} else {
+											document.getElementById('loader-documentos').innerHTML =
+												'<div class="alert alert-info">No hay documentos disponibles.</div>';
+											document.getElementById('loader-documentos').style.display = 'block';
+										}
+										datosDocumentosCargados = true;
+									})
+									.catch(error => {
+										console.error('Error:', error);
+										document.getElementById('loader-documentos').innerHTML =
+											'<div class="alert alert-danger">Error al cargar los documentos.</div>';
+										document.getElementById('loader-documentos').style.display = 'block';
+									});
+							}
+
+							// Objeto para manejar la lógica de la sección de documentos
+							var DocumentosWorkerPage = {
+								docs: [],
+								deleteDoknr: '',
+								previewBlobUrl: null,
+
+								previewable: {
+									pdf: 'iframe',
+									jpg: 'image', jpeg: 'image', png: 'image', gif: 'image', bmp: 'image', webp: 'image',
+									svg: 'image',
+									txt: 'iframe', csv: 'iframe', xml: 'iframe', html: 'iframe', htm: 'iframe'
+								},
+
+								// Funcon para obtener el PERNR del trabajador actual con su ID
+								getPernr: function() {
+									
+									return trabajadorId || '';
+								},
+
+							
+								buscar: function() {
+									datosDocumentosCargados = false;
+									document.getElementById('loader-documentos').style.display = 'block';
+									document.getElementById('loader-documentos').innerHTML = `
+										<div class="spinner-border text-primary" role="status"></div>
+										<p class="mt-3">Cargando documentos...</p>`;
+									document.getElementById('tabla-documentos-container').style.display = 'none';
+									cargarDatosDocumentos();
+								},
+
+								// Funcion para abrir el modal de subir documento y preparar el formulario
+								renderTable: function() {
+									var tbody = document.getElementById('tbody-documentos-worker');
+									document.getElementById('doc-count-worker').textContent = this.docs.length + ' documentos';
+
+									if (!this.docs || this.docs.length === 0) {
+										tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted py-4">No se encontraron documentos</td></tr>';
+										return;
+									}
+
+									var html = '';
+									for (var i = 0; i < this.docs.length; i++) {
+										var doc = this.docs[i];
+										var id = this.escAttr(doc.DOKNR || '');
+										var fname = this.escAttr(doc.FILENAME || doc.DOKNR || '');
+										var descripcion = this.esc(doc.DESCRIPTION || '');
+										var creado_por = this.esc(doc.CREATED_BY || '');
+
+										html += '<tr>'
+											+ '<td><code>' + id + '</code></td>'
+											+ '<td><i class="bi bi-file-earmark me-1"></i>' + fname + '</td>'
+											+ '<td>' + descripcion + '</td>'
+											+ '<td>' + creado_por + '</td>'
+											+ '<td class="text-center">'
+											+ '<button class="btn btn-sm btn-outline-info me-1" onclick="DocumentosWorkerPage.previsualizar(\'' + id + '\',\'' + fname + '\')" title="Previsualizar"><i class="bi bi-eye"></i></button>'
+											+ '<button class="btn btn-sm btn-outline-primary me-1" onclick="DocumentosWorkerPage.descargar(\'' + id + '\')" title="Descargar"><i class="bi bi-download"></i></button>'
+											+ '<button class="btn btn-sm btn-outline-danger" onclick="DocumentosWorkerPage.eliminar(\'' + id + '\',\'' + fname + '\')" title="Eliminar"><i class="bi bi-trash"></i></button>'
+											+ '</td></tr>';
+									}
+									tbody.innerHTML = html;
+								},
+
+								// Función para previsualizar un documento en el modal
+								previsualizar: async function(doknr, filename) {
+									var self = this;
+									document.getElementById('preview_title_worker').textContent = filename || doknr;
+									document.getElementById('preview_loading_worker').classList.remove('d-none');
+									document.getElementById('preview_iframe_worker').classList.add('d-none');
+									document.getElementById('preview_image_wrap_worker').classList.add('d-none');
+									document.getElementById('preview_unsupported_worker').classList.add('d-none');
+
+									var modal = new bootstrap.Modal(document.getElementById('modalPreviewDocWorker'));
+									modal.show();
+
+									fetch(`auto.php?descargar_documento=1&doknr=${encodeURIComponent(doknr)}`)
+										.then(r => r.json())
+										.then(result => {
+											var data = result.data || result;
+											if (!data.content) { self.showUnsupported(doknr); return; }
+
+											var fname    = data.filename || filename || 'documento';
+											var mimetype = data.mimetype || 'application/octet-stream';
+											var ext      = self.getExtension(fname);
+											if (!mimetype || mimetype === 'application/octet-stream') mimetype = self.guessMimetype(ext);
+
+											var byteChars = atob(data.content);
+											var bytes = new Uint8Array(byteChars.length);
+											for (var i = 0; i < byteChars.length; i++) bytes[i] = byteChars.charCodeAt(i);
+											var blob = new Blob([bytes], { type: mimetype });
+											self.previewBlobUrl = URL.createObjectURL(blob);
+
+											document.getElementById('btn-preview-download-worker').onclick = function() { self.downloadBlob(self.previewBlobUrl, fname); };
+											document.getElementById('btn-preview-dl-fallback-worker').onclick = function() { self.downloadBlob(self.previewBlobUrl, fname); };
+											document.getElementById('preview_loading_worker').classList.add('d-none');
+
+											var mode = self.previewable[ext] || null;
+											if (mode === 'iframe') {
+												var iframe = document.getElementById('preview_iframe_worker');
+												iframe.src = self.previewBlobUrl;
+												iframe.classList.remove('d-none');
+											} else if (mode === 'image') {
+												document.getElementById('preview_image_worker').src = self.previewBlobUrl;
+												document.getElementById('preview_image_wrap_worker').classList.remove('d-none');
+											} else {
+												self.showUnsupported(doknr);
+											}
+										})
+										.catch(() => {
+											document.getElementById('preview_loading_worker').classList.add('d-none');
+											self.showUnsupported(doknr);
+										});
+								},
+
+								// Función para mostrar mensaje de formato no soportado
+								showUnsupported: function(doknr) {
+									document.getElementById('preview_loading_worker').classList.add('d-none');
+									document.getElementById('preview_unsupported_worker').classList.remove('d-none');
+									document.getElementById('btn-preview-dl-fallback-worker').onclick = function() {
+										DocumentosWorkerPage.descargar(doknr);
+									};
+								},
+
+								// Función para liberar recursos de la previsualización
+								cleanupPreview: function() {
+									if (this.previewBlobUrl) { URL.revokeObjectURL(this.previewBlobUrl); this.previewBlobUrl = null; }
+									document.getElementById('preview_iframe_worker').src = 'about:blank';
+									document.getElementById('preview_image_worker').src = '';
+								},
+
+								// Función para descargar un documento
+								descargar: function(doknr) {
+									fetch(`auto.php?descargar_documento=1&doknr=${encodeURIComponent(doknr)}`)
+										.then(r => r.json())
+										.then(result => {
+											var data = result.data || result;
+											if (!data.content) return;
+
+											var filename = data.filename || 'documento';
+											var ext      = this.getExtension(filename);
+											var mimetype = data.mimetype || this.guessMimetype(ext);
+
+											var byteChars = atob(data.content);
+											var bytes = new Uint8Array(byteChars.length);
+											for (var i = 0; i < byteChars.length; i++) bytes[i] = byteChars.charCodeAt(i);
+											var blob = new Blob([bytes], { type: mimetype });
+											this.downloadBlob(URL.createObjectURL(blob), filename);
+										})
+										.catch(err => console.error('Error al descargar:', err));
+								},
+
+								// Función para abrir el modal de confirmación de eliminación
+								eliminar: function(doknr, nombre) {
+									this.deleteDoknr = doknr;
+									document.getElementById('delete_doc_info_worker').textContent = nombre + ' (' + doknr + ')';
+									new bootstrap.Modal(document.getElementById('modalDeleteDocWorker')).show();
+								},
+
+								// Función para confirmar la eliminación de un documento
+								confirmarEliminar: function() {
+									var self = this;
+									fetch(`auto.php?eliminar_documento=1&doknr=${encodeURIComponent(this.deleteDoknr)}`)
+										.then(r => r.json())
+										.then(result => {
+											bootstrap.Modal.getInstance(document.getElementById('modalDeleteDocWorker')).hide();
+											if (result.success) {
+												alertify.success(result.message || 'Documento eliminado');
+												self.buscar();
+											} else {
+												alertify.error(result.message || 'Error al eliminar');
+											}
+										})
+										.catch(() => alertify.error('Error al eliminar el documento'));
+								},
+
+								// Función para abrir el modal de subir documento y preparar el formulario
+								abrirSubir: function() {
+									var pernr = this.getPernr();
+									if (!pernr) return;
+									document.getElementById('upload_pernr_worker').value = pernr;
+									document.getElementById('upload_file_worker').value = '';
+									document.getElementById('upload_desc_worker').value = '';
+									document.getElementById('upload_file_info_worker').textContent = '';
+									document.getElementById('btn-upload-worker').disabled = true;
+									new bootstrap.Modal(document.getElementById('modalSubirDocWorker')).show();
+								},
+
+								// Función para manejar la selección de archivo y habilitar el botón de subir
+								onFileSelected: function() {
+									var input = document.getElementById('upload_file_worker');
+									var info  = document.getElementById('upload_file_info_worker');
+									var btn   = document.getElementById('btn-upload-worker');
+
+									if (input.files && input.files.length > 0) {
+										var file = input.files[0];
+										info.textContent = file.name + ' (' + (file.size / (1024*1024)).toFixed(2) + ' MB)';
+										btn.disabled = false;
+										var desc = document.getElementById('upload_desc_worker');
+										if (!desc.value) desc.value = file.name.replace(/\.[^/.]+$/, '');
+									} else {
+										info.textContent = '';
+										btn.disabled = true;
+									}
+								},
+
+								// Función para subir un documento al servidor
+								subirDocumento: function() {
+									var pernr     = document.getElementById('upload_pernr_worker').value.trim();
+									var fileInput = document.getElementById('upload_file_worker');
+									var desc      = document.getElementById('upload_desc_worker').value.trim();
+
+									if (!fileInput.files || fileInput.files.length === 0) return;
+
+									var file   = fileInput.files[0];
+									var self   = this;
+									var reader = new FileReader();
+									reader.onload = function(e) {
+										var base64 = e.target.result.split(',')[1];
+										var formData = new FormData();
+										formData.append('pernr', pernr);
+										formData.append('filename', file.name);
+										formData.append('description', desc);
+										formData.append('content', base64);
+
+										fetch('auto.php?subir_documento=1', { method: 'POST', body: formData })
+											.then(r => r.json())
+											.then(result => {
+												bootstrap.Modal.getInstance(document.getElementById('modalSubirDocWorker')).hide();
+												if (result.success) {
+													alertify.success(result.message || 'Documento subido correctamente');
+													DocumentosWorkerPage.buscar();
+												} else {
+													alertify.error(result.message || 'Error al subir el documento');
+												}
+											})
+											.catch(() => alertify.error('Error al subir el documento'));
+									};
+									reader.readAsDataURL(file);
+								},
+
+								// Función para crear un enlace de descarga para un blob y simular el clic
+								downloadBlob: function(blobUrl, filename) {
+									var link = document.createElement('a');
+									link.href = blobUrl; link.download = filename;
+									document.body.appendChild(link); link.click(); document.body.removeChild(link);
+								},
+
+								// Función para extraer la extensión de un archivo
+								getExtension: function(filename) {
+									// Si no hay nombre de archivo, retornar cadena vacía
+									if (!filename) return '';
+									var parts = filename.split('.');
+									return parts.length > 1 ? parts.pop().toLowerCase() : '';
+								},
+
+								// Función para adivinar el mimetype basado en la extensión del archivo
+								guessMimetype: function(ext) {
+									var map = {
+										pdf: 'application/pdf',
+										jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png',
+										gif: 'image/gif', bmp: 'image/bmp', webp: 'image/webp', svg: 'image/svg+xml',
+										txt: 'text/plain', csv: 'text/csv', xml: 'text/xml',
+										html: 'text/html', htm: 'text/html',
+										doc: 'application/msword',
+										docx: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+										xls: 'application/vnd.ms-excel',
+										xlsx: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+									};
+									return map[ext] || 'application/octet-stream';
+								},
+
+								esc: function(str) {
+									var div = document.createElement('div');
+									div.appendChild(document.createTextNode(str));
+									return div.innerHTML;
+								},
+
+								escAttr: function(str) {
+									return str.replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '\\"');
+								}
+							};
+
+							// Limpiar blob al cerrar preview
+							document.getElementById('modalPreviewDocWorker').addEventListener('hidden.bs.modal', function() {
+								DocumentosWorkerPage.cleanupPreview();
+							});
+						</script>
 					</div>
 				</div>
 			</div>
@@ -2689,7 +3147,7 @@ if (isset($params['info_trabajador']) && is_array($params['info_trabajador'])) {
 				// Obtén los parámetros de la URL actual
 				var urlParams = new URLSearchParams(window.location.search);
 
-				// Obtén los valores de id_remesa y ano_remesa (asumiendo que están en la URL actual)
+				// Obtén los valores de id_remesa y año_remesa
 				var id_remesa = urlParams.get('id_remesa');
 				var ano_remesa = urlParams.get('ano_remesa');
 
@@ -2889,6 +3347,8 @@ include("footer.php");
 				cargarDatosRopo();
 			} else if (targetId === '#datos-ausencia') {
 				cargarDatosAusencia();
+			} else if (targetId === '#gestion-documental') {
+				cargarDatosDocumentos();
 			}
 		});
 	});

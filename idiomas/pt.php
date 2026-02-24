@@ -333,7 +333,30 @@ $lang = array(
         "new_ubi_if" => "Adicionar se não existir na lista",
         "form_in" => "Formulário incompleto",
         "select_perm_1" => "Você deve selecionar pelo menos uma permissão para continuar",
-        "ok" => "Entendi"
+        "ok" => "Entendi",
+        "pestaña_11"          => "Documentos",
+        "doc_subir"           => "Carregar documento",
+        "doc_n_documento"     => "N. Documento",
+        "doc_nombre_archivo"  => "Nome do ficheiro",
+        "doc_descripcion"     => "Descrição",
+        "doc_creado_por"      => "Criado por",
+        "doc_acciones"        => "Ações",
+        "doc_cargando"        => "A carregar documentos...",
+        "doc_no_disponibles"  => "Não há documentos disponíveis.",
+        "doc_error_cargar"    => "Erro ao carregar os documentos.",
+        "doc_no_encontrados"  => "Nenhum documento encontrado",
+        "doc_previsualizando" => "A carregar documento...",
+        "doc_no_preview"      => "Pré-visualização não disponível para este tipo de ficheiro.",
+        "doc_descargar_arch"  => "Descarregar ficheiro",
+        "doc_empleado_pernr"  => "Funcionário (PERNR)",
+        "doc_archivo"         => "Ficheiro",
+        "doc_cancelar"        => "Cancelar",
+        "doc_subir_btn"       => "Carregar",
+        "doc_eliminar_titulo" => "Eliminar documento",
+        "doc_eliminar_msg"    => "O seguinte documento será eliminado:",
+        "doc_eliminar_aviso"  => "Esta ação não pode ser desfeita.",
+        "doc_documentos"      => "documentos",
+        "doc_crea"
 );
 
 ?>
