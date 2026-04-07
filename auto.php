@@ -4,6 +4,7 @@ session_start();
 include_once("config.php");
 require_once("models/sqlsrvModel.php");
 include_once("idiomas/" . $_SESSION['idioma_surexport_appreclu'] . ".php");
+require_once __DIR__ . '/core/SAPMuleSoftConnector.php';
 $m = new sqlsrvModel();
 
 //Cambiamos el idioma
@@ -986,89 +987,137 @@ if (isset($_GET['load_fincas_soc']) and $_GET['load_fincas_soc'] != '') {
 		exit;
 	}
 
-		// Endpoint para obtener documentos de un trabajador desde SAP
-		if (isset($_GET['obtener_documentos_trabajador']) && !empty($_GET['pernr'])) {
-			header('Content-Type: application/json; charset=utf-8');
-			$pernr = $_GET['pernr'];
-			require_once __DIR__ . '/core/SAPSoapConnector.php';
-			$sap = new SAPSoapConnector();
-			$docs = $sap->docList($pernr);
+	// Endpoint para listar documentos de un trabajador
+	if (isset($_GET['listar_documentos_sap']) && !empty($_GET['pernr'])) {
+		$pernr = trim($_GET['pernr']);
+		$sap = new SAPMuleSoftConnector();
+		$docs = $sap->listarDocumentos($pernr);
+		
+		header('Content-Type: application/json');
+		echo json_encode($docs);
+		exit;
+	}
+
+	// Endpoint para descargar y previsualizar documento
+	if ((isset($_GET['descargar_documento']) || isset($_GET['preview_documento'])) && !empty($_GET['pernr']) && !empty($_GET['doknr'])) {
+		$pernr = trim($_GET['pernr']);
+		$doknr = trim($_GET['doknr']);
+		$inline = isset($_GET['preview_documento']);
+
+		$sap  = new SAPMuleSoftConnector();
+		$data = $sap->obtenerDocumento($pernr, $doknr);
+
+		if (isset($data['error'])) {
+			http_response_code(500);
+			header('Content-Type: application/json');
+			echo json_encode(['error' => $data['error']]);
+			exit;
+		}
+
+		$disposition = $inline ? 'inline' : 'attachment';
+
+		ob_clean();
+		header('Content-Type: '. $data['mimetype']);
+		header('Content-Disposition: '. $disposition . '; filename="' . $data['filename'] . '"');
+		header('Content-Length: '. strlen($data['content']));
+		echo $data['content'];
+		flush();
+		exit;
+	}
+
+	// Endpoint para subir documento de un trabajador
+	if (isset($_POST['subir_documento_sap']) && !empty($_POST['pernr']) && isset($_FILES['documento'])) {
+		$sap = new SAPMuleSoftConnector();
+		$pernr = trim($_POST['pernr']);
+		$descripcion = $_POST['descripcion'] ?? 'Documento sin descripción';
+		
+		// Verificar que el archivo se haya subido correctamente
+		if ($_FILES['documento']['error'] === UPLOAD_ERR_OK) {
+			$filePath = $_FILES['documento']['tmp_name'];
+			$originalName = $_FILES['documento']['name'];
+			$fileContent = file_get_contents($filePath);
+			$result = $sap->subirDocumento($pernr, $fileContent, $originalName, $descripcion);
+		} else {
+			$result = ['E_SUBRC' => 4, 'E_MESSAGE' => 'Error al subir el archivo al servidor temporal'];
+		}
+
+		// Devolver resultado de la operación
+		header('Content-Type: application/json');
+		echo json_encode($result);
+		exit;
+	}
+
+	// Endpoint para eliminar documento 
+	if (isset($_GET['eliminar_documento']) && !empty($_GET['doknr']) && !empty($_GET['pernr'])) {
+		header('Content-Type: application/json; charset=utf-8');
+		$sap = new SAPMuleSoftConnector();
+		$result = $sap->eliminarDocumento(trim($_GET['pernr']), trim($_GET['doknr']));
+		echo json_encode($result);
+		exit;
+	}
+
+	// Endpoint: Cargar catálogos para alta/baja
+	if (isset($_GET['catalogos_altabajas'])) {
+		header('Content-Type: application/json');
+		try {
+			$posiciones    = $m->curl_api_mulesoft([], 'GET', '/catalogos/posiciones');
+			$motivo_medida = $m->curl_api_mulesoft([], 'GET', '/catalogos/motivos-medida');
+			$tipo_contrato = $m->curl_api_mulesoft([], 'GET', '/catalogos/tipos-contrato');
+			$via_pago      = $m->curl_api_mulesoft([], 'GET', '/catalogos/vias-pago');
+			$almacenes     = $m->curl_api_mulesoft([], 'GET', '/catalogos/almacenes');
+			$area_personal = $m->curl_api_mulesoft([], 'GET', '/catalogos/area-personal');
+
 			echo json_encode([
-				'success' => true,
-				'data' => $docs
+				'success'       => true,
+				'posiciones'    => $posiciones['data']    ?? [],
+				'motivo_medida' => $motivo_medida['data'] ?? [],
+				'tipo_contrato' => $tipo_contrato['data'] ?? [],
+				'via_pago'      => $via_pago['data']      ?? [],
+				'almacenes'     => $almacenes['data']     ?? [],
+				'area_personal' => $area_personal['data'] ?? [],
 			]);
+		} catch (Exception $e) {
+			echo json_encode(['success' => false, 'error' => $e->getMessage()]);
+		}
+		exit;
+	}
+
+	// Endpoint: Crear solicitud de alta o baja
+	$body = json_decode(file_get_contents('php://input'), true) ?? [];
+	if (isset($body['crear_solicitud_altabajas'])) {
+		header('Content-Type: application/json');
+
+		$tipo    = $body['tipo']    ?? '';
+		$subtipo = $body['subtipo'] ?? '';
+
+		if (empty($tipo) || empty($subtipo)) {
+			echo json_encode(['success' => false, 'error' => 'Tipo y subtipo obligatorios']);
 			exit;
 		}
 
-		// Descargar/previsualizar documento
-		if (isset($_GET['descargar_documento']) && !empty($_GET['doknr'])) {
-			header('Content-Type: application/json; charset=utf-8');
-			require_once __DIR__ . '/core/SAPSoapConnector.php';
-			$sap = new SAPSoapConnector();
-			$result = $sap->docGet($_GET['doknr']);
+		// TODO: Implementar cuando MuleSoft tenga el endpoint
+		echo json_encode(['success' => true, 'message' => 'Solicitud creada correctamente']);
+		exit;
+	}
 
-			if (empty($result) || (isset($result['E_SUBRC']) && $result['E_SUBRC'] != '0')) {
-				echo json_encode(['success' => false, 'message' => $result['E_MESSAGE'] ?? 'Error al obtener documento']);
-			} else {
-				echo json_encode(['success' => true, 'data' => [
-					'content'  => $result['E_CONTENT']  ?? '',
-					'filename' => $result['E_FILENAME']  ?? 'documento',
-					'mimetype' => $result['E_MIMETYPE']  ?? 'application/octet-stream',
-					'filesize' => $result['E_FILESIZE']  ?? 0,
-				]]);
-			}
-			exit;
-		}
+	// Endpoint: Buscar trabajador para alta/baja
+	if (isset($_GET['buscar_trabajador_altabajas'])) {
+		header('Content-Type: application/json');
+		$pernr    = trim($_GET['pernr']    ?? '');
+		$nombre   = trim($_GET['nombre']   ?? '');
+		$sociedad = trim($_GET['sociedad'] ?? '');
+		$subtipo  = trim($_GET['subtipo']  ?? '');
 
-		// Eliminar documento
-		if (isset($_GET['eliminar_documento']) && !empty($_GET['doknr'])) {
-			header('Content-Type: application/json; charset=utf-8');
-			require_once __DIR__ . '/core/SAPSoapConnector.php';
-			$sap = new SAPSoapConnector();
-			$result = $sap->docDelete($_GET['doknr']);
+		// Baja = todos los estados, Alta = solo activos
+		$estado = ($subtipo === 'BA') ? '' : '3';
 
-			echo json_encode([
-				'success' => isset($result['E_SUBRC']) && $result['E_SUBRC'] == '0',
-				'message' => $result['E_MESSAGE'] ?? 'Documento eliminado'
-			]);
-			exit;
-		}
+		$trabajadores = $m->buscarTrabajadoresSap($pernr, $nombre, $sociedad, $estado) ?? [];
 
-		// Subir documento
-		if (isset($_GET['subir_documento'])) {
-			header('Content-Type: application/json; charset=utf-8');
-			require_once __DIR__ . '/core/SAPSoapConnector.php';
-
-			$pernr       = $_POST['pernr']       ?? '';
-			$filename    = $_POST['filename']    ?? '';
-			$description = $_POST['description'] ?? '';
-			$content     = $_POST['content']     ?? '';
-			$created_by  = $_POST['nombre-user-surexport-appreclu']  ?? '';
-
-			if (empty($pernr) || empty($filename) || empty($content)) {
-				echo json_encode(['success' => false, 'message' => 'Faltan datos obligatorios']);
-				exit;
-			}
-
-			$pernr  = str_pad($pernr, 8, '0', STR_PAD_LEFT);
-			$sap    = new SAPSoapConnector();
-			$result = $sap->docUpload($pernr, $filename, $description, $content, $created_by);
-
-			if (empty($result)) {
-				echo json_encode(['success' => false, 'message' => 'Sin respuesta de SAP']);
-			} elseif (($result['E_SUBRC'] ?? '1') == '0') {
-				echo json_encode([
-					'success' => true,
-					'message' => $result['E_MESSAGE'] ?? 'Documento subido correctamente',
-					'doknr'   => $result['E_DOKNR']   ?? ''
-				]);
-			} else {
-				echo json_encode([
-					'success' => false,
-					'message' => $result['E_MESSAGE'] ?? 'Error al subir el documento'
-				]);
-			}
-			exit;
-		}
-	?>
+		echo json_encode([
+			'success' => true,
+			'data'    => $trabajadores ?? []
+		]);
+		exit;
+	}
+?>
 	

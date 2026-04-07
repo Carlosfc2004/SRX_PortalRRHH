@@ -2722,8 +2722,8 @@ if (isset($params['info_trabajador']) && is_array($params['info_trabajador'])) {
 												</div>
 											</div>
 											<iframe id="preview_iframe_worker" class="d-none" style="width:100%;height:100%;border:none;"></iframe>
-											<div id="preview_image_wrap_worker" class="d-none d-flex justify-content-center align-items-center h-100 bg-dark bg-opacity-10" style="overflow:auto;">
-												<img id="preview_image_worker" style="max-width:100%;max-height:100%;object-fit:contain;">
+											<div id="preview_image_wrap_worker" class="d-none d-flex justify-content-center align-items-center bg-dark bg-opacity-10" style="overflow:auto; height:100%;">
+												<img id="preview_image_worker" style="max-width:100%;max-height:75vh;object-fit:contain;">
 											</div>
 											<div id="preview_unsupported_worker" class="d-none d-flex flex-column justify-content-center align-items-center h-100">
 												<i class="bi bi-file-earmark-x display-1 text-muted"></i>
@@ -2762,7 +2762,7 @@ if (isset($params['info_trabajador']) && is_array($params['info_trabajador'])) {
 										</div>
 										<div class="modal-footer">
 											<button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><?php echo $lang['doc_cancelar']; ?></button>
-											<button type="submit" form="userForm" class="btn btn-primary" id="btn-upload-worker" onclick="DocumentosWorkerPage.subirDocumento()" disabled>
+											<button type="button" class="btn btn-primary" id="btn-upload-worker" onclick="DocumentosWorkerPage.subirDocumento()" disabled>
 												<i class="bi bi-cloud-arrow-up me-1"></i><?php echo $lang['doc_subir_btn']; ?>
 											</button>
 										</div>
@@ -2801,11 +2801,15 @@ if (isset($params['info_trabajador']) && is_array($params['info_trabajador'])) {
 							// Función para cargar los documentos del trabajador
 							function cargarDatosDocumentos() {
 								if (datosDocumentosCargados || !trabajadorId) return;
-								fetch(`auto.php?obtener_documentos_trabajador=1&pernr=${trabajadorId}`)
+								fetch(`auto.php?listar_documentos_sap=1&pernr=${trabajadorId}`)
 									.then(response => response.json())
 									.then(result => {
 										document.getElementById('loader-documentos').style.display = 'none';
-										if (result.success && result.data && result.data.length > 0) {
+										if (result.error) {
+											document.getElementById('loader-documentos').innerHTML =
+												'<div class="alert alert-danger">Error al cargar los documentos: ' + result.error + '</div>';
+											document.getElementById('loader-documentos').style.display = 'block';
+										} else if (result.data && result.data.length > 0) {
 											DocumentosWorkerPage.docs = result.data;
 											DocumentosWorkerPage.renderTable();
 											document.getElementById('tabla-documentos-container').style.display = 'block';
@@ -2828,6 +2832,7 @@ if (isset($params['info_trabajador']) && is_array($params['info_trabajador'])) {
 							var DocumentosWorkerPage = {
 								docs: [],
 								deleteDoknr: '',
+								deletePernr: '',
 								previewBlobUrl: null,
 
 								previewable: {
@@ -2867,74 +2872,60 @@ if (isset($params['info_trabajador']) && is_array($params['info_trabajador'])) {
 									var html = '';
 									for (var i = 0; i < this.docs.length; i++) {
 										var doc = this.docs[i];
-										var id = this.escAttr(doc.DOKNR || '');
-										var fname = this.escAttr(doc.FILENAME || doc.DOKNR || '');
-										var descripcion = this.esc(doc.DESCRIPTION || '');
-										var creado_por = this.esc(doc.CREATED_BY || '');
+										var id          = this.escAttr(doc.DOKNR     || doc.doknr     || '');
+										var fname       = this.escAttr(doc.FILENAME  || doc.filename  || doc.DOKNR || doc.doknr || '');
+										var descripcion = this.esc(doc.DESCRIPTION   || doc.description || '');
+										var creado_por  = this.esc(doc.CREATED_BY    || doc.created_by  || '');
+										var pernr = this.escAttr(this.getPernr());
+
 
 										html += '<tr>'
 											+ '<td><code>' + id + '</code></td>'
 											+ '<td><i class="bi bi-file-earmark me-1"></i>' + fname + '</td>'
 											+ '<td>' + descripcion + '</td>'
 											+ '<td>' + creado_por + '</td>'
-											+ '<td class="text-center">'
-											+ '<button class="btn btn-sm btn-outline-info me-1" onclick="DocumentosWorkerPage.previsualizar(\'' + id + '\',\'' + fname + '\')" title="Previsualizar"><i class="bi bi-eye"></i></button>'
-											+ '<button class="btn btn-sm btn-outline-primary me-1" onclick="DocumentosWorkerPage.descargar(\'' + id + '\')" title="Descargar"><i class="bi bi-download"></i></button>'
-											+ '<button class="btn btn-sm btn-outline-danger" onclick="DocumentosWorkerPage.eliminar(\'' + id + '\',\'' + fname + '\')" title="Eliminar"><i class="bi bi-trash"></i></button>'
+											+ '<td class="text-nowrap">'
+											+ '<button class="btn btn-sm btn-outline-info me-1" onclick="DocumentosWorkerPage.previsualizar(\'' + id + '\',\'' + fname + '\',\'' + pernr + '\')" title="Previsualizar"><i class="bi bi-eye"></i></button>'
+											+ '<button class="btn btn-sm btn-outline-primary me-1" onclick="DocumentosWorkerPage.descargar(\'' + id + '\',\'' + pernr + '\')" title="Descargar"><i class="bi bi-download"></i></button>'
+											+ '<button class="btn btn-sm btn-outline-danger" onclick="DocumentosWorkerPage.eliminar(\'' + id + '\',\'' + fname + '\',\'' + pernr + '\')" title="Eliminar"><i class="bi bi-trash"></i></button>'
 											+ '</td></tr>';
 									}
 									tbody.innerHTML = html;
 								},
 
 								// Función para previsualizar un documento en el modal
-								previsualizar: async function(doknr, filename) {
+								previsualizar: async function(doknr, filename, pernr) {
 									var self = this;
+									var ext = self.getExtension(filename);
+									var mode = self.previewable[ext] || null;
+
 									document.getElementById('preview_title_worker').textContent = filename || doknr;
 									document.getElementById('preview_loading_worker').classList.remove('d-none');
 									document.getElementById('preview_iframe_worker').classList.add('d-none');
 									document.getElementById('preview_image_wrap_worker').classList.add('d-none');
 									document.getElementById('preview_unsupported_worker').classList.add('d-none');
 
-									var modal = new bootstrap.Modal(document.getElementById('modalPreviewDocWorker'));
-									modal.show();
+									new bootstrap.Modal(document.getElementById('modalPreviewDocWorker')).show();
 
-									fetch(`auto.php?descargar_documento=1&doknr=${encodeURIComponent(doknr)}`)
-										.then(r => r.json())
-										.then(result => {
-											var data = result.data || result;
-											if (!data.content) { self.showUnsupported(doknr); return; }
+									var urlDescarga  = `auto.php?descargar_documento=1&pernr=${encodeURIComponent(pernr)}&doknr=${encodeURIComponent(doknr)}`;
+    								var urlPreview   = `auto.php?preview_documento=1&pernr=${encodeURIComponent(pernr)}&doknr=${encodeURIComponent(doknr)}`;
 
-											var fname    = data.filename || filename || 'documento';
-											var mimetype = data.mimetype || 'application/octet-stream';
-											var ext      = self.getExtension(fname);
-											if (!mimetype || mimetype === 'application/octet-stream') mimetype = self.guessMimetype(ext);
+									document.getElementById('btn-preview-download-worker').onclick = function() { window.open(urlDescarga, '_blank'); };
+									document.getElementById('btn-preview-dl-fallback-worker').onclick = function() { window.open(urlDescarga, '_blank'); };
+									document.getElementById('preview_loading_worker').classList.add('d-none');
 
-											var byteChars = atob(data.content);
-											var bytes = new Uint8Array(byteChars.length);
-											for (var i = 0; i < byteChars.length; i++) bytes[i] = byteChars.charCodeAt(i);
-											var blob = new Blob([bytes], { type: mimetype });
-											self.previewBlobUrl = URL.createObjectURL(blob);
-
-											document.getElementById('btn-preview-download-worker').onclick = function() { self.downloadBlob(self.previewBlobUrl, fname); };
-											document.getElementById('btn-preview-dl-fallback-worker').onclick = function() { self.downloadBlob(self.previewBlobUrl, fname); };
-											document.getElementById('preview_loading_worker').classList.add('d-none');
-
-											var mode = self.previewable[ext] || null;
-											if (mode === 'iframe') {
-												var iframe = document.getElementById('preview_iframe_worker');
-												iframe.src = self.previewBlobUrl;
-												iframe.classList.remove('d-none');
-											} else if (mode === 'image') {
-												document.getElementById('preview_image_worker').src = self.previewBlobUrl;
-												document.getElementById('preview_image_wrap_worker').classList.remove('d-none');
-											} else {
-												self.showUnsupported(doknr);
-											}
-										})
-										.catch(() => {
-											document.getElementById('preview_loading_worker').classList.add('d-none');
-											self.showUnsupported(doknr);
-										});
+									if (mode === 'iframe') {
+										var iframe = document.getElementById('preview_iframe_worker');
+										iframe.src = urlPreview;
+										iframe.classList.remove('d-none');
+									} else if (mode === 'image') {
+										var imgEl = document.getElementById('preview_image_worker');
+										var wrapEl = document.getElementById('preview_image_wrap_worker');
+										imgEl.src = urlPreview;
+										wrapEl.classList.remove('d-none');
+									} else {
+										self.showUnsupported(doknr);
+									}
 								},
 
 								// Función para mostrar mensaje de formato no soportado
@@ -2954,29 +2945,14 @@ if (isset($params['info_trabajador']) && is_array($params['info_trabajador'])) {
 								},
 
 								// Función para descargar un documento
-								descargar: function(doknr) {
-									fetch(`auto.php?descargar_documento=1&doknr=${encodeURIComponent(doknr)}`)
-										.then(r => r.json())
-										.then(result => {
-											var data = result.data || result;
-											if (!data.content) return;
-
-											var filename = data.filename || 'documento';
-											var ext      = this.getExtension(filename);
-											var mimetype = data.mimetype || this.guessMimetype(ext);
-
-											var byteChars = atob(data.content);
-											var bytes = new Uint8Array(byteChars.length);
-											for (var i = 0; i < byteChars.length; i++) bytes[i] = byteChars.charCodeAt(i);
-											var blob = new Blob([bytes], { type: mimetype });
-											this.downloadBlob(URL.createObjectURL(blob), filename);
-										})
-										.catch(err => console.error('Error al descargar:', err));
+								descargar: function(doknr, pernr) {
+									window.open(`auto.php?descargar_documento=1&pernr=${encodeURIComponent(pernr)}&doknr=${encodeURIComponent(doknr)}`, '_blank');
 								},
 
 								// Función para abrir el modal de confirmación de eliminación
-								eliminar: function(doknr, nombre) {
+								eliminar: function(doknr, nombre, pernr) {
 									this.deleteDoknr = doknr;
+									this.deletePernr = pernr;
 									document.getElementById('delete_doc_info_worker').textContent = nombre + ' (' + doknr + ')';
 									new bootstrap.Modal(document.getElementById('modalDeleteDocWorker')).show();
 								},
@@ -2984,7 +2960,7 @@ if (isset($params['info_trabajador']) && is_array($params['info_trabajador'])) {
 								// Función para confirmar la eliminación de un documento
 								confirmarEliminar: function() {
 									var self = this;
-									fetch(`auto.php?eliminar_documento=1&doknr=${encodeURIComponent(this.deleteDoknr)}`)
+									fetch(`auto.php?eliminar_documento=1&doknr=${encodeURIComponent(this.deleteDoknr)}&pernr=${encodeURIComponent(this.deletePernr)}`)
 										.then(r => r.json())
 										.then(result => {
 											bootstrap.Modal.getInstance(document.getElementById('modalDeleteDocWorker')).hide();
@@ -3037,30 +3013,24 @@ if (isset($params['info_trabajador']) && is_array($params['info_trabajador'])) {
 									if (!fileInput.files || fileInput.files.length === 0) return;
 
 									var file   = fileInput.files[0];
-									var self   = this;
-									var reader = new FileReader();
-									reader.onload = function(e) {
-										var base64 = e.target.result.split(',')[1];
-										var formData = new FormData();
-										formData.append('pernr', pernr);
-										formData.append('filename', file.name);
-										formData.append('description', desc);
-										formData.append('content', base64);
+									var formData = new FormData();
+									formData.append('subir_documento_sap', '1');
+									formData.append('pernr', pernr);
+									formData.append('descripcion', desc);
+									formData.append('documento', file);
 
-										fetch('auto.php?subir_documento=1', { method: 'POST', body: formData })
-											.then(r => r.json())
-											.then(result => {
-												bootstrap.Modal.getInstance(document.getElementById('modalSubirDocWorker')).hide();
-												if (result.success) {
-													alertify.success(result.message || 'Documento subido correctamente');
-													DocumentosWorkerPage.buscar();
-												} else {
-													alertify.error(result.message || 'Error al subir el documento');
-												}
-											})
-											.catch(() => alertify.error('Error al subir el documento'));
-									};
-									reader.readAsDataURL(file);
+									fetch('auto.php', { method: 'POST', body: formData })
+										.then(r => r.json())
+										.then(result => {
+											bootstrap.Modal.getInstance(document.getElementById('modalSubirDocWorker')).hide();
+											if (result.E_SUBRC === 0) {
+												alertify.success(result.E_MESSAGE || 'Documento subido correctamente');
+												DocumentosWorkerPage.buscar();
+											} else {
+												alertify.error(result.E_MESSAGE || 'Error al subir el documento');
+											}
+										})
+										.catch(() => alertify.error('Error al subir el documento'));
 								},
 
 								// Función para crear un enlace de descarga para un blob y simular el clic

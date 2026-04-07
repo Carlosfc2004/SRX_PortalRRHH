@@ -267,7 +267,7 @@ class index
 	public function trabajadores_sap()
 	{
 		include_once("idiomas/" . $_SESSION['idioma_surexport_appreclu'] . ".php");
-		if (!in_array(1, $_SESSION["permisos_surexport_appreclu"])) {
+		if (!in_array(33, $_SESSION["permisos_surexport_appreclu"])) {
 			header("Location: admin_cont.php?controller=index&action=error404");
 		}
 
@@ -287,13 +287,21 @@ class index
 		require 'views/trabajadores_sap.php';
 	}
 
-
+	// Alta / Baja de trabajadores
+	public function altabajas()
+	{
+		include_once("idiomas/" . $_SESSION['idioma_surexport_appreclu'] . ".php");
+		if (!in_array(33, $_SESSION["permisos_surexport_appreclu"])) {
+			header("Location: admin_cont.php?controller=index&action=error404");
+		}
+		require 'views/altabajas.php';
+	}
 
 	//Datos Trabajadores SAP
 	public function update_trabajador()
 	{
 		include_once("idiomas/" . $_SESSION['idioma_surexport_appreclu'] . ".php");
-		if (!in_array(1, $_SESSION["permisos_surexport_appreclu"])) {
+		if (!in_array(33, $_SESSION["permisos_surexport_appreclu"])) {
 			header("Location: admin_cont.php?controller=index&action=error404");
 		}
 		$m = new sqlsrvModel();

@@ -1638,35 +1638,42 @@ class sqlsrvModel
     // Funcion para utilizar el curl para todas las llamadas a la api de mulesoft
     public function curl_api_mulesoft($data, $metod, $path)
     {
-        // URL de la API
+        // Construir la URL completa para la llamada a la API
         $url = ConfigApiMulesoft::$api_url . $path;
-
-        // Credenciales
         $client_id = ConfigApiMulesoft::$api_client_id;
         $client_secret = ConfigApiMulesoft::$api_client_secret;
 
-        $json_data = json_encode($data);
-
-        // Inicializar cURL
         $ch = curl_init();
-
-        // Configurar las opciones de cURL
         curl_setopt($ch, CURLOPT_URL, $url);
-        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $metod);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, $json_data);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_HTTPHEADER, [
-            'Content-Type: application/json',
-            'Content-Length: ' . strlen($json_data),
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false); 
+
+        $headers = [
             'client_id: ' . $client_id,
-            'client_secret: ' . $client_secret,
-            'Accept: application/json'
-        ]);
+            'client_secret: ' . $client_secret
+        ];
 
-        // Realizar la llamada PATCH
+        if (strtoupper($metod) !== 'GET') {
+            curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $metod);
+            // Si hay CURLFile en el payload, enviar como multipart (NO json_encode)
+            $hasFile = false;
+            foreach ($data as $v) {
+                if ($v instanceof CURLFile) { $hasFile = true; break; }
+            }
+            
+            if ($hasFile) {
+                curl_setopt($ch, CURLOPT_POSTFIELDS, $data); // multipart/form-data automático
+                // NO añadir Content-Type, curl lo gestiona solo con el boundary
+            } else {
+                curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
+                $headers[] = 'Content-Type: application/json; charset=utf-8';
+            }
+        }
+
+
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
         $response = curl_exec($ch);
-
-        // var_dump($response);
 
         // Preparar el array de respuesta
         $result = array(
@@ -1690,16 +1697,13 @@ class sqlsrvModel
         // Decodificar la respuesta
         $api_response = json_decode($response, true);
 
-        // echo $api_response['resul'] ." Resul <br>";
-        // echo $api_response['status']." Status";
-        // die;
-
         // Manejar diferentes códigos de respuesta HTTP
         switch ($http_code) {
             case 200:
             case 201:
             case 204:
-                $result['success'] = $api_response['status'];
+                $result['success'] = true;
+                $result['data'] = $api_response;
                 $result['message'] = isset($api_response['message']) ? $api_response['message'] : 'Accion terminada correctamente';
                 break;
 
@@ -1725,13 +1729,17 @@ class sqlsrvModel
             case 503:
             case 504:
                 $result['message'] = 'Error del servidor: Por favor, intente más tarde';
+                $result['debug_info']['http_code']    = $http_code;
+                $result['debug_info']['raw_response'] = $response;
+                $result['debug_info']['url']          = $url;
+                $result['debug_info']['payload_size'] = strlen(json_encode($data, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
                 break;
 
             default:
                 $result['message'] = isset($api_response['message']) ?
-                    $api_response['message'] :
-                    'Error desconocido (Código: ' . $http_code . ')';
-        }
+                $api_response['message'] :
+                'Error desconocido (Código: ' . $http_code . ')';
+            }
 
         return $result;
     }

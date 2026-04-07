@@ -88,11 +88,11 @@
 
 
 
-//Configuración conexiones, APIs
+	//Configuración conexiones, APIs
 	class ConfigApiMulesoft{
-		// QA
-		// static public $api_url 			 = "https://e-personal-api-lew5o5.a8uuoc.deu-c1.cloudhub.io/api";
-		static public $api_url 			 = "https://surexport-s-sap-qa-lew5o5.a8uuoc.deu-c1.cloudhub.io/api";
+		// QA https://surexport-s-sap-qa-lew5o5.a8uuoc.deu-c1.cloudhub.io
+		static public $api_url 			 = "https://e-personal-api-lew5o5.a8uuoc.deu-c1.cloudhub.io/api";
+		// static public $api_url 			 = "https://surexport-s-sap-qa-lew5o5.a8uuoc.deu-c1.cloudhub.io/api";
 		static public $api_client_id   	 = "8859b0e11f434a10b5e55abaade33a07";
 		static public $api_client_secret = "65CF7d7f63504bD295b78F3f9F35c70d";
 
