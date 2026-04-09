@@ -2668,7 +2668,7 @@ if (isset($params['info_trabajador']) && is_array($params['info_trabajador'])) {
 							<div class="d-flex justify-content-between align-items-center mb-3 mt-2">
 								<span class="small text-muted" id="doc-count-worker"></span>
 								<button type="submit" form="userForm" class="btn btn-primary" onclick="DocumentosWorkerPage.abrirSubir()">
-									<i class="bi bi-cloud-arrow-up me-1"></i><?php echo $lang['doc_subir']; ?>
+									<i class="bi bi-file-earmark-arrow-up me-1"></i><?php echo $lang['doc_subir']; ?>
 								</button>
 							</div>
 
@@ -2689,7 +2689,6 @@ if (isset($params['info_trabajador']) && is_array($params['info_trabajador'])) {
 												<th class="col-2"><?php echo $lang['doc_n_documento']; ?></th>
 												<th class="col-2"><?php echo $lang['doc_nombre_archivo']; ?></th>
 												<th class="col-2"><?php echo $lang['doc_descripcion']; ?></th>
-												<th class="col-3"><?php echo $lang['doc_creado_por']; ?></th>
 												<th class="col-3"><?php echo $lang['doc_acciones']; ?></th>
 											</div>
 										</tr>
@@ -2742,7 +2741,7 @@ if (isset($params['info_trabajador']) && is_array($params['info_trabajador'])) {
 								<div class="modal-dialog">
 									<div class="modal-content">
 										<div class="modal-header">
-											<h5 class="modal-title"><i class="bi bi-cloud-arrow-up me-2"></i><?php echo $lang['doc_subir']; ?></h5>
+											<h5 class="modal-title"><i class="bi bi-file-earmark-arrow-up me-2"></i><?php echo $lang['doc_subir']; ?></h5>
 											<button type="button" class="btn-close" data-bs-dismiss="modal"></button>
 										</div>
 										<div class="modal-body">
@@ -2763,7 +2762,7 @@ if (isset($params['info_trabajador']) && is_array($params['info_trabajador'])) {
 										<div class="modal-footer">
 											<button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><?php echo $lang['doc_cancelar']; ?></button>
 											<button type="button" class="btn btn-primary" id="btn-upload-worker" onclick="DocumentosWorkerPage.subirDocumento()" disabled>
-												<i class="bi bi-cloud-arrow-up me-1"></i><?php echo $lang['doc_subir_btn']; ?>
+												<i class="bi bi-file-earmark-arrow-up me-1"></i><?php echo $lang['doc_subir_btn']; ?>
 											</button>
 										</div>
 										</div>
@@ -2859,6 +2858,38 @@ if (isset($params['info_trabajador']) && is_array($params['info_trabajador'])) {
 									cargarDatosDocumentos();
 								},
 
+								// Funcion para que el icono del documento se muestre segun su extension
+								getFileIcon: function(filename) {
+									var ext = this.getExtension(filename);
+									var icons = {
+										// Documentos
+										pdf:  'bi-file-earmark-pdf text-danger',
+										doc:  'bi-file-earmark-word text-primary',
+										docx: 'bi-file-earmark-word text-primary',
+										xls:  'bi-file-earmark-excel text-success',
+										xlsx: 'bi-file-earmark-excel text-success',
+										ppt:  'bi-file-earmark-ppt text-warning',
+										pptx: 'bi-file-earmark-ppt text-warning',
+										txt:  'bi-file-earmark-text text-secondary',
+										csv:  'bi-file-earmark-spreadsheet text-success',
+										// Imágenes
+										jpg:  'bi-file-earmark-image text-info',
+										jpeg: 'bi-file-earmark-image text-info',
+										png:  'bi-file-earmark-image text-info',
+										gif:  'bi-file-earmark-image text-info',
+										bmp:  'bi-file-earmark-image text-info',
+										webp: 'bi-file-earmark-image text-info',
+										svg:  'bi-file-earmark-image text-info',
+										// Comprimidos
+										zip:  'bi-file-earmark-zip text-warning',
+										rar:  'bi-file-earmark-zip text-warning',
+										// Otros
+										xml:  'bi-file-earmark-code text-secondary',
+										html: 'bi-file-earmark-code text-secondary',
+									};
+									return icons[ext] || 'bi-file-earmark text-secondary';
+								},
+
 								// Funcion para abrir el modal de subir documento y preparar el formulario
 								renderTable: function() {
 									var tbody = document.getElementById('tbody-documentos-worker');
@@ -2875,15 +2906,13 @@ if (isset($params['info_trabajador']) && is_array($params['info_trabajador'])) {
 										var id          = this.escAttr(doc.DOKNR     || doc.doknr     || '');
 										var fname       = this.escAttr(doc.FILENAME  || doc.filename  || doc.DOKNR || doc.doknr || '');
 										var descripcion = this.esc(doc.DESCRIPTION   || doc.description || '');
-										var creado_por  = this.esc(doc.CREATED_BY    || doc.created_by  || '');
 										var pernr = this.escAttr(this.getPernr());
 
 
 										html += '<tr>'
 											+ '<td><code>' + id + '</code></td>'
-											+ '<td><i class="bi bi-file-earmark me-1"></i>' + fname + '</td>'
+											+ '<td><i class="bi ' + DocumentosWorkerPage.getFileIcon(fname) + ' me-1"></i>' + fname + '</td>'
 											+ '<td>' + descripcion + '</td>'
-											+ '<td>' + creado_por + '</td>'
 											+ '<td class="text-nowrap">'
 											+ '<button class="btn btn-sm btn-outline-info me-1" onclick="DocumentosWorkerPage.previsualizar(\'' + id + '\',\'' + fname + '\',\'' + pernr + '\')" title="Previsualizar"><i class="bi bi-eye"></i></button>'
 											+ '<button class="btn btn-sm btn-outline-primary me-1" onclick="DocumentosWorkerPage.descargar(\'' + id + '\',\'' + pernr + '\')" title="Descargar"><i class="bi bi-download"></i></button>'
@@ -2950,47 +2979,64 @@ if (isset($params['info_trabajador']) && is_array($params['info_trabajador'])) {
 								},
 
 								// Función para abrir el modal de confirmación de eliminación
-								eliminar: function(doknr, nombre, pernr) {
-									this.deleteDoknr = doknr;
-									this.deletePernr = pernr;
-									document.getElementById('delete_doc_info_worker').textContent = nombre + ' (' + doknr + ')';
-									new bootstrap.Modal(document.getElementById('modalDeleteDocWorker')).show();
-								},
+								   eliminar: function(doknr, nombre, pernr) {
+									   this.deleteDoknr = doknr;
+									   this.deletePernr = pernr;
+									   document.getElementById('delete_doc_info_worker').textContent = nombre + ' (' + doknr + ')';
+									   var btn = document.querySelector('#modalDeleteDocWorker .btn-danger');
+									   if (btn) {
+										   btn.disabled = false;
+										   btn.innerHTML = '<i class="bi bi-trash me-1"></i>' + (typeof lang !== 'undefined' && lang['doc_eliminar_titulo'] ? lang['doc_eliminar_titulo'] : 'Eliminar');
+									   }
+									   new bootstrap.Modal(document.getElementById('modalDeleteDocWorker')).show();
+								   },
 
 								// Función para confirmar la eliminación de un documento
-								confirmarEliminar: function() {
-									var self = this;
-									fetch(`auto.php?eliminar_documento=1&doknr=${encodeURIComponent(this.deleteDoknr)}&pernr=${encodeURIComponent(this.deletePernr)}`)
-										.then(r => r.json())
-										.then(result => {
-											bootstrap.Modal.getInstance(document.getElementById('modalDeleteDocWorker')).hide();
-											if (result.success) {
-												alertify.success(result.message || 'Documento eliminado');
-												self.buscar();
-											} else {
-												alertify.error(result.message || 'Error al eliminar');
-											}
-										})
-										.catch(() => alertify.error('Error al eliminar el documento'));
-								},
+								   confirmarEliminar: function() {
+									   var self = this;
+									   var btn = document.querySelector('#modalDeleteDocWorker .btn-danger');
+									   if (btn) {
+										   btn.disabled = true;
+										   btn.innerHTML = 'Procesando...';
+									   }
+									   fetch(`auto.php?eliminar_documento=1&doknr=${encodeURIComponent(this.deleteDoknr)}&pernr=${encodeURIComponent(this.deletePernr)}`)
+										   .then(r => r.json())
+										   .then(result => {
+											   bootstrap.Modal.getInstance(document.getElementById('modalDeleteDocWorker')).hide();
+											   if (result.success) {
+												   alertify.success(result.message || 'Documento eliminado');
+												   self.buscar();
+											   } else {
+												   alertify.error(result.message || 'Error al eliminar');
+											   }
+										   })
+										   .catch(() => alertify.error('Error al eliminar el documento'));
+								   },
 
 								// Función para abrir el modal de subir documento y preparar el formulario
-								abrirSubir: function() {
-									var pernr = this.getPernr();
-									if (!pernr) return;
-									document.getElementById('upload_pernr_worker').value = pernr;
-									document.getElementById('upload_file_worker').value = '';
-									document.getElementById('upload_desc_worker').value = '';
-									document.getElementById('upload_file_info_worker').textContent = '';
-									document.getElementById('btn-upload-worker').disabled = true;
-									new bootstrap.Modal(document.getElementById('modalSubirDocWorker')).show();
-								},
+								   abrirSubir: function() {
+										var pernr = this.getPernr();
+										if (!pernr) return;
+										document.getElementById('upload_pernr_worker').value = pernr;
+										document.getElementById('upload_file_worker').value = '';
+										document.getElementById('upload_desc_worker').value = '';
+										document.getElementById('upload_file_info_worker').textContent = '';
+										var btn = document.getElementById('btn-upload-worker');
+										btn.disabled = true;
+										btn.innerHTML = '<i class="bi bi-file-earmark-arrow-up me-1"></i>' + (typeof lang !== 'undefined' && lang['doc_subir_btn'] ? lang['doc_subir_btn'] : 'Subir');
+										new bootstrap.Modal(document.getElementById('modalSubirDocWorker')).show();
+								   },
 
 								// Función para manejar la selección de archivo y habilitar el botón de subir
 								onFileSelected: function() {
 									var input = document.getElementById('upload_file_worker');
 									var info  = document.getElementById('upload_file_info_worker');
 									var btn   = document.getElementById('btn-upload-worker');
+
+									btn.addEventListener('click', () => {
+										btn.disabled = true;
+										btn.innerHTML = 'Procesando...';
+									});
 
 									if (input.files && input.files.length > 0) {
 										var file = input.files[0];
@@ -3078,6 +3124,22 @@ if (isset($params['info_trabajador']) && is_array($params['info_trabajador'])) {
 							// Limpiar blob al cerrar preview
 							document.getElementById('modalPreviewDocWorker').addEventListener('hidden.bs.modal', function() {
 								DocumentosWorkerPage.cleanupPreview();
+							});
+
+							// Restablecer el botón de subir al cerrar el modal de subir documento
+							document.getElementById('modalSubirDocWorker').addEventListener('hidden.bs.modal', function() {
+								var btn = document.getElementById('btn-upload-worker');
+								btn.disabled = true;
+								btn.innerHTML = '<i class="bi bi-file-earmark-arrow-up me-1"></i>' + (typeof lang !== 'undefined' && lang['doc_subir_btn'] ? lang['doc_subir_btn'] : 'Subir');
+							});
+
+							// Restablecer el botón de eliminar al cerrar el modal de eliminar documento
+							document.getElementById('modalDeleteDocWorker').addEventListener('hidden.bs.modal', function() {
+								var btn = document.querySelector('#modalDeleteDocWorker .btn-danger');
+								if (btn) {
+									btn.disabled = false;
+									btn.innerHTML = '<i class="bi bi-trash me-1"></i>' + (typeof lang !== 'undefined' && lang['doc_eliminar_titulo'] ? lang['doc_eliminar_titulo'] : 'Eliminar');
+								}
 							});
 						</script>
 					</div>

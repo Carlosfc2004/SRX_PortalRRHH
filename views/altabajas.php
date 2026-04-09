@@ -216,7 +216,7 @@
 
                 <div id="boton-enviar" class="d-none mt-4 pt-3 ">
                     <button class="btn btn-primary" onclick="AltaBajas.abrirConfirmacion()">
-                        <i class="bi bi-check-circle me-1"></i> Crear solicitud
+                        <i class="bi bi-person-add me-1"></i> Crear solicitud
                     </button>
                 </div>
             </div> 
@@ -475,7 +475,7 @@
             var nombre = (emp.NACHN || '') + (emp.NACH2 ? ' ' + emp.NACH2 : '') + ', ' + (emp.VORNA || '');
             document.getElementById('ab_search_result').innerHTML =
                 '<div class="alert alert-info mb-0 mt-2">'
-                + '<i class="bi bi-person-check me-1"></i>'
+                + '<i class="bi bi-person-add me-1"></i>'
                 + '<strong>' + nombre + '</strong>'
                 + ' &mdash; PERNR: <code>' + (emp.PERNR || '') + '</code>'
                 + ' <button class="btn btn-sm btn-outline-secondary ms-2" onclick="AltaBajas.resetBusqueda()"><i class="bi bi-x"></i> Cambiar</button>'
