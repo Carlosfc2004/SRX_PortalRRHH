@@ -2682,15 +2682,13 @@ if (isset($params['info_trabajador']) && is_array($params['info_trabajador'])) {
 
 							<!-- Tabla (inicialmente oculta) -->
 							<div id="tabla-documentos-container" style="display: none;">
-								<table class="table" id="tabla_documentos">
+								<table class="table w-100" id="tabla_documentos">
 									<thead>
 										<tr>
-											<div class="col-12">
-												<th class="col-2"><?php echo $lang['doc_n_documento']; ?></th>
-												<th class="col-2"><?php echo $lang['doc_nombre_archivo']; ?></th>
-												<th class="col-2"><?php echo $lang['doc_descripcion']; ?></th>
-												<th class="col-3"><?php echo $lang['doc_acciones']; ?></th>
-											</div>
+											<th style="width:15%"><?php echo $lang['doc_n_documento']; ?></th>
+											<th style="width:30%"><?php echo $lang['doc_nombre_archivo']; ?></th>
+											<th style="width:40%"><?php echo $lang['doc_descripcion']; ?></th>
+											<th style="width:15%"><?php echo $lang['doc_acciones']; ?></th>
 										</tr>
 									</thead>
 									<tbody id="tbody-documentos-worker">
@@ -2979,53 +2977,53 @@ if (isset($params['info_trabajador']) && is_array($params['info_trabajador'])) {
 								},
 
 								// Función para abrir el modal de confirmación de eliminación
-								   eliminar: function(doknr, nombre, pernr) {
-									   this.deleteDoknr = doknr;
-									   this.deletePernr = pernr;
-									   document.getElementById('delete_doc_info_worker').textContent = nombre + ' (' + doknr + ')';
-									   var btn = document.querySelector('#modalDeleteDocWorker .btn-danger');
-									   if (btn) {
-										   btn.disabled = false;
-										   btn.innerHTML = '<i class="bi bi-trash me-1"></i>' + (typeof lang !== 'undefined' && lang['doc_eliminar_titulo'] ? lang['doc_eliminar_titulo'] : 'Eliminar');
-									   }
-									   new bootstrap.Modal(document.getElementById('modalDeleteDocWorker')).show();
-								   },
+								eliminar: function(doknr, nombre, pernr) {
+									this.deleteDoknr = doknr;
+									this.deletePernr = pernr;
+									document.getElementById('delete_doc_info_worker').textContent = nombre + ' (' + doknr + ')';
+									var btn = document.querySelector('#modalDeleteDocWorker .btn-danger');
+									if (btn) {
+										btn.disabled = false;
+										btn.innerHTML = '<i class="bi bi-trash me-1"></i>' + (typeof lang !== 'undefined' && lang['doc_eliminar_titulo'] ? lang['doc_eliminar_titulo'] : 'Eliminar');
+									}
+									new bootstrap.Modal(document.getElementById('modalDeleteDocWorker')).show();
+								},
 
 								// Función para confirmar la eliminación de un documento
-								   confirmarEliminar: function() {
-									   var self = this;
-									   var btn = document.querySelector('#modalDeleteDocWorker .btn-danger');
-									   if (btn) {
-										   btn.disabled = true;
-										   btn.innerHTML = 'Procesando...';
-									   }
-									   fetch(`auto.php?eliminar_documento=1&doknr=${encodeURIComponent(this.deleteDoknr)}&pernr=${encodeURIComponent(this.deletePernr)}`)
-										   .then(r => r.json())
-										   .then(result => {
-											   bootstrap.Modal.getInstance(document.getElementById('modalDeleteDocWorker')).hide();
-											   if (result.success) {
-												   alertify.success(result.message || 'Documento eliminado');
-												   self.buscar();
-											   } else {
-												   alertify.error(result.message || 'Error al eliminar');
-											   }
-										   })
-										   .catch(() => alertify.error('Error al eliminar el documento'));
-								   },
+								confirmarEliminar: function() {
+									var self = this;
+									var btn = document.querySelector('#modalDeleteDocWorker .btn-danger');
+									if (btn) {
+										btn.disabled = true;
+										btn.innerHTML = 'Procesando...';
+									}
+									fetch(`auto.php?eliminar_documento=1&doknr=${encodeURIComponent(this.deleteDoknr)}&pernr=${encodeURIComponent(this.deletePernr)}`)
+										.then(r => r.json())
+										.then(result => {
+											bootstrap.Modal.getInstance(document.getElementById('modalDeleteDocWorker')).hide();
+											if (result.success) {
+												alertify.success(result.message || 'Documento eliminado');
+												self.buscar();
+											} else {
+												alertify.error(result.message || 'Error al eliminar');
+											}
+										})
+										.catch(() => alertify.error('Error al eliminar el documento'));
+								},
 
 								// Función para abrir el modal de subir documento y preparar el formulario
-								   abrirSubir: function() {
-										var pernr = this.getPernr();
-										if (!pernr) return;
-										document.getElementById('upload_pernr_worker').value = pernr;
-										document.getElementById('upload_file_worker').value = '';
-										document.getElementById('upload_desc_worker').value = '';
-										document.getElementById('upload_file_info_worker').textContent = '';
-										var btn = document.getElementById('btn-upload-worker');
-										btn.disabled = true;
-										btn.innerHTML = '<i class="bi bi-file-earmark-arrow-up me-1"></i>' + (typeof lang !== 'undefined' && lang['doc_subir_btn'] ? lang['doc_subir_btn'] : 'Subir');
-										new bootstrap.Modal(document.getElementById('modalSubirDocWorker')).show();
-								   },
+								abrirSubir: function() {
+									var pernr = this.getPernr();
+									if (!pernr) return;
+									document.getElementById('upload_pernr_worker').value = pernr;
+									document.getElementById('upload_file_worker').value = '';
+									document.getElementById('upload_desc_worker').value = '';
+									document.getElementById('upload_file_info_worker').textContent = '';
+									var btn = document.getElementById('btn-upload-worker');
+									btn.disabled = true;
+									btn.innerHTML = '<i class="bi bi-file-earmark-arrow-up me-1"></i>' + (typeof lang !== 'undefined' && lang['doc_subir_btn'] ? lang['doc_subir_btn'] : 'Subir');
+									new bootstrap.Modal(document.getElementById('modalSubirDocWorker')).show();
+								},
 
 								// Función para manejar la selección de archivo y habilitar el botón de subir
 								onFileSelected: function() {

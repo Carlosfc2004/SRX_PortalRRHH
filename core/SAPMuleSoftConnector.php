@@ -46,18 +46,14 @@ class SAPMuleSoftConnector {
     /**
      * Subir documento
      */
-    public function subirDocumento($pernr, $fileContent, $originalName, $descripcion) {
-        $tempFile = tempnam(sys_get_temp_dir(), 'doc_');
-        file_put_contents($tempFile, $fileContent);
-
+    public function subirDocumento($pernr, $filePath, $originalName, $descripcion) {
         $payload = [
             'FILENAME'    => $originalName,
             'DESCRIPTION' => $descripcion,
-            'DOC'         => new CURLFile($tempFile, 'application/octet-stream', $originalName)
+            'DOC'         => new CURLFile($filePath, 'application/octet-stream', $originalName)
         ];
 
         $apiResponse = $this->model->curl_api_mulesoft($payload, 'POST', "/documentos/$pernr");
-        unlink($tempFile);
 
         if (!isset($apiResponse['success']) || $apiResponse['success'] !== true) {
             return ['E_SUBRC' => 4, 'E_MESSAGE' => $apiResponse['message'] ?? 'Error de conexión con el servidor'];

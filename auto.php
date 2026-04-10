@@ -989,37 +989,30 @@ if (isset($_GET['load_fincas_soc']) and $_GET['load_fincas_soc'] != '') {
 
 	// Endpoint para listar documentos de un trabajador
 	if (isset($_GET['listar_documentos_sap']) && !empty($_GET['pernr'])) {
-		$pernr = trim($_GET['pernr']);
 		$sap = new SAPMuleSoftConnector();
-		$docs = $sap->listarDocumentos($pernr);
-		
-		header('Content-Type: application/json');
-		echo json_encode($docs);
+		header('Content-Type: application/json; charset=utf-8');
+		echo json_encode($sap->listarDocumentos(trim($_GET['pernr'])));
 		exit;
 	}
 
 	// Endpoint para descargar y previsualizar documento
 	if ((isset($_GET['descargar_documento']) || isset($_GET['preview_documento'])) && !empty($_GET['pernr']) && !empty($_GET['doknr'])) {
-		$pernr = trim($_GET['pernr']);
-		$doknr = trim($_GET['doknr']);
-		$inline = isset($_GET['preview_documento']);
-
 		$sap  = new SAPMuleSoftConnector();
-		$data = $sap->obtenerDocumento($pernr, $doknr);
+		$data = $sap->obtenerDocumento(trim($_GET['pernr']), trim($_GET['doknr']));
 
 		if (isset($data['error'])) {
 			http_response_code(500);
-			header('Content-Type: application/json');
+			header('Content-Type: application/json; charset=utf-8');
 			echo json_encode(['error' => $data['error']]);
 			exit;
 		}
 
-		$disposition = $inline ? 'inline' : 'attachment';
+		$disposition = isset($_GET['preview_documento']) ? 'inline' : 'attachment';
 
-		ob_clean();
-		header('Content-Type: '. $data['mimetype']);
-		header('Content-Disposition: '. $disposition . '; filename="' . $data['filename'] . '"');
-		header('Content-Length: '. strlen($data['content']));
+		if (ob_get_level()) ob_end_clean();
+		header('Content-Type: ' . $data['mimetype']);
+		header('Content-Disposition: ' . $disposition . '; filename="' . $data['filename'] . '"');
+		header('Content-Length: ' . strlen($data['content']));
 		echo $data['content'];
 		flush();
 		exit;
@@ -1028,31 +1021,28 @@ if (isset($_GET['load_fincas_soc']) and $_GET['load_fincas_soc'] != '') {
 	// Endpoint para subir documento de un trabajador
 	if (isset($_POST['subir_documento_sap']) && !empty($_POST['pernr']) && isset($_FILES['documento'])) {
 		$sap = new SAPMuleSoftConnector();
-		$pernr = trim($_POST['pernr']);
-		$descripcion = $_POST['descripcion'] ?? 'Documento sin descripción';
-		
-		// Verificar que el archivo se haya subido correctamente
+
 		if ($_FILES['documento']['error'] === UPLOAD_ERR_OK) {
-			$filePath = $_FILES['documento']['tmp_name'];
-			$originalName = $_FILES['documento']['name'];
-			$fileContent = file_get_contents($filePath);
-			$result = $sap->subirDocumento($pernr, $fileContent, $originalName, $descripcion);
+			$result = $sap->subirDocumento(
+				trim($_POST['pernr']),
+				$_FILES['documento']['tmp_name'],
+				$_FILES['documento']['name'],
+				$_POST['descripcion'] ?? 'Documento sin descripción'
+			);
 		} else {
 			$result = ['E_SUBRC' => 4, 'E_MESSAGE' => 'Error al subir el archivo al servidor temporal'];
 		}
 
-		// Devolver resultado de la operación
-		header('Content-Type: application/json');
+		header('Content-Type: application/json; charset=utf-8');
 		echo json_encode($result);
 		exit;
 	}
 
 	// Endpoint para eliminar documento 
 	if (isset($_GET['eliminar_documento']) && !empty($_GET['doknr']) && !empty($_GET['pernr'])) {
-		header('Content-Type: application/json; charset=utf-8');
 		$sap = new SAPMuleSoftConnector();
-		$result = $sap->eliminarDocumento(trim($_GET['pernr']), trim($_GET['doknr']));
-		echo json_encode($result);
+		header('Content-Type: application/json; charset=utf-8');
+		echo json_encode($sap->eliminarDocumento(trim($_GET['pernr']), trim($_GET['doknr'])));
 		exit;
 	}
 
